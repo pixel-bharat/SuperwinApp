@@ -1,111 +1,151 @@
-import React from "react";
+import React, { useState } from "react";
 import {
-  SafeAreaView,
   ScrollView,
   View,
-  ImageBackground,
   Image,
-  Text,
+  ImageBackground,
+  StatusBar,
   StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faLock, faUser, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Alert } from "react-native";
+export default function SignUpPage({ navigation }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const handleSignUp = async () => {
+    if (password !== confirmPassword) {
+      Alert.alert("Error", "Passwords do not match.");
+      return;
+    }
+    try {
+      const response = await fetch("https://localhost:3000/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      if (response.ok) {
+        navigation.navigate("Login");
+      } else {
+        const errorData = await response.json();
+        Alert.alert("Error", errorData.message);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      Alert.alert("Error", "An unexpected error occurred. Please try again.");
+    }
+  };
 
-const Stack = createNativeStackNavigator();
-
-export default function Onboarding({ navigation }) {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
+    <ScrollView contentContainerStyle={styles.container}>
+      <StatusBar style="auto" />
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
       >
-        <ImageBackground
-          source={require("../assets/Maskbackround.png")}
-          style={styles.imageBackground}
+        <FontAwesomeIcon icon={faArrowLeft} size={20} color="#fff" />
+      </TouchableOpacity>
+      <ImageBackground
+        source={require("../assets/Maskbackround.png")}
+        style={styles.backgroundStyle}
+      >
+        <Image source={require("../assets/logo.png")} style={styles.logo} />
+      </ImageBackground>
+      <View style={styles.cont}>
+        <View style={styles.header}>
+          <Text style={styles.heading}>Create an Account</Text>
+          <Text style={styles.textlog}>
+            Get started with SUPERWIN by creating your account
+          </Text>
+        </View>
+        <View style={styles.textInputView}>
+          <FontAwesomeIcon icon={faUser} style={styles.textboxicon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#fff"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+        <View style={styles.textInputView}>
+          <FontAwesomeIcon icon={faLock} style={styles.textboxicon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#fff"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={true}
+            autoCapitalize="none"
+          />
+        </View>
+        <View style={styles.textInputView}>
+          <FontAwesomeIcon icon={faLock} style={styles.textboxicon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Confirm Password"
+            placeholderTextColor="#fff"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={true}
+            autoCapitalize="none"
+          />
+        </View>
+        <LinearGradient
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          colors={["#A903D2", "#410095"]}
+          style={styles.linearGradient}
+          angle={"45"}
+          useAngle={true}
         >
           <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
+            style={styles.buttonContainer}
+            onPress={handleSignUp}
           >
-            <FontAwesomeIcon icon={faArrowLeft} size={20} color="#fff" />
+            <Text style={styles.buttonText}>SIGN UP</Text>
           </TouchableOpacity>
-          <Image source={require("../assets/logo.png")} style={styles.logo} />
-        </ImageBackground>
-
-        <View style={styles.outText}>
-          <View style={styles.header}>
-            <Text style={styles.heading}>Create Account</Text>
-            <Text style={styles.textlog}>
-              Create a account of SUPERWIN.
-            </Text>
-          </View>
-
-          {renderTextInput("Email", faUser)}
-          {renderTextInput("Enter Password", faLock)}
-          {renderTextInput("Confirm Password", faLock)}
-
-          <LinearGradient
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            colors={["#A903D2", "#410095"]}
-            style={styles.linearGradient}
-          >
-            <TouchableOpacity
-              style={styles.buttonContainer}
-              onPress={() => navigation.navigate("Home")}
-            >
-              <Text style={styles.buttonText}>NEXT</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Already have an account?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-              <Text style={styles.signInText}>Sign in</Text>
-            </TouchableOpacity>
-          </View>
+        </LinearGradient>
+        <View style={styles.orContainer}>
+          <View style={styles.line} />
+          <Text style={styles.orText}>OR</Text>
+          <View style={styles.line} />
         </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-
-  function renderTextInput(placeholder, icon) {
-    return (
-      <View style={styles.textInputView}>
-        <FontAwesomeIcon icon={icon} style={styles.textboxicon} />
-        <TextInput
-          style={styles.input}
-          placeholder={placeholder}
-          placeholderTextColor="#fff"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        <View style={styles.socialButtons}>
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={() => console.log("Sign Up with Google Pressed")}
+          >
+            <Image source={require("../assets/Google.png")} />
+            <Text style={styles.socialText}> Google</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.socialButton}
+            onPress={() => console.log("Sign Up with Facebook Pressed")}
+          >
+            <Image source={require("../assets/Facebook.png")} />
+            <Text style={styles.socialText}> Facebook</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    );
-  }
+    </ScrollView>
+  );
 }
-
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: "#000000",
-  },
-  scrollViewContent: {
+  container: {
     flexGrow: 1,
-    justifyContent: "space-between",
-  },
-  imageBackground: {
-    flex: 1, // Make ImageBackground flexible to fit the screen
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "flex-end", // Ensures the content is aligned at the bottom
+    backgroundColor: "#000",
   },
   backButton: {
     position: "absolute",
@@ -113,14 +153,35 @@ const styles = StyleSheet.create({
     left: 30,
     zIndex: 10,
   },
-  logo: {
-    width: 200,
-    height: 200,
-    resizeMode: "contain",
+  backgroundStyle: {
+    flex: 1, // This will ensure it takes all available space in its container
+    width: "100%", // Ensures the background covers the full width of its container
+    justifyContent: "flex-end", // Aligns the child content to the bottom
+    alignItems: "center", // Centers the child content horizontally
   },
-  outText: {
+  logo: {
+    width: 200, // Set a fixed width for the logo
+    height: 150, // Set a fixed height for the logo
+    resizeMode: "contain", // Ensures the image scales correctly within the bounds
+  },
+  cont: {
+    width: "100%",
+    alignItems: "center",
     padding: 30,
-    marginTop: "auto", // Pushes the content to the bottom
+    paddingBottom: 50, // Adds padding at the bottom
+  },
+  textInputView: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF1A",
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    width: "100%",
+    marginBottom: 12,
+  },
+  textboxicon: {
+    color: "#fff",
+    marginRight: 10,
   },
   header: {
     marginBottom: 20,
@@ -135,44 +196,12 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
   },
-  textInputView: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    width: "100%",
-    backgroundColor: "#FFFFFF1A",
-    paddingHorizontal: 20,
-    borderRadius: 10,
-  },
-  textboxicon: {
-    marginRight: 15,
-    color: "#fff",
-  },
   input: {
     flex: 1,
     height: 56,
-    paddingHorizontal: 20,
-    borderRadius: 16,
     color: "#fff",
-  },
-
-  nextText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-  },
-  footer: {
-    flexDirection: "column",
-    alignItems: "center",
-    paddingVertical: 20,
-  },
-  footerText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-  },
-  signInText: {
-    color: "#A903D2",
-    fontSize: 16,
-    fontWeight: "bold",
+    borderRadius: 16,
+    paddingHorizontal: 20,
   },
   linearGradient: {
     marginTop: 20,
@@ -193,6 +222,35 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  orContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#FFFFFF6B",
+  },
+  orText: {
+    width: 30,
+    textAlign: "center",
+    color: "#fff",
+  },
+  socialButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  socialButton: {
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  socialText: {
+    color: "#fff",
+    textDecorationLine: "underline",
     fontWeight: "bold",
   },
 });
