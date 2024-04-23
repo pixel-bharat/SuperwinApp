@@ -1,5 +1,5 @@
 import React from "react";
-import { Easing } from 'react-native';
+import { Easing } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -7,13 +7,13 @@ import Start from "./Appscreen/start"; // Assume Start.js is your current file
 import LoginPage from "./Appscreen/login"; // Assume Login.js is your new login form file
 import Homepage from "./Appscreen/home"; // Assume Login.js is your new login form file
 import Onboardpage from "./Appscreen/onboarding"; // Assume Login.js is your new login form file
-
+import ProfileScreen from "./Appscreen/profileScreen";
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
+    <NavigationContainer >
+      <Stack.Navigator initialRouteName="profileScreen">
         <Stack.Screen
           name="Start"
           component={Start}
@@ -51,6 +51,7 @@ function AppNavigator() {
           component={Onboardpage}
           options={{ headerShown: false }}
         />
+        <Stack.Screen name="profileScreen" component={ProfileScreen}  options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
