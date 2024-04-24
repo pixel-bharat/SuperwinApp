@@ -10,11 +10,11 @@ import Onboardpage from "./Appscreen/onboarding"; // Assume Login.js is your new
 
 const Stack = createNativeStackNavigator();
 
-function AppNavigator() {
+export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen
+      <Stack.Screen
           name="Start"
           component={Start}
           options={{ headerShown: false }}
@@ -41,19 +41,23 @@ function AppNavigator() {
             },
           }}
         />
+         <Stack.Screen
+          name="Onboard"
+          component={Onboardpage}
+          options={{ headerShown: false }}
+        />
+       
+        
         <Stack.Screen
           name="Home"
           component={Homepage}
           options={{ headerShown: false }}
         />
-        <Stack.Screen
-          name="Onboard"
-          component={Onboardpage}
-          options={{ headerShown: false }}
-        />
+        
+     
+        
+       
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-export default AppNavigator;
