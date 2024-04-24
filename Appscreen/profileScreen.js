@@ -56,7 +56,7 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.gap10}></View>
         <Image
           source={require("../assets/Line 3.png")}
-          style={{ marginTop: 16 }}
+          style={{ marginTop: 16,alignSelf:'center' }}
         ></Image>
         <View style={styles.gap10}></View>
         <View style={styles.cardView}>
@@ -380,7 +380,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "rgba(252, 224, 123, 1)",
-    fontFamily: "Open Sans",
     paddingLeft: 6,
   },
   uidbackground2: {
