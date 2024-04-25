@@ -64,7 +64,7 @@ export default function Onboarding({ navigation }) {
           </LinearGradient>
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <TouchableOpacity onPress={() => navigation.navigate("Home")}>
               <Text style={styles.signInText}>Sign in</Text>
             </TouchableOpacity>
           </View>
