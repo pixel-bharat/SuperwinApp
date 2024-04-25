@@ -6,7 +6,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Start from "./Appscreen/start"; // Assume Start.js is your current file
 import LoginPage from "./Appscreen/login"; // Assume Login.js is your new login form file
-// import Homepage from "./Appscreen/home";
+import Homepage from "./Appscreen/home";
 import Onboardpage from "./Appscreen/onboarding"; // Assume Login.js is your new login form file
 import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
@@ -16,7 +16,7 @@ const Stack = createNativeStackNavigator();
 function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="gamesScreen">
+      <Stack.Navigator initialRouteName="Start">
         <Stack.Screen
           name="Start"
           component={Start}
@@ -44,11 +44,11 @@ function AppNavigator() {
             },
           }}
         />
-        {/* <Stack.Screen
+         <Stack.Screen
           name="home"
           component={Homepage}
           options={{ headerShown: false }}
-        />  */}
+        /> 
         <Stack.Screen
           name="Onboard"
           component={Onboardpage}
