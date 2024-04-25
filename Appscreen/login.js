@@ -88,7 +88,7 @@ export default function LoginPage({ navigation }) {
             style={styles.buttonContainer}
             onPress={() => {
               Alert.alert(
-                "Alert",
+                " Login Success" ,
                 "You will now be navigated to Home screen.",
                 [
                   {
