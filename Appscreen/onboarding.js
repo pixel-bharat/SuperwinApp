@@ -57,7 +57,7 @@ export default function Onboarding({ navigation }) {
           >
             <TouchableOpacity
               style={styles.buttonContainer}
-              onPress={() => navigation.navigate("Home")}
+              onPress={() => navigation.navigate("home")}
             >
               <Text style={styles.buttonText}>NEXT</Text>
             </TouchableOpacity>

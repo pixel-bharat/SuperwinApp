@@ -9,7 +9,7 @@ const Stack = createNativeStackNavigator();
 export default function Homepage({ navigation }) {
  
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{backgroundColor:"grey",flex:1}}>
       
             <View>
               <Text >Total Balance</Text>

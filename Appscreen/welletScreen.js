@@ -39,7 +39,7 @@ export default function WalletScreen({ navigation }) {
           backdroxp
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
-          colors={["#000000", "#6666665c"]}
+          colors={["#000000", "#00000000"]}
           style={styles.linearGradient}
           angle={"45"}
           useAngle={true}
@@ -155,7 +155,8 @@ const styles = StyleSheet.create({
   mainView: {
     flex: 1,
     width: "100%",
-    backgroundColor: "#000",
+    backgroundColor: "black",
+    paddingBottom:60,
   },
   bgcolor1: { paddingTop: 20 },
   container: {
@@ -249,6 +250,8 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     borderRadius: 10,
     marginVertical: 16,
+    borderColor:"#FFFFFF1F",
+    borderWidth:2,
   },
   promohead: { color: "white", fontSize: 24, fontWeight: "700" },
   promopara: {

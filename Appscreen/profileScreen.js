@@ -320,6 +320,7 @@ const styles = StyleSheet.create({
     width: "100%",
     backgroundColor: "#000",
     justifyContent: "flex-start",
+    paddingBottom:50,
   },
   bgcolor1: {
     flex: 1,
