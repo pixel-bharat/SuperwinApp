@@ -47,21 +47,37 @@ export default function LoginPage({ navigation }) {
     }
   };
   const handleGoogleSignIn = async () => {
-    try {
-      const { type, params } = await AuthSession.startAsync({
-        authUrl: Google.authUrl,
+  try {
+    const { type, params } = await AuthSession.startAsync({
+      authUrl: Google.authUrl,
+    });
+
+    if (type === 'success') {
+      // Send Google auth code to backend for verification and user creation
+      const response = await fetch("http://192.168.1.2:3000/api/google-login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ code: params.code }), // Send Google auth code to backend
       });
-  
-      if (type === 'success') {
-    
-        console.log(params);
+
+      if (response.ok) {
+        const userData = await response.json();
+        navigation.navigate("Home");
       } else {
-      
+        const errorData = await response.json();
+        Alert.alert("Error", errorData.message);
       }
-    } catch (error) {
-      console.error('Google sign-in error:', error);
+    } else {
+      // Handle other scenarios, such as 'cancel' or 'error'
     }
-  };
+  } catch (error) {
+    console.error('Google sign-in error:', error);
+    Alert.alert("Error", "An unexpected error occurred. Please try again later.");
+  }
+};
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <StatusBar style="auto" />
