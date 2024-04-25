@@ -55,7 +55,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
         <View style={styles.gap10}></View>
         <Image
-          source={require("../assets/Line.png")}
+          source={require("../assets/Line 3.png")}
           style={{ marginTop: 16,alignSelf:'center' }}
         ></Image>
         <View style={styles.gap10}></View>
@@ -282,7 +282,7 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
         <Image
-          source={require("../assets/Line.png")}
+          source={require("../assets/Line 3.png")}
           style={{
             marginTop: 16,
             justifyContent: "center",
