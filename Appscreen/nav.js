@@ -37,23 +37,21 @@ export default function Nav() {
           borderLeftWidth: 0.1,
           borderRightWidth: 0.1,
           borderTopColor: '#A903D2', 
-          position: 'relative'
+          position: "absolute"
         },
         tabBarActiveTintColor: '#A903D2',
         tabBarInactiveTintColor: 'gray',
-        tabBarItemStyle: {
-          padding: 30, // Adds space around each tab item
-        },
+        
         tabBarLabelStyle: {
           paddingBottom: 5, // Adjusts label position for better alignment with the icon
         },
       })}
      
     >
-      <Tab.Screen name="Home" component={Homesrc} />
-      <Tab.Screen name="Profile" component={Profilepage} />
-      <Tab.Screen name="Wallet" component={Wallet} />
+      <Tab.Screen name="Home" component={Homesrc} options={{ headerShown: false }} />
+      <Tab.Screen name="Profile" component={Profilepage} options={{ headerShown: false }}/>
+      <Tab.Screen name="Wallet" component={Wallet} options={{ headerShown: false }} />
     </Tab.Navigator>
  
   );
-}
+} 
