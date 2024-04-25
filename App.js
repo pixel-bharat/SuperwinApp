@@ -7,8 +7,6 @@ import Start from "./Appscreen/start"; // Assume Start.js is your current file
 import LoginPage from "./Appscreen/login"; // Assume Login.js is your new login form file
 import Homepage from "./Appscreen/home"; // Assume Login.js is your new login form file
 import Onboardpage from "./Appscreen/onboarding"; // Assume Login.js is your new login form file
-import Nav from "./Appscreen/nav";
-
 
 const Stack = createNativeStackNavigator();
 
@@ -57,13 +55,7 @@ export default function AppNavigator() {
         />
         
      
-        <Stack.Screen
-          name="nav"
-          component={Nav}
-          options={{ headerShown: false }}
-        />
         
-       
        
       </Stack.Navigator>
     </NavigationContainer>
