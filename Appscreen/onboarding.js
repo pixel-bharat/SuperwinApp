@@ -57,21 +57,18 @@ export default function SignUpPage() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <StatusBar style="auto" />
-
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
         <FontAwesomeIcon icon={faArrowLeft} size={20} color="#fff" />
       </TouchableOpacity>
-
       <ImageBackground
         source={require("../assets/Maskbackround.png")}
         style={styles.backgroundStyle}
       >
         <Image source={require("../assets/logo.png")} style={styles.logo} />
       </ImageBackground>
-
       <View style={styles.cont}>
         <View style={styles.header}>
           <Text style={styles.heading}>Create an Account</Text>
@@ -79,7 +76,6 @@ export default function SignUpPage() {
             Get started with SUPERWIN by creating your account
           </Text>
         </View>
-
         <View style={styles.textInputView}>
           <FontAwesomeIcon icon={faUser} style={styles.textboxicon} />
           <TextInput
@@ -116,7 +112,6 @@ export default function SignUpPage() {
             autoCapitalize="none"
           />
         </View>
-
         <LinearGradient
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
@@ -132,7 +127,6 @@ export default function SignUpPage() {
             <Text style={styles.buttonText}>SIGN UP</Text>
           </TouchableOpacity>
         </LinearGradient>
-
         <View style={styles.orContainer}>
           <View style={styles.line} />
           <Text style={styles.orText}>OR</Text>
@@ -158,7 +152,6 @@ export default function SignUpPage() {
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
