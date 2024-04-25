@@ -10,12 +10,13 @@ import LoginPage from "./Appscreen/login"; // Assume Login.js is your new login 
 import Onboardpage from "./Appscreen/onboarding"; // Assume Login.js is your new login form file
 import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
+import GamesScreen from "./Appscreen/gamesScreen";
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="welletScreen">
+      <Stack.Navigator initialRouteName="gamesScreen">
         <Stack.Screen
           name="Start"
           component={Start}
@@ -61,6 +62,11 @@ function AppNavigator() {
         <Stack.Screen
           name="welletScreen"
           component={WalletScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="gamesScreen"
+          component={GamesScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
