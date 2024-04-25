@@ -1,125 +1,107 @@
-import React, { useState } from "react";
+import React from "react";
 import Carousel from "react-native-snap-carousel";
+import { ScrollView, View, Image, ImageBackground, StyleSheet, Text, SafeAreaView, Dimensions } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
 const Stack = createNativeStackNavigator();
 
-import {
-  ScrollView,
-  View,
-  Image,
-  ImageBackground,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  SafeAreaView,
-  Dimensions,
-} from "react-native";
-
-export default function LoginPage({ navigation }) {
+export default function Homepage({ navigation }) {
   const carouselItems = [
-    {
-      source: require("../assets/banner1.png"),
-    },
-    {
-      source: require("../assets/banner2.png"),
-    },
+    { source: require("../assets/banner1.png") },
+    { source: require("../assets/banner2.png") },
   ];
 
   const renderItem = ({ item }) => {
     return (
       <View style={styles.slide}>
-        <Image
-          source={item.source} // Use the 'source' from the item
-          resizeMode="contain" // Change to 'contain' to avoid stretching if needed
-          style={styles.slideImage}
-        />
+        <Image source={item.source} resizeMode="contain" style={styles.slideImage} />
       </View>
     );
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.imageContainer}>
-          <ImageBackground
-            source={require("../assets/Maskbackround.png")}
-            resizeMode="stretch"
-          ></ImageBackground>
-          <View style={styles.header}>
-            <Image
-              source={require("../assets/logo.png")}
-              resizeMode="stretch"
-              style={styles.logoimage}
-            />
-
-            <View style={styles.balanceContainer}>
-              <Image
-                source={require("../assets/rupee.png")}
-                resizeMode="stretch"
-                style={styles.midSizeImage}
-              />
-
-              <View style={styles.balanceInnerContainer}>
-                <Text style={styles.whiteTextSmall}>{"Total Balance"}</Text>
-                <Text style={styles.whiteTextLarge}>{"50,684.89"}</Text>
-              </View>
-              <Image
-                source={require("../assets/refresh.png")}
-                resizeMode="stretch"
-                style={styles.iconSmall}
-              />
+    <SafeAreaView style={styles.container}>
+      <ScrollView>
+        <ImageBackground source={require("../assets/Maskbackround.png")} resizeMode="stretch" style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Image source={require("../assets/logo.png")} resizeMode="stretch" style={styles.logoImage} />
+          </View>
+          <View style={styles.balanceContainer}>
+            <Image source={require("../assets/rupee.png")} resizeMode="stretch" style={styles.balanceImage} />
+            <View style={styles.balanceTextContainer}>
+              <Text style={styles.balanceText}>Total Balance</Text>
+              <Text style={styles.balanceAmount}>50,684.89</Text>
             </View>
+            <Image source={require("../assets/refresh.png")} resizeMode="stretch" style={styles.refreshIcon} />
           </View>
+        </ImageBackground>
 
-          <View style={styles.container}>
-            <Carousel
-              data={carouselItems}
-              renderItem={renderItem}
-              sliderWidth={Dimensions.get("window").width}
-              itemWidth={300}
-              layout="default"
-            />
-          </View>
+        <View style={styles.carouselContainer}>
+          <Carousel
+            data={carouselItems}
+            renderItem={renderItem}
+            sliderWidth={Dimensions.get("window").width}
+            itemWidth={300}
+            layout="default"
+          />
         </View>
-        {/* Additional Views and Components can be similarly refactored */}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-  scrollView: {
+  container: {
     flex: 1,
     backgroundColor: "#191B23",
   },
-  header:{
-    flex:1,
+  header: {
+    width: "100%",
+    height: 150,
     flexDirection: "row",
-    padding:16,
-    width:"100%",
-    justifyContent:"center",
+    alignItems: "center",
+    padding: 10,
   },
-  logoimage: {
+  logoContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  logoImage: {
     width: 70,
     height: 50,
   },
   balanceContainer: {
-    flex:1,
-    flexDirection: "row",
-  },
-  imageBackground: {
-    flex:1,
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+  },
+  balanceImage: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  balanceTextContainer: {
+    flex: 1,
+  },
+  balanceText: {
+    color: "#FFF",
+    fontSize: 16,
+  },
+  balanceAmount: {
+    color: "#FFF",
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  refreshIcon: {
+    width: 20,
+    height: 20,
+    marginLeft: 10,
+  },
+  carouselContainer: {
+    marginTop: 10,
+    alignItems: "center",
   },
   slide: {
     width: 300,
@@ -130,5 +112,6 @@ const styles = StyleSheet.create({
   },
   slideImage: {
     width: "100%",
+    height: "100%",
   },
 });

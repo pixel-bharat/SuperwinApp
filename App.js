@@ -1,3 +1,4 @@
+import { AppRegistry } from "react-native";
 import React from "react";
 import { Easing } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
@@ -5,7 +6,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Start from "./Appscreen/start"; // Assume Start.js is your current file
 import LoginPage from "./Appscreen/login"; // Assume Login.js is your new login form file
-import Homepage from "./Appscreen/home"; // Assume Login.js is your new login form file
+// import Homepage from "./Appscreen/home";
 import Onboardpage from "./Appscreen/onboarding"; // Assume Login.js is your new login form file
 import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
@@ -42,11 +43,11 @@ function AppNavigator() {
             },
           }}
         />
-        <Stack.Screen
-          name="Home"
+        {/* <Stack.Screen
+          name="home"
           component={Homepage}
           options={{ headerShown: false }}
-        />
+        />  */}
         <Stack.Screen
           name="Onboard"
           component={Onboardpage}
@@ -57,7 +58,11 @@ function AppNavigator() {
           component={ProfileScreen}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="welletScreen" component={WalletScreen} options={{headerShown:false}}/>
+        <Stack.Screen
+          name="welletScreen"
+          component={WalletScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
