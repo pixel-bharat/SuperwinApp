@@ -93,7 +93,7 @@ export default function LoginPage({ navigation }) {
                 [
                   {
                     text: "OK",
-                    onPress: () => navigation.navigate("Home"),
+                    onPress: () => navigation.navigate("nav"),
                   },
                 ]
               );

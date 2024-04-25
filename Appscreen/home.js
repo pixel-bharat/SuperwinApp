@@ -1,10 +1,21 @@
 import React from "react";
-import { Text,View } from "react-native";
+import { View, Text, Button } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-export default function Homepage({ navigation }) {
+//import Homesrc from "./home"; // Assume Start.js is your current file
+import Profilepage from "./profileScreen"; // Assume Start.js is your current file
+
+const Tab = createBottomTabNavigator();
+
+
+
+function Home({ navigation }) {
   return (
-    <View>
-      <Text>Hello World</Text>
-    </View>
+   <View>
+    <Text>hello world</Text>
+   </View>
   );
 }
+
+export default Home;
