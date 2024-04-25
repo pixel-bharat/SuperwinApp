@@ -1,23 +1,22 @@
-import { AppRegistry } from "react-native";
 import React from "react";
-import { Easing } from "react-native";
+import { Easing } from 'react-native';
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 import Start from "./Appscreen/start"; // Assume Start.js is your current file
 import LoginPage from "./Appscreen/login"; // Assume Login.js is your new login form file
-// import Homepage from "./Appscreen/home";
+import Homepage from "./Appscreen/home"; // Assume Login.js is your new login form file
 import Onboardpage from "./Appscreen/onboarding"; // Assume Login.js is your new login form file
-import ProfileScreen from "./Appscreen/profileScreen";
-import WalletScreen from "./Appscreen/welletScreen";
-import GamesScreen from "./Appscreen/gamesScreen";
+import Nav from "./Appscreen/nav";
+
+
 const Stack = createNativeStackNavigator();
 
-function AppNavigator() {
+export default function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="gamesScreen">
-        <Stack.Screen
+      <Stack.Navigator>
+      <Stack.Screen
           name="Start"
           component={Start}
           options={{ headerShown: false }}
@@ -44,34 +43,29 @@ function AppNavigator() {
             },
           }}
         />
-        {/* <Stack.Screen
-          name="home"
-          component={Homepage}
-          options={{ headerShown: false }}
-        />  */}
-        <Stack.Screen
+         <Stack.Screen
           name="Onboard"
           component={Onboardpage}
           options={{ headerShown: false }}
         />
+       
+        
         <Stack.Screen
-          name="profileScreen"
-          component={ProfileScreen}
+          name="Home"
+          component={Homepage}
           options={{ headerShown: false }}
         />
+        
+     
         <Stack.Screen
-          name="welletScreen"
-          component={WalletScreen}
+          name="nav"
+          component={Nav}
           options={{ headerShown: false }}
         />
-        <Stack.Screen
-          name="gamesScreen"
-          component={GamesScreen}
-          options={{ headerShown: false }}
-        />
+        
+       
+       
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-
-export default AppNavigator;
