@@ -57,14 +57,14 @@ export default function Onboarding({ navigation }) {
           >
             <TouchableOpacity
               style={styles.buttonContainer}
-              onPress={() => navigation.navigate("home")}
+              onPress={() => navigation.navigate("nav")}
             >
               <Text style={styles.buttonText}>NEXT</Text>
             </TouchableOpacity>
           </LinearGradient>
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
               <Text style={styles.signInText}>Sign in</Text>
             </TouchableOpacity>
           </View>

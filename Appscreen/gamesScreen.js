@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     height: "80%",
     position: "absolute",
   },
-  bgcolor1: { paddingVertical: 50, paddingHorizontal: 16, marginBottom: "20" },
+  bgcolor1: { paddingVertical: 50, paddingHorizontal: 16, marginBottom: 50  },
 
   topcntbackground: {
     justifyContent: "space-between",
