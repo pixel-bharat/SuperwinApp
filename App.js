@@ -12,12 +12,14 @@ import Onboardpage from "./Appscreen/onboarding"; // Assume Login.js is your new
 import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
 import GamesScreen from "./Appscreen/gamesScreen";
+
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
+      <Stack.Navigator initialRouteName="start">
+   
         <Stack.Screen
           name="Start"
           component={Start}
@@ -75,6 +77,7 @@ function AppNavigator() {
           component={GamesScreen}
           options={{ headerShown: false }}
         />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
