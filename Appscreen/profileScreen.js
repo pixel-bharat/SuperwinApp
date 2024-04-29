@@ -289,7 +289,7 @@ export default function ProfileScreen({ navigation }) {
             alignSelf: "center",
           }}
         ></Image>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
           <LinearGradient
             start={{ x: 0, y: 0 }}
             end={{ x: 0, y: 1 }}

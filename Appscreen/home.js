@@ -66,135 +66,143 @@ export default function Homepage({ navigation }) {
 
   // Destructure navigation directly from props
   return (
-    <SafeAreaView style={styles.mainView}>
-      <ImageBackground
-        source={require("../assets/dashboardbg.png")}
-        style={styles.backgroundStyle}
-      ></ImageBackground>
-      <ScrollView style={styles.bgcolor1}>
-        <View style={styles.header}>
-          <Image source={require("../assets/logomax.png")}></Image>
-          <View style={styles.totalmoneyctn}>
-            <Text style={styles.balncetext}>Total Balance</Text>
-            <View style={styles.totalmoneybackground}>
-              <TouchableOpacity style={styles.totalmoneybackground}>
-                <Image source={require("../assets/coin.png")}></Image>
-                <Text style={styles.headingtext}>50,684.89</Text>
-              </TouchableOpacity>
+    <View style={styles.mainView}>
+     <Image source={require("../assets/dashboardbg.png")} style={styles.backgroundStyle}></Image>
+     
+      <SafeAreaView style={styles.bgcolor1}>
+        <ScrollView >
+          <View style={styles.header}>
+            <Image source={require("../assets/logomax.png")}></Image>
+            <View style={styles.totalmoneyctn}>
+              <Text style={styles.balncetext}>Total Balance</Text>
+              <View style={styles.totalmoneybackground}>
+                <TouchableOpacity style={styles.totalmoneybackground}>
+                  <Image source={require("../assets/coin.png")}></Image>
+                  <Text style={styles.headingtext}>50,684.89</Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity>
-                <Image source={require("../assets/refresh.png")}></Image>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-        <View style={styles.container}>
-          <View style={styles.slidertop}></View>
-          <Image
-            source={require("../assets/Line.png")}
-            style={{ marginTop: 16, alignSelf: "center" ,}}
-          ></Image>
-          <View style={styles.scrollcntmain}>
-            <View style={styles.scrollcards}>
-              <View style={styles.promobackground}>
-                <Text style={styles.promotext}>Your Last Played</Text>
                 <TouchableOpacity>
-                  <LinearGradient
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0, y: 1 }}
-                    colors={["#A903D2", "#410095"]}
-                    style={styles.linearGradientseemore}
-                    angle={"45"}
-                    useAngle={true}
-                  >
-                    <Text style={styles.promobtntext}>VIEW ALL</Text>
-                  </LinearGradient>
+                  <Image source={require("../assets/refresh.png")}></Image>
                 </TouchableOpacity>
               </View>
-
-              <ScrollView>
-                <View style={styles.cardscroller}>
-                  <FlatList
-                    data={shuffledImages1}
-                    renderItem={viewImage}
-                    keyExtractor={(item, index) => index.toString()}
-                    horizontal={true}
-                  />
-                </View>
-              </ScrollView>
-
-              <View>
-                <Text style={styles.headingtext}>Top Rated Games</Text>
-                <ScrollView>
-                  <View style={styles.cardscroller}>
-                    <FlatList
-                      data={shuffledImages2}
-                      renderItem={viewImage}
-                      keyExtractor={(item, index) => index.toString()}
-                      horizontal={true}
-                    />
-                  </View>
-                </ScrollView>
-                <ScrollView>
-                  <View style={styles.cardscroller}>
-                    <FlatList
-                      data={shuffledImages3}
-                      renderItem={viewImage}
-                      keyExtractor={(item, index) => index.toString()}
-                      horizontal={true}
-                    />
-                  </View>
-                </ScrollView>
-              </View>
-              <View>
-                <Text style={styles.headingtext}>Recommmended Games</Text>
-                <ScrollView>
-                  <View style={styles.cardscroller}>
-                    <FlatList
-                      data={shuffledImages4}
-                      renderItem={viewImage}
-                      keyExtractor={(item, index) => index.toString()}
-                      horizontal={true}
-                    />
-                  </View>
-                </ScrollView>
-              </View>
-              <View>
-                <Text style={styles.headingtext}>Sports</Text>
-                <ScrollView>
-                  <View style={styles.cardscroller}>
-                    <FlatList
-                      data={shuffledImages5}
-                      renderItem={viewImage}
-                      keyExtractor={(item, index) => index.toString()}
-                      horizontal={true}
-                    />
-                  </View>
-                </ScrollView>
-              </View>
             </View>
           </View>
-          <View style={styles.gap20}></View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <View style={styles.container}>
+            <View style={styles.slidertop}></View>
+            <Image
+              source={require("../assets/Line.png")}
+              style={{ marginTop: 16, alignSelf: "center" }}
+            ></Image>
+            <View style={styles.scrollcntmain}>
+              <View style={styles.scrollcards}>
+                <View style={styles.promobackground}>
+                  <Text style={styles.promotext}>Your Last Played</Text>
+                  <TouchableOpacity>
+                    <LinearGradient
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 0, y: 1 }}
+                      colors={["#A903D2", "#410095"]}
+                      style={styles.linearGradientseemore}
+                      angle={"45"}
+                      useAngle={true}
+                    >
+                      <Text style={styles.promobtntext}>VIEW ALL</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView>
+                  <View style={styles.cardscroller}>
+                    <FlatList
+                      data={shuffledImages1}
+                      renderItem={viewImage}
+                      keyExtractor={(item, index) => index.toString()}
+                      horizontal={true}
+                    />
+                  </View>
+                </ScrollView>
+
+                <View>
+                  <Text style={styles.headingtext}>Top Rated Games</Text>
+                  <ScrollView>
+                    <View style={styles.cardscroller}>
+                      <FlatList
+                        data={shuffledImages2}
+                        renderItem={viewImage}
+                        keyExtractor={(item, index) => index.toString()}
+                        horizontal={true}
+                      />
+                    </View>
+                  </ScrollView>
+                  <ScrollView>
+                    <View style={styles.cardscroller}>
+                      <FlatList
+                        data={shuffledImages3}
+                        renderItem={viewImage}
+                        keyExtractor={(item, index) => index.toString()}
+                        horizontal={true}
+                      />
+                    </View>
+                  </ScrollView>
+                </View>
+                <View>
+                  <Text style={styles.headingtext}>Recommmended Games</Text>
+                  <ScrollView>
+                    <View style={styles.cardscroller}>
+                      <FlatList
+                        data={shuffledImages4}
+                        renderItem={viewImage}
+                        keyExtractor={(item, index) => index.toString()}
+                        horizontal={true}
+                      />
+                    </View>
+                  </ScrollView>
+                </View>
+                <View>
+                  <Text style={styles.headingtext}>Sports</Text>
+                  <ScrollView>
+                    <View style={styles.cardscroller}>
+                      <FlatList
+                        data={shuffledImages5}
+                        renderItem={viewImage}
+                        keyExtractor={(item, index) => index.toString()}
+                        horizontal={true}
+                      />
+                    </View>
+                  </ScrollView>
+                </View>
+              </View>
+            </View>
+            <View style={styles.gap20}></View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 const styles = StyleSheet.create({
   gap20: {
     height: 40,
   },
+  
   mainView: {
     flex: 1,
-    width: "100%",
     backgroundColor: "#000",
   },
+
   backgroundStyle: {
     width: "100%",
-    height: "80%",
     position: "absolute",
+    resizeMode: "contain",
   },
-  bgcolor1: { paddingVertical: 50, paddingHorizontal: 16, marginBottom: 50 },
+  bgcolor1: {marginBottom: 50 },
+
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    padding: 20,
+  },
 
   topcntbackground: {
     justifyContent: "space-between",
@@ -234,23 +242,20 @@ const styles = StyleSheet.create({
 
   scrollcntmain: { paddingVertical: 10 },
   totalmoneyctn: { alignItems: "flex-end" },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    paddingHorizontal: 10,
-  },
+  
   balncetext: {
     color: "white",
     fontSize: 14,
     fontWeight: "400",
   },
   totalmoneybackground: { flexDirection: "row", alignItems: "center" },
-  slidertop: {alignSelf:'center',
+  slidertop: {
+    alignSelf: "center",
     height: 167,
     width: "97%",
     borderWidth: 1,
-    borderColor: "grey",paddingHorizontal:10
+    borderColor: "grey",
+    paddingHorizontal: 10,
   },
   promotext: { color: "white", fontSize: 18, fontWeight: "700" },
   promobackground: {
@@ -258,7 +263,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingVertical: 10,
-    paddingHorizontal:10
+    paddingHorizontal: 10,
   },
   linearGradientseemore: {
     borderRadius: 40,

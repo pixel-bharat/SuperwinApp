@@ -15,7 +15,6 @@ import { FontAwesome } from "@expo/vector-icons"; // Import FontAwesome from Exp
 import Homesrc from "./home";
 import Profilepage from "./profileScreen";
 import Wallet from "./welletScreen";
-import Homepagecopy from "./homecopy";
 import GamesScreen from "./gamesScreen";
 
 const Tab = createBottomTabNavigator();
