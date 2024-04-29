@@ -20,120 +20,125 @@ export default function LoginPage({ navigation }) {
   const [password, setPassword] = useState("");
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <StatusBar style="auto" />
-
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <FontAwesomeIcon icon={faArrowLeft} size={20} color="#fff" />
-      </TouchableOpacity>
-
+    <View style={styles.fullscreen}>
       <ImageBackground
         source={require("../assets/Maskbackround.png")}
+        resizeMode="cover"
         style={styles.backgroundStyle}
-      >
-        <Image source={require("../assets/logo.png")} style={styles.logo} />
-      </ImageBackground>
+      />
+      
+      <ScrollView contentContainerStyle={styles.container}>
+        <StatusBar barStyle="light-content" />
+          <Image source={require("../assets/logo.png")} style={styles.logo} />
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <FontAwesomeIcon icon={faArrowLeft} size={20} color="#fff" />
+        </TouchableOpacity>
 
-      <View style={styles.cont}>
-        <View style={styles.header}>
-          <Text style={styles.heading}>Welcome back!</Text>
-          <Text style={styles.textlog}>
-            Log in to your existing account of SUPERWIN
+        <View style={styles.cont}>
+          <View style={styles.header}>
+            <Text style={styles.heading}>Welcome back!</Text>
+            <Text style={styles.textlog}>
+              Log in to your existing account of SUPERWIN
+            </Text>
+          </View>
+
+          <View style={styles.textInputView}>
+            <FontAwesomeIcon icon={faUser} style={styles.textboxicon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#fff"
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+          </View>
+          <View style={styles.textInputView}>
+            <FontAwesomeIcon icon={faLock} style={styles.textboxicon} />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="#fff"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={true}
+              autoCapitalize="none"
+            />
+          </View>
+          <Text
+            style={styles.forgot}
+            onPress={() => console.log("Forgot Password Pressed")}
+          >
+            Forgot Password?
           </Text>
-        </View>
-
-        <View style={styles.textInputView}>
-          <FontAwesomeIcon icon={faUser} style={styles.textboxicon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#fff"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        </View>
-        <View style={styles.textInputView}>
-          <FontAwesomeIcon icon={faLock} style={styles.textboxicon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#fff"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={true}
-            autoCapitalize="none"
-          />
-        </View>
-        <Text
-          style={styles.forgot}
-          onPress={() => console.log("Forgot Password Pressed")}
-        >
-          Forgot Password?
-        </Text>
-
-        <LinearGradient
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          colors={["#A903D2", "#410095"]}
-          style={styles.linearGradient}
-          angle={"45"}
-          useAngle={true}
-        >
           <TouchableOpacity
-            style={styles.buttonContainer}
-            onPress={() => {
-              Alert.alert(
-                " Login Success" ,
-                "You will now be navigated to Home screen.",
-                [
-                  {
-                    text: "OK",
-                    onPress: () => navigation.navigate("nav"),
-                  },
-                ]
-              );
-            }}
+              style={styles.buttonContainer}
+              onPress={() => {
+                Alert.alert(
+                  "Login Success",
+                  "You will now be navigated to Home screen.",
+                  [
+                    {
+                      text: "OK",
+                      onPress: () => navigation.navigate("nav"), // Ensure 'Home' is a valid route name
+                    },
+                  ]
+                );
+              }}
+            >
+          <LinearGradient
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            colors={["#A903D2", "#410095"]}
+            style={styles.linearGradient}
+            angle={"45"}
+            useAngle={true}
           >
-            <Text style={styles.buttonText}>LOG IN</Text>
+            
+              <Text style={styles.buttonText}>LOG IN</Text>
+           
+          </LinearGradient>
           </TouchableOpacity>
-        </LinearGradient>
-
-        <View style={styles.orContainer}>
-          <View style={styles.line} />
-          <Text style={styles.orText}>OR</Text>
-          <View style={styles.line} />
+          <View style={styles.orContainer}>
+            <View style={styles.line} />
+            <Text style={styles.orText}>OR</Text>
+            <View style={styles.line} />
+          </View>
+          <View style={styles.socialButtons}>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => console.log("Login with Google Pressed")}
+            >
+              <Image source={require("../assets/Google.png")} />
+              <Text style={styles.socialText}> Google</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.socialButton}
+              onPress={() => console.log("Login with Facebook Pressed")}
+            >
+              <Image source={require("../assets/Facebook.png")} />
+              <Text style={styles.socialText}> Facebook</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-        <View style={styles.socialButtons}>
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => console.log("Login with Google Pressed")}
-          >
-            <Image source={require("../assets/Google.png")} />
-            <Text style={styles.socialText}> Google</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => console.log("Login with Facebook Pressed")}
-          >
-            <Image source={require("../assets/Facebook.png")} />
-            <Text style={styles.socialText}> Facebook</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  fullscreen: {
+    flex: 1,
+    backgroundColor: "#000", // Adjust this to match the background if needed
+  },
   container: {
     flexGrow: 1,
     justifyContent: "flex-end", // Ensures the content is aligned at the bottom
-    backgroundColor: "#000",
+    alignItems: 'center',
   },
   backButton: {
     position: "absolute",
@@ -142,21 +147,21 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   backgroundStyle: {
-    flex: 1, // This will ensure it takes all available space in its container
-    width: "100%", // Ensures the background covers the full width of its container
-    justifyContent: "flex-end", // Aligns the child content to the bottom
-    alignItems: "center", // Centers the child content horizontally
+    width: "100%",
+    height: "100%", // Set height to 100% of the container
+    position: "absolute",
+    bottom: 0,
   },
   logo: {
-    width: 200, // Set a fixed width for the logo
-    height: 150, // Set a fixed height for the logo
-    resizeMode: "contain", // Ensures the image scales correctly within the bounds
+    width: "40%",
+    height: 100,
+    resizeMode: "contain",
   },
   cont: {
     width: "100%",
     alignItems: "center",
-    padding: 30,
-    paddingBottom: 50, // Adds padding at the bottom
+    padding: 20,
+    paddingBottom: 20, // Adds padding at the bottom
   },
   textInputView: {
     flexDirection: "row",
@@ -197,20 +202,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   linearGradient: {
-    marginTop: 20,
     width: "100%",
-    height: 64,
+    height:"100%",
     borderRadius: 10,
-    justifyContent: "flex-end", // Center the button text vertically
+    justifyContent: "center", // Center the button text vertically
     alignItems: "center", // Center the button text horizontally
   },
   buttonContainer: {
+    marginTop: 20,
     borderRadius: 16,
     width: "100%",
-    height: "100%",
+    height: 64,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
   },
   buttonText: {
     color: "white",

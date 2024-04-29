@@ -15,19 +15,16 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 const Stack = createNativeStackNavigator();
 
 export default function Start({ navigation }) {
-  // Destructure navigation directly from props
   return (
-    <ScrollView style={styles.bgcolor1}>
-      <View style={styles.container}>
-        <ImageBackground
-          source={require("../assets/Maskbackround.png")}
-          style={styles.backgroundStyle}
-        >
+    <View style={styles.fullscreen}>
+      <ImageBackground
+        source={require("../assets/dashboardbg.png")}
+        style={styles.backgroundStyle}
+        resizeMode="cover"
+      >
+        <ScrollView style={styles.bgcolor1} contentContainerStyle={styles.container}>
           <Image source={require("../assets/logo.png")} style={styles.logo} />
-        </ImageBackground>
-
-        <View style={styles.textWrapper}>
-          <View style={styles.textWrap}>
+          <View style={styles.textWrapper}>
             <Text style={styles.headerText}>
               Generate anything what’s in your mind now
             </Text>
@@ -36,55 +33,52 @@ export default function Start({ navigation }) {
               beautiful visual
             </Text>
             <LinearGradient
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            colors={["#A903D2", "#410095"]}
-            style={styles.linearGradient}
-            angle={"45"}
-          useAngle={true}
-          >
-           <TouchableOpacity
-            style={styles.buttonContainer}
-            onPress={() => navigation.navigate("Login")}
-          >
-            <Text style={styles.buttonText}>LETS GO!</Text>
-          </TouchableOpacity>
-          </LinearGradient>
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 1 }}
+              colors={["#A903D2", "#410095"]}
+              style={styles.linearGradient}
+            >
+              <TouchableOpacity
+                style={styles.buttonContainer}
+                onPress={() => navigation.navigate("Login")}
+              >
+                <Text style={styles.buttonText}>LETS GO!</Text>
+              </TouchableOpacity>
+            </LinearGradient>
             <View style={styles.footer}>
               <Text style={styles.footerText}>Already have an account?</Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate("Onboard")} // Correctly use destructured navigation
+                onPress={() => navigation.navigate("Onboard")}
               >
                 <Text style={styles.signInText}>Sign Up Here</Text>
               </TouchableOpacity>
-             
             </View>
           </View>
-        </View>
-        <StatusBar style="auto" />
-      </View>
-    </ScrollView>
+          <StatusBar style="auto" />
+        </ScrollView>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  fullscreen: {
+    flex: 1,
+    backgroundColor: "#000", // Adjust this to match the background if needed
+  },
   bgcolor1: {
     flex: 1,
-    width: "100%",
-    backgroundColor: "#000", // Background color of the ScrollView
   },
   container: {
-    flex: 1,
-    // backgroundColor: "#eee",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    padding: 0,
+    flexGrow: 1,
+    justifyContent: 'flex-end', // Push content to the bottom
+    alignItems: 'center', // Center content horizontally
   },
   backgroundStyle: {
     width: "100%",
-    height: 400,
-    justifyContent: "flex-end",
-    alignItems: "center",
+    height: "100%", // Set height to 100% of the container
+    position: "absolute",
+    bottom: 0,
   },
   logo: {
     width: 250,
@@ -92,13 +86,8 @@ const styles = StyleSheet.create({
     resizeMode: "contain",
   },
   textWrapper: {
-    flex: 1,
     alignItems: "center",
     padding: 30,
-    height: "50%",
-  },
-  textWrap: {
-    justifyContent: "flex-end",
   },
   headerText: {
     fontSize: 34,
@@ -117,8 +106,8 @@ const styles = StyleSheet.create({
     width: 346,
     height: 64,
     borderRadius: 10,
-    justifyContent: "flex-end", // Center the button text vertically
-    alignItems: "center", // Center the button text horizontally
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonContainer: {
     width: "100%",
@@ -133,10 +122,9 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingVertical: 20,
-    flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "center",
-    marginHorizontal: 60,
+    width: "100%", // Ensure footer takes full width of its container
   },
   footerText: {
     color: "#FFFFFF",
