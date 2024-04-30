@@ -69,10 +69,10 @@ export default function Homepage({ navigation }) {
     <View style={styles.mainView}>
      <Image source={require("../assets/dashboardbg.png")} style={styles.backgroundStyle}></Image>
      
-      <SafeAreaView style={styles.bgcolor1}>
+      <SafeAreaView>
         <ScrollView >
           <View style={styles.header}>
-            <Image source={require("../assets/logomax.png")}></Image>
+            <Image source={require("../assets/logomax.png")} style={styles.logoheader}></Image>
             <View style={styles.totalmoneyctn}>
               <Text style={styles.balncetext}>Total Balance</Text>
               <View style={styles.totalmoneybackground}>
@@ -195,7 +195,11 @@ const styles = StyleSheet.create({
     position: "absolute",
     resizeMode: "contain",
   },
-  bgcolor1: {marginBottom: 50 },
+  
+  logoheader:{
+    width:60,
+    height:50,
+  },
 
   header: {
     flexDirection: "row",
@@ -211,7 +215,6 @@ const styles = StyleSheet.create({
   },
   topchildcnt1: {
     flexDirection: "row",
-
     width: "100%",
     justifyContent: "space-between",
   },
@@ -226,7 +229,10 @@ const styles = StyleSheet.create({
     height: undefined, // Allow the height to adjust automatically based on aspect ratio
     aspectRatio: 1.75, // Maintain aspect ratio of the image
   },
-  image: {},
+  image: {
+    width:120,
+    height:120,
+  },
   headingtext: {
     color: "white",
     fontSize: 18,

@@ -18,12 +18,15 @@ const Stack = createNativeStackNavigator();
 export default function ProfileScreen({ navigation }) {
   // Destructure navigation directly from props
   return (
-    <SafeAreaView style={styles.mainView}>
+    <View style={styles.mainView}>
       <ImageBackground
         source={require("../assets/Maskbackround.png")}
         style={styles.backgroundStyle}
       ></ImageBackground>
-      <ScrollView style={styles.bgcolor1}>
+    
+    <SafeAreaView >
+      
+      <ScrollView>
         <View style={styles.container}>
           <Image source={require("../assets/profile.png")}></Image>
           <View style={styles.profileView}>
@@ -160,8 +163,9 @@ export default function ProfileScreen({ navigation }) {
               source={require("../assets/reuse.png")}
               resizeMode={"stretch"}
               style={{
-                width: 24,
-                height: 24,
+                width: 32,
+                height: 32,
+                marginRight: 8,
               }}
             />
           </View>
@@ -172,26 +176,21 @@ export default function ProfileScreen({ navigation }) {
               alignItems: "center",
             }}
           >
-            <View
-              style={{
-                width: 96,
-                borderRadius: 10,
-                paddingVertical: 16,
-                paddingHorizontal: 24,
-              }}
-            >
+            <View>
               <Image
                 source={require("../assets/moneybag.png")}
                 resizeMode={"stretch"}
                 style={{
-                  height: 32,
-                  marginBottom: 15,
+                  width: 32,
+                height: 32,
+                marginRight: 8,
                 }}
               />
               <Text
                 style={{
                   color: "#FFFFFF",
                   fontSize: 14,
+                  marginHorizontal: 8,
                 }}
               >
                 {"Deposit"}
@@ -199,27 +198,21 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <Image source={require("../assets/vrticalline.png")}></Image>
 
-            <View
-              style={{
-                width: 96,
-                borderRadius: 10,
-                paddingVertical: 16,
-              }}
-            >
+            <View>
               <Image
                 source={require("../assets/money.png")}
                 resizeMode={"stretch"}
                 style={{
-                  height: 32,
-                  marginBottom: 14,
-                  marginHorizontal: 32,
+                  width: 32,
+                height: 32,
+                marginRight: 8,
                 }}
               />
               <Text
                 style={{
                   color: "#FFFFFF",
                   fontSize: 14,
-                  marginHorizontal: 17,
+                  marginHorizontal: 8,
                 }}
               >
                 {"Withdraw"}
@@ -227,20 +220,14 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <Image source={require("../assets/vrticalline.png")}></Image>
 
-            <View
-              style={{
-                width: 96,
-                borderRadius: 10,
-                paddingVertical: 16,
-              }}
-            >
+            <View>
               <Image
                 source={require("../assets/bookmark.png")}
                 resizeMode={"stretch"}
                 style={{
-                  height: 32,
-                  marginBottom: 14,
-                  marginHorizontal: 32,
+                  width: 32,
+                height: 32,
+                marginRight: 8,
                 }}
               />
               <Text
@@ -264,6 +251,7 @@ export default function ProfileScreen({ navigation }) {
               <Image source={require("../assets/magic-trick.png")}></Image>
               <Text style={styles.magictext}>Game History</Text>
             </View>
+            
             <View style={styles.secondcard}>
               <Image source={require("../assets/copy.png")}></Image>
               <Text style={styles.magictext}>Transaction</Text>
@@ -305,6 +293,7 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.gap20}></View>
       </ScrollView>
     </SafeAreaView>
+    </View>
   );
 }
 
@@ -317,10 +306,9 @@ const styles = StyleSheet.create({
   },
   mainView: {
     flex: 1,
-    width: "100%",
     backgroundColor: "#000",
-    justifyContent: "flex-start",
-    paddingBottom:50,
+  padding:10,
+  paddingBottom:30,
   },
   bgcolor1: {
     flex: 1,
@@ -409,25 +397,28 @@ const styles = StyleSheet.create({
   firstView: { flexDirection: "row", justifyContent: "space-between" },
   firstcard: {
     height: 64,
-    width: 155,
+    width: "48%",
     backgroundColor: "#00000099",
     borderColor: "#545458",
     borderRadius: 10,
     borderWidth: 1,
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    justifyContent: "flex-start",
     alignItems: "center",
+    paddingHorizontal:10,
+    marginRight:"4%",
   },
   secondcard: {
     height: 64,
-    width: 155,
+    width: "48%",
     backgroundColor: "#00000099",
     borderColor: "#545458",
     borderRadius: 10,
     borderWidth: 1,
     flexDirection: "row",
-    justifyContent: "space-evenly",
+    justifyContent: "flex-start",
     alignItems: "center",
+    paddingHorizontal:10,
   },
 
   magictext: {

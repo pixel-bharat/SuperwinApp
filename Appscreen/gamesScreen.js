@@ -71,9 +71,9 @@ export default function GamesScreen({ navigation }) {
         source={require("../assets/dashboardbg.png")}
         style={styles.backgroundStyle}
       ></ImageBackground>
-      <ScrollView style={styles.bgcolor1}>
+      <ScrollView>
         <View style={styles.header}>
-          <Image source={require("../assets/logomax.png")}></Image>
+          <Image source={require("../assets/logomax.png")} style={styles.logoheader}></Image>
           <View style={styles.totalmoneyctn}>
             <Text style={styles.balncetext}>Total Balance</Text>
             <View style={styles.totalmoneybackground}>
@@ -195,7 +195,6 @@ const styles = StyleSheet.create({
   },
   mainView: {
     flex: 1,
-    width: "100%",
     backgroundColor: "#000",
   },
   backgroundStyle: {
@@ -203,8 +202,11 @@ const styles = StyleSheet.create({
     height: "80%",
     position: "absolute",
   },
-  bgcolor1: { paddingVertical: 50, paddingHorizontal: 16, marginBottom: 50  },
-
+  
+  logoheader:{
+    width:60,
+    height:50,
+  },
   topcntbackground: {
     justifyContent: "space-between",
     width: "100%",
@@ -227,7 +229,10 @@ const styles = StyleSheet.create({
     height: undefined, // Allow the height to adjust automatically based on aspect ratio
     aspectRatio: 1.75, // Maintain aspect ratio of the image
   },
-  image: {},
+  image: {
+    width:120,
+    height:120,
+  },
   headingtext: {
     color: "white",
     fontSize: 18,
@@ -247,7 +252,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    paddingHorizontal: 10,
+    padding: 20,
   },
   balncetext: {
     color: "white",
