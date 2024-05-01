@@ -87,7 +87,8 @@ const styles = StyleSheet.create({
   },
   textWrapper: {
     alignItems: "center",
-    padding: 30,
+    padding: 10,
+    width:"100%",
   },
   headerText: {
     fontSize: 34,
@@ -103,8 +104,8 @@ const styles = StyleSheet.create({
   },
   linearGradient: {
     marginTop: 20,
-    width: 346,
-    height: 64,
+    width: "100%",
+    height: 60,
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
