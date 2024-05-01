@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -46,12 +45,13 @@ export default function SignUpPage() {
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Success", "Account created successfully.");
-        navigation.navigate("Login");
+        // Navigate to OTP screen after successful signup
+        navigation.replace("otp");
       } else {
         Alert.alert("Error", data.message || "Failed to create account.");
       }
     } catch (error) {
-      Alert.alert("Error", "An unexpected error occurred. Please try again later.");
+      Alert.alert("Error", "Failed to create account.");
     }
   };
 

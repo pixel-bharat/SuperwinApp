@@ -1,4 +1,6 @@
 import React from "react";
+
+import { useState ,useEffect} from "react";
 import {
   ScrollView,
   View,
@@ -15,8 +17,28 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 const Stack = createNativeStackNavigator();
 
+
 export default function ProfileScreen({ navigation }) {
-  // Destructure navigation directly from props
+  const [userData, setUserData] = useState(null);
+
+  useEffect(() => {
+    // Fetch user data when component mounts
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      // Make fetch request to fetch user data
+      const response = await fetch("http://192.168.1.2:3000/api/members");
+      const data = await response.json();
+      
+      // Update state with fetched user data
+      setUserData(data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
   return (
     <View style={styles.mainView}>
       <ImageBackground
