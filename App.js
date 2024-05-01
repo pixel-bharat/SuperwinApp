@@ -1,25 +1,61 @@
-import { AppRegistry } from "react-native";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { Alert, BackHandler } from "react-native";
 import { Easing } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import Start from "./Appscreen/start"; // Assume Start.js is your current file
-import LoginPage from "./Appscreen/login"; // Assume Login.js is your new login form file
-import Nav from "./Appscreen/nav"; // Assume Login.js is your new login form file
+import Start from "./Appscreen/start"; 
+import LoginPage from "./Appscreen/login"; 
+import Nav from "./Appscreen/nav"; 
 import Homepage from "./Appscreen/home";
-import Onboardpage from "./Appscreen/onboarding"; // Assume Login.js is your new login form file
+import Onboardpage from "./Appscreen/onboarding"; 
 import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
 import GamesScreen from "./Appscreen/gamesScreen";
-
+import otp from "./Appscreen/otp"
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    // Check if the user is already authenticated (e.g., token in AsyncStorage)
+    const checkAuthentication = () => {
+      const isAuthenticated = true; // Assume the user is already authenticated
+      setIsAuthenticated(isAuthenticated);
+    };
+
+    checkAuthentication();
+
+    // Add event listener for back button press
+    const backAction = () => {
+      Alert.alert("Exit App", "Are you sure you want to exit?", [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        { text: "YES", onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove(); // Remove the event listener on component unmount
+  }, []);
+
+  const handleLogout = () => {
+    // Implement logout functionality here
+    setIsAuthenticated(false);
+  };
+
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="start">
-   
+      <Stack.Navigator initialRouteName={isAuthenticated ? "nav" : "start"}>
         <Stack.Screen
           name="Start"
           component={Start}
@@ -36,7 +72,7 @@ function AppNavigator() {
           options={{ headerShown: false }}
           screenOptions={{
             headerShown: false,
-            animation: "fade", // This applies a fade transition. Change to "slide_from_right" for a sliding effect.
+            animation: "fade", 
             animationTypeForReplace: "pop",
             gestureEnabled: true,
             gestureDirection: "horizontal",
@@ -52,16 +88,17 @@ function AppNavigator() {
             },
           }}
         />
-         <Stack.Screen
+        <Stack.Screen
           name="home"
           component={Homepage}
           options={{ headerShown: false }}
-        /> 
+        />
         <Stack.Screen
           name="Onboard"
           component={Onboardpage}
           options={{ headerShown: false }}
         />
+            <Stack.Screen name="otp" component={otp} />
         <Stack.Screen
           name="profileScreen"
           component={ProfileScreen}
@@ -77,7 +114,6 @@ function AppNavigator() {
           component={GamesScreen}
           options={{ headerShown: false }}
         />
-        
       </Stack.Navigator>
     </NavigationContainer>
   );
