@@ -27,12 +27,12 @@ export default function SignUpPage() {
       Alert.alert("Error", "Please fill all fields.");
       return;
     }
-
+  
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match.");
       return;
     }
-
+  
     try {
       const response = await fetch("http://192.168.1.2:3000/api/signup", {
         method: "POST",
@@ -41,12 +41,12 @@ export default function SignUpPage() {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Success", "Account created successfully.");
         // Navigate to OTP screen after successful signup
-        navigation.replace("otp");
+        navigation.replace("otp", { email }); // Pass email to OTP screen
       } else {
         Alert.alert("Error", data.message || "Failed to create account.");
       }
