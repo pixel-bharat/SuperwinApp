@@ -34,9 +34,10 @@ db.on("error", (err) => {
 
 const userSchema = new mongoose.Schema({
   username: String,
-  email: String,
+  email: {type:String,unique:true},
   password: String,
   verificationOTPToken: String,
+  isVerified:{type:Boolean,default:false}
 }); 
 const User = mongoose.model("User", userSchema);
 
@@ -153,7 +154,9 @@ app.post("/api/signup", async (req, res) => {
 
 app.post("/api/verifyOTP", async (req, res) => {
   try {
-    const { otp, email } = req.body; // Ensure that req.body contains the email and OTP
+    let {otp}=req.body;
+
+    email=email.trim().toLowerCase(); // Ensure that req.body contains the email and OTP
 
     const user = await User.findOne({ email }); // Find the user by email
     if (!user) {
