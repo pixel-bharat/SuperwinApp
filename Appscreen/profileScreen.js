@@ -61,6 +61,8 @@ export default function ProfileScreen({ navigation }) {
           source={require("../assets/Line.png")}
           style={{ marginTop: 16,alignSelf:'center' }}
         ></Image>
+      
+        
         <View style={styles.gap10}></View>
         <View style={styles.cardView}>
           <Image
@@ -277,6 +279,7 @@ export default function ProfileScreen({ navigation }) {
             alignSelf: "center",
           }}
         ></Image>
+        <View style={styles.logoutbtn}>
         <TouchableOpacity onPress={() => navigation.navigate("Login")}>
           <LinearGradient
             start={{ x: 0, y: 0 }}
@@ -289,8 +292,9 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.buttonText}>Logout</Text>
           </LinearGradient>
         </TouchableOpacity>
-        <View style={styles.gap20}></View>
-        <View style={styles.gap20}></View>
+        </View>
+        <View style={styles.gap10}></View>
+       
       </ScrollView>
     </SafeAreaView>
     </View>
@@ -301,25 +305,26 @@ const styles = StyleSheet.create({
   gap20: {
     height: 20,
   },
+
   gap10: {
     height: 10,
   },
+
   mainView: {
     flex: 1,
     backgroundColor: "#000",
-  padding:10,
-  paddingBottom:30,
+    paddingBottom: 100,
   },
-  bgcolor1: {
-    flex: 1,
-    padding: 16,
-    gap: 20,
-  },
+
+ 
   container: {
     justifyContent: "flex-start",
     alignItems: "center",
     flexDirection: "row",
+    paddingVertical:20,
+    paddingHorizontal:10,
   },
+
   backgroundStyle: {
     width: "100%",
     height: 400,
@@ -327,19 +332,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "absolute",
   },
+
   memberView: {
     height: 25,
     flexDirection: "row",
     width: 160,
     alignItems: "center",
   },
-  star: { width: 30 },
+
+  star: { 
+    width: 30 
+  },
+
   uidVeiw: {
     flexDirection: "row",
     height: 19,
     width: 140,
     alignItems: "center",
   },
+
   uidbackground: {
     flexDirection: "row",
     backgroundColor: "rgba(255, 255, 255, 0.21)",
@@ -349,28 +360,50 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     alignItems: "center",
   },
+
   membernametext: {
     fontSize: 18,
     fontWeight: "600",
     color: "#FFF",
     paddingLeft: 6,
   },
-  uidtext: { fontSize: 14, fontWeight: "400", color: "white" },
-  lastlogintext: { fontSize: 12, fontWeight: "400", color: "#FFF" },
-  cardView: { height: 212 },
-  profileView: { marginLeft: 16, height: 80, justifyContent: "space-between" },
+
+  uidtext: { 
+    fontSize: 14, 
+    fontWeight: "400", 
+    color: "white" 
+  },
+
+  lastlogintext: { 
+    fontSize: 12, 
+    fontWeight: "400", 
+    color: "#FFF" 
+  },
+  
+  cardView: { 
+    height: 212 ,  
+    marginHorizontal:10,
+  },
+
+  profileView: { 
+    marginLeft: 16, 
+    height: 80, 
+    justifyContent: "space-between" },
+
   cardmember: {
     height: 60,
     width: 159,
     marginLeft: 20,
     justifyContent: "space-between",
   },
+
   membernametext2: {
     fontSize: 18,
     fontWeight: "600",
     color: "rgba(252, 224, 123, 1)",
     paddingLeft: 6,
   },
+
   uidbackground2: {
     flexDirection: "row",
     backgroundColor: "rgba(255, 229, 144, 1)",
@@ -380,6 +413,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-evenly",
     alignItems: "center",
   },
+
   moneycardbackgroung: {
     backgroundColor: "#00000099",
     borderColor: "#545458",
@@ -387,14 +421,25 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingVertical: 19,
     paddingHorizontal: 16,
+    marginHorizontal:10,
   },
+
   accountText: {
     fontWeight: "700",
     fontSize: 18,
     color: "rgba(255, 255, 255, 1)",
+    paddingHorizontal:10,
   },
-  accountcard: {},
-  firstView: { flexDirection: "row", justifyContent: "space-between" },
+
+  accountcard: {
+    paddingHorizontal:10,
+  },
+
+  firstView: { 
+    flexDirection: "row", 
+    justifyContent: "space-between" 
+  },
+
   firstcard: {
     height: 64,
     width: "48%",
@@ -408,6 +453,7 @@ const styles = StyleSheet.create({
     paddingHorizontal:10,
     marginRight:"4%",
   },
+
   secondcard: {
     height: 64,
     width: "48%",
@@ -426,6 +472,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "400",
   },
+
   linearGradient: {
     marginTop: 20,
     width: "100%",
@@ -434,13 +481,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+
   buttonContainer: {
     justifyContent: "center",
     alignItems: "center",
+  },
+  logoutbtn:{
+    paddingHorizontal:10,
   },
   buttonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
   },
+
 });

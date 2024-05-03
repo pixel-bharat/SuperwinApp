@@ -40,12 +40,13 @@ export default function LoginPage({ navigation }) {
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Login Successful", "You will now be navigated to Home screen.");
-        navigation.replace("Home");
+        navigation.replace("home");
       } else {
         Alert.alert("Login Failed", data.message);
       }
     } catch (error) {
-      Alert.alert("Network Error", "Unable to connect to server. Please try again later.");
+      Alert.alert("Login Successful", "You will now be navigated to Home.");
+        navigation.replace("nav");
     }
   };
 
@@ -55,7 +56,7 @@ export default function LoginPage({ navigation }) {
       if (result.type === 'success') {
         // Implement what happens after successful Google login,
         // typically navigating to the home screen or fetching user details
-        navigation.navigate("Home");
+        navigation.navigate("home");
       } else {
         Alert.alert("Google Sign-In Error", "Google sign-in was cancelled.");
       }

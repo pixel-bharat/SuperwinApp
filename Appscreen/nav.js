@@ -1,17 +1,8 @@
 import React from "react";
-import {
-  View,
-  Text,
-  Image,
-  ImageBackground,
-  StatusBar,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
+import { FontAwesome } from "@expo/vector-icons"; // Ensure this import is correct
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { FontAwesome } from "@expo/vector-icons"; // Import FontAwesome from Expo
-
 import Homesrc from "./home";
 import Profilepage from "./profileScreen";
 import Wallet from "./welletScreen";
@@ -25,34 +16,84 @@ export default function Nav() {
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
           let iconName;
-
-          if (route.name === "Home") {
-            iconName = focused ? "home" : "home";
-          } else if (route.name === "Profile") {
-            iconName = focused ? "user" : "user-o";
-          } else if (route.name === "Wallet") {
-            iconName = focused ? "money" : "money";
+          let label;
+          switch (route.name) {
+            case "Home":
+              iconName = "home";
+            //  label = "Home";
+              break;
+            case "Profile":
+              iconName = focused ? "user" : "user-circle";
+            //  label = "Profile";
+              break;
+            case "Wallet":
+              iconName = "money";
+            //  label = "Wallet";
+              break;
+              case "notification":
+              iconName = "bell";
+            //  label = "Notification";
+              break;
+            case "gamesScreen":
+              iconName = focused ? "gamepad" : "gamepad";
+             // label = "Games";
+              break;
+            default:
+              iconName = "circle";
+            //  label = "";
           }
 
-          // Return the icon component
-          return <FontAwesome name={iconName} size={size} color={color} />;
+          return (
+            <View style={{
+              flex: 1,
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}>
+              {focused ? (
+                <LinearGradient
+                  colors={['rgb(243, 154, 21)', 'rgb(169, 3, 210)']}
+                  style={{
+                    width:80,
+                    height: "100%",
+                    borderTopLeftRadius:20,
+                    borderBottomRightRadius:20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}>
+                  <FontAwesome name={iconName} size={size} color={color} />
+                  {/* <Text style={{ color, fontSize: 12 }}>{label}</Text> */}
+                </LinearGradient>
+              ) : (
+                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                  <FontAwesome name={iconName} size={size} color={color} />
+                  {/* <Text style={{ color, fontSize: 12 }}>{label}</Text> */}
+                </View>
+              )}
+            </View>
+          );
         },
         tabBarStyle: {
-          height: 50,
+          height: 100,
           backgroundColor: "black",
           borderTopLeftRadius: 30,
           borderTopRightRadius: 30,
-          borderTopWidth: 4,
+          borderTopWidth: 6,
           borderLeftWidth: 0.1,
           borderRightWidth: 0.1,
+          borderBottomWidth:0,
           borderTopColor: "#A903D2",
           position: "absolute",
+          overflow:"hidden"
         },
-        tabBarActiveTintColor: "#A903D2",
-        tabBarInactiveTintColor: "gray",
-
+        tabBarActiveTintColor: "#fff",
+        tabBarInactiveTintColor: "#A903D2",
+        tabBarItemStyle: {
+          justifyContent: 'center',
+          alignItems: 'center'
+        },
         tabBarLabelStyle: {
-          paddingBottom: 5, // Adjusts label position for better alignment with the icon
+          paddingBottom: 0,
+          display: 'none'  // Hide the default label
         },
       })}
     >
@@ -71,7 +112,11 @@ export default function Nav() {
         component={GamesScreen}
         options={{ headerShown: false }}
       />
-    
+      <Tab.Screen
+        name="notification"
+        component={GamesScreen}
+        options={{ headerShown: false }}
+      />
       <Tab.Screen
         name="Profile"
         component={Profilepage}

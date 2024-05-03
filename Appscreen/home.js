@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -63,16 +64,22 @@ export default function Homepage({ navigation }) {
       <Image source={item} style={styles.image} />
     </TouchableOpacity>
   );
-
+ 
   // Destructure navigation directly from props
   return (
     <View style={styles.mainView}>
-     <Image source={require("../assets/dashboardbg.png")} style={styles.backgroundStyle}></Image>
-     
+      <ImageBackground
+        source={require("../assets/dashboardbg.png")}
+        style={styles.backgroundStyle}
+      ></ImageBackground>
+
       <SafeAreaView>
-        <ScrollView >
+        <ScrollView>
           <View style={styles.header}>
-            <Image source={require("../assets/logomax.png")} style={styles.logoheader}></Image>
+            <Image
+              source={require("../assets/logomax.png")}
+              style={styles.logoheader}
+            ></Image>
             <View style={styles.totalmoneyctn}>
               <Text style={styles.balncetext}>Total Balance</Text>
               <View style={styles.totalmoneybackground}>
@@ -89,6 +96,7 @@ export default function Homepage({ navigation }) {
           </View>
           <View style={styles.container}>
             <View style={styles.slidertop}></View>
+            
             <Image
               source={require("../assets/Line.png")}
               style={{ marginTop: 16, alignSelf: "center" }}
@@ -173,7 +181,6 @@ export default function Homepage({ navigation }) {
                 </View>
               </View>
             </View>
-            <View style={styles.gap20}></View>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -181,31 +188,33 @@ export default function Homepage({ navigation }) {
   );
 }
 const styles = StyleSheet.create({
-  gap20: {
+  gap40: {
     height: 40,
   },
-  
+
   mainView: {
     flex: 1,
     backgroundColor: "#000",
+    paddingBottom: 100,
   },
 
   backgroundStyle: {
     width: "100%",
+    height: "80%",
     position: "absolute",
-    resizeMode: "contain",
   },
-  
-  logoheader:{
-    width:60,
-    height:50,
+
+  logoheader: {
+    width: 60,
+    height: 50,
   },
 
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    padding: 20,
+    paddingVertical:20,
+    paddingHorizontal:10,
   },
 
   topcntbackground: {
@@ -224,14 +233,32 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 10,
   },
+
+  slidertop: {
+    flex: 1, // Adjust based on your layout needs
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  slide: {
+    width: Dimensions.get("window").width, // Full width slides
+    height: 200, // Fixed height for each slide
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  slideImage: {
+    width: "100%", // Full width of the slide
+    height: "100%", // Full height of the slide
+    resizeMode: "cover", // Cover the whole slide area
+  },
+
   img: {
     width: "100%", // Set width to 50% of the parent container
     height: undefined, // Allow the height to adjust automatically based on aspect ratio
     aspectRatio: 1.75, // Maintain aspect ratio of the image
   },
   image: {
-    width:120,
-    height:120,
+    width: 120,
+    height: 120,
   },
   headingtext: {
     color: "white",
@@ -248,7 +275,7 @@ const styles = StyleSheet.create({
 
   scrollcntmain: { paddingVertical: 10 },
   totalmoneyctn: { alignItems: "flex-end" },
-  
+
   balncetext: {
     color: "white",
     fontSize: 14,

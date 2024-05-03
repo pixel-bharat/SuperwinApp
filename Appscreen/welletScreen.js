@@ -17,146 +17,148 @@ const Stack = createNativeStackNavigator();
 
 export default function WalletScreen({ navigation }) {
   return (
-    <SafeAreaView style={styles.mainView}>
+    <View style={styles.mainView}>
       <ImageBackground
         source={require("../assets/dashboardbg.png")}
         style={styles.backgroundStyle}
       ></ImageBackground>
-      <ScrollView style={styles.bgcolor1}>
-        <View style={styles.container}>
-          <Text style={styles.hellotext}>Hello, Member</Text>
-          <View style={styles.balancebackground}>
-            <Text style={styles.balancetext}>Available Balance</Text>
-            <Text style={styles.ruppestext}>50,684.89*</Text>
-          </View>
-          <Text style={styles.balancetext}>Note:</Text>
-          <View style={styles.withdrawbackground}>
-            <Text style={styles.withdrawtext}>Available for Withdraw</Text>
-            <Text style={styles.withdrawmoney}>40,405.05</Text>
-          </View>
-        </View>
-        <LinearGradient
-          backdroxp
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          colors={["#000000", "#00000000"]}
-          style={styles.linearGradient}
-          angle={"45"}
-          useAngle={true}
-        >
-          <View style={styles.transationbackground}>
-            <View style={styles.totalwinsbackground}>
-              <ImageBackground
-                source={require("../assets/Carddown.png")}
-                style={{
-                  height: "100%",
-                  width: "100%",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  position: "absolute",
-                  borderRadius: 16,
-                  overflow: "hidden",
-                }}
-                resizeMode="cover"
-              ></ImageBackground>
-              <View style={styles.totalwinsbackgroundcard}>
-                <Image source={require("../assets/arrowdown.png")}></Image>
-                <Text style={styles.Textw}>Total Wins</Text>
-                <Text style={styles.money}>INR 130,540.99</Text>
-              </View>
-            </View>
-            <View style={styles.totaldrawbackground}>
-              <ImageBackground
-                source={require("../assets/Cardup.png")}
-                style={{
-                  height: "100%",
-                  width: "100%",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  position: "absolute",
-                  borderRadius: 16,
-                  overflow: "hidden",
-                }}
-                resizeMode="cover"
-              ></ImageBackground>
-              <View style={styles.totalwinsbackgroundcard}>
-                <Image source={require("../assets/up-arrow.png")}></Image>
-                <Text style={styles.Textw}>Total Withdraw</Text>
-                <Text style={styles.money}>$72,540.99</Text>
-              </View>
-            </View>
-          </View>
-          <Text style={styles.promotext}>Quick Actions</Text>
-          <View style={styles.quickCnt}>
-            <TouchableOpacity>
-              <View style={styles.quickCntblock}>
-                <Image source={require("../assets/moneybag.png")}></Image>
-                <Text style={styles.quicktext}>Deposit</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <View style={styles.quickCntblock}>
-                <Image source={require("../assets/money.png")}></Image>
-                <Text style={styles.quicktext}>Withdraw</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <View style={styles.quickCntblock}>
-                <Image source={require("../assets/history.png")}></Image>
-                <Text style={styles.quicktext}>History</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.promobackground}>
-            <Text style={styles.promotext}>Promo & Discount</Text>
-            <TouchableOpacity>
-              <LinearGradient
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                colors={["#A903D2", "#410095"]}
-                style={styles.linearGradientseemore}
-                angle={"45"}
-                useAngle={true}
-              >
-                <Text style={styles.promobtntext}>SEE MORE</Text>
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.promocardcnt}>
-            <TouchableOpacity style={styles.promocard}>
-              <View>
-                <Text style={styles.promohead}>
-                  Special Offer for{"\n"} Today's Top Up
-                </Text>
-                <Text style={styles.promopara}>
-                  Get discount for every top up,{"\n"}transfer and payment
-                </Text>
-              </View>
-            </TouchableOpacity>
 
-            <TouchableOpacity style={styles.promocard}>
-              <View>
-                <Text style={styles.promohead}>
-                  Special Offer for{"\n"} Today's Top Up
-                </Text>
-                <Text style={styles.promopara}>
-                  Get discount for every top up,{"\n"}transfer and payment
-                </Text>
-              </View>
-            </TouchableOpacity>
+      <SafeAreaView>
+        <ScrollView>
+          <View style={styles.container}>
+            <Text style={styles.hellotext}>Hello, Member</Text>
+            <View style={styles.balancebackground}>
+              <Text style={styles.balancetext}>Available Balance</Text>
+              <Text style={styles.ruppestext}>50,684.89*</Text>
+            </View>
+            <Text style={styles.balancetext}>Note:</Text>
+            <View style={styles.withdrawbackground}>
+              <Text style={styles.withdrawtext}>Available for Withdraw</Text>
+              <Text style={styles.withdrawmoney}>40,405.05</Text>
+            </View>
           </View>
-        </LinearGradient>
-      </ScrollView>
-    </SafeAreaView>
+          <LinearGradient
+            backdroxp
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            colors={["#000000", "#00000000"]}
+            style={styles.linearGradient}
+            angle={"45"}
+            useAngle={true}
+          >
+            <View style={styles.transationbackground}>
+              <View style={styles.totalwinsbackground}>
+                <ImageBackground
+                  source={require("../assets/Carddown.png")}
+                  style={{
+                    height: "100%",
+                    width: "100%",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    position: "absolute",
+                    borderRadius: 16,
+                    overflow: "hidden",
+                  }}
+                  resizeMode="cover"
+                ></ImageBackground>
+                <View style={styles.totalwinsbackgroundcard}>
+                  <Image source={require("../assets/arrowdown.png")}></Image>
+                  <Text style={styles.Textw}>Total Wins</Text>
+                  <Text style={styles.money}>INR 130,540.99</Text>
+                </View>
+              </View>
+              <View style={styles.totaldrawbackground}>
+                <ImageBackground
+                  source={require("../assets/Cardup.png")}
+                  style={{
+                    height: "100%",
+                    width: "100%",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    position: "absolute",
+                    borderRadius: 16,
+                    overflow: "hidden",
+                  }}
+                  resizeMode="cover"
+                ></ImageBackground>
+                <View style={styles.totalwinsbackgroundcard}>
+                  <Image source={require("../assets/up-arrow.png")}></Image>
+                  <Text style={styles.Textw}>Total Withdraw</Text>
+                  <Text style={styles.money}>$72,540.99</Text>
+                </View>
+              </View>
+            </View>
+            <Text style={styles.promotext}>Quick Actions</Text>
+            <View style={styles.quickCnt}>
+              <TouchableOpacity>
+                <View style={styles.quickCntblock}>
+                  <Image source={require("../assets/moneybag.png")}></Image>
+                  <Text style={styles.quicktext}>Deposit</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <View style={styles.quickCntblock}>
+                  <Image source={require("../assets/money.png")}></Image>
+                  <Text style={styles.quicktext}>Withdraw</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <View style={styles.quickCntblock}>
+                  <Image source={require("../assets/history.png")}></Image>
+                  <Text style={styles.quicktext}>History</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.promobackground}>
+              <Text style={styles.promotext}>Promo & Discount</Text>
+              <TouchableOpacity>
+                <LinearGradient
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  colors={["#A903D2", "#410095"]}
+                  style={styles.linearGradientseemore}
+                  angle={"45"}
+                  useAngle={true}
+                >
+                  <Text style={styles.promobtntext}>SEE MORE</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.promocardcnt}>
+              <TouchableOpacity style={styles.promocard}>
+                <View>
+                  <Text style={styles.promohead}>
+                    Special Offer for{"\n"} Today's Top Up
+                  </Text>
+                  <Text style={styles.promopara}>
+                    Get discount for every top up,{"\n"}transfer and payment
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.promocard}>
+                <View>
+                  <Text style={styles.promohead}>
+                    Special Offer for{"\n"} Today's Top Up
+                  </Text>
+                  <Text style={styles.promopara}>
+                    Get discount for every top up,{"\n"}transfer and payment
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   mainView: {
     flex: 1,
-    width: "100%",
-    backgroundColor: "black",
-    paddingBottom:60,
+    backgroundColor: "#000",
+    paddingBottom: 100,
   },
   bgcolor1: { paddingTop: 20 },
   container: {
@@ -250,8 +252,8 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     borderRadius: 10,
     marginVertical: 16,
-    borderColor:"#FFFFFF1F",
-    borderWidth:2,
+    borderColor: "#FFFFFF1F",
+    borderWidth: 2,
   },
   promohead: { color: "white", fontSize: 24, fontWeight: "700" },
   promopara: {
