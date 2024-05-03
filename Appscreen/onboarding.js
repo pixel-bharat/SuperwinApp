@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -28,12 +27,12 @@ export default function SignUpPage() {
       Alert.alert("Error", "Please fill all fields.");
       return;
     }
-
+  
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match.");
       return;
     }
-
+  
     try {
       const response = await fetch("http://192.168.1.26:3000/api/signup", {
         method: "POST",
@@ -42,16 +41,17 @@ export default function SignUpPage() {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Success", "Account created successfully.");
-        navigation.navigate("Login");
+        // Navigate to OTP screen after successful signup
+        navigation.replace("otp", { email }); // Pass email to OTP screen
       } else {
         Alert.alert("Error", data.message || "Failed to create account.");
       }
     } catch (error) {
-      Alert.alert("Error", "An unexpected error occurred. Please try again later.");
+      Alert.alert("Error", "Failed to create account.");
     }
   };
 
@@ -122,7 +122,6 @@ export default function SignUpPage() {
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -192,6 +191,35 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  orContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#FFFFFF6B",
+  },
+  orText: {
+    width: 30,
+    textAlign: "center",
+    color: "#fff",
+  },
+  socialButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  socialButton: {
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  socialText: {
+    color: "#fff",
+    textDecorationLine: "underline",
     fontWeight: "bold",
   },
 });

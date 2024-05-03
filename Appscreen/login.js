@@ -29,26 +29,40 @@ export default function LoginPage({ navigation }) {
     }
     
     try {
-      const response = await fetch('http://192.168.1.26:3000/api/login', {
+      const response = await fetch('http://192.168.1.2:3000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await response.json();
       if (response.ok) {
-        Alert.alert("Login Successful", "You will now be navigated to Home screen.");
-        navigation.replace("home");
+        // Fetch random member name and unique user ID
+        const randomMemberResponse = await fetch('http://192.168.1.2:3000/api/randomMember');
+        const randomMemberData = await randomMemberResponse.json();
+  
+        if (randomMemberResponse.ok) {
+          const { memberName, uniqueId } = randomMemberData;
+  
+          // Alert successful login
+          Alert.alert("Login Successful");
+  
+          // Navigate to main screen with random member data
+          navigation.replace("nav", { memberName, uniqueId });
+        } else {
+          Alert.alert("Random Member Fetch Failed", randomMemberData.message);
+        }
       } else {
         Alert.alert("Login Failed", data.message);
       }
     } catch (error) {
-      Alert.alert("Login Successful", "You will now be navigated to Home.");
-        navigation.replace("nav");
+      Alert.alert("Login Failed", "An unexpected error occurred.");
+      console.error("Login error:", error);
     }
   };
+  
 
   const handleGoogleSignIn = async () => {
     try {
@@ -56,7 +70,7 @@ export default function LoginPage({ navigation }) {
       if (result.type === 'success') {
         // Implement what happens after successful Google login,
         // typically navigating to the home screen or fetching user details
-        navigation.navigate("home");
+        navigation.navigate("Home");
       } else {
         Alert.alert("Google Sign-In Error", "Google sign-in was cancelled.");
       }
