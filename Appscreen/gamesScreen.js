@@ -66,146 +66,150 @@ export default function GamesScreen({ navigation }) {
 
   // Destructure navigation directly from props
   return (
-    <SafeAreaView style={styles.mainView}>
+    <View style={styles.mainView}>
       <ImageBackground
         source={require("../assets/dashboardbg.png")}
         style={styles.backgroundStyle}
       ></ImageBackground>
-      <ScrollView>
-        <View style={styles.header}>
-          <Image source={require("../assets/logomax.png")} style={styles.logoheader}></Image>
-          <View style={styles.totalmoneyctn}>
-            <Text style={styles.balncetext}>Total Balance</Text>
-            <View style={styles.totalmoneybackground}>
-              <TouchableOpacity style={styles.totalmoneybackground}>
-                <Image source={require("../assets/coin.png")}></Image>
-                <Text style={styles.headingtext}>50,684.89</Text>
-              </TouchableOpacity>
 
-              <TouchableOpacity>
-                <Image source={require("../assets/refresh.png")}></Image>
-              </TouchableOpacity>
+      <SafeAreaView>
+        <ScrollView>
+          <View style={styles.header}>
+            <Image
+              source={require("../assets/logomax.png")}
+              style={styles.logoheader}
+            ></Image>
+            <View style={styles.totalmoneyctn}>
+              <Text style={styles.balncetext}>Total Balance</Text>
+              <View style={styles.totalmoneybackground}>
+                <TouchableOpacity style={styles.totalmoneybackground}>
+                  <Image source={require("../assets/coin.png")}></Image>
+                  <Text style={styles.headingtext}>50,684.89</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity>
+                  <Image source={require("../assets/refresh.png")}></Image>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-        <View style={styles.container}>
-          <View style={styles.topcntbackground}>
-            <View style={styles.topchildcnt1}>
-              <TouchableOpacity style={styles.topchildcnt1img}>
-                <Image
-                  source={require("../assets/popular.png")}
-                  style={styles.img}
-                ></Image>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.topchildcnt1img}>
-                <Image
-                  source={require("../assets/lottery.png")}
-                  style={styles.img}
-                ></Image>
-              </TouchableOpacity>
+          <View style={styles.container}>
+            <View style={styles.topcntbackground}>
+              <View style={styles.topchildcnt1}>
+                <TouchableOpacity style={styles.topchildcnt1img}>
+                  <Image
+                    source={require("../assets/popular.png")}
+                    style={styles.img}
+                  ></Image>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.topchildcnt1img}>
+                  <Image
+                    source={require("../assets/lottery.png")}
+                    style={styles.img}
+                  ></Image>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.topchildcnt1}>
+                <TouchableOpacity style={styles.topchildcnt1img}>
+                  <Image
+                    source={require("../assets/casino.png")}
+                    style={styles.img}
+                  ></Image>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.topchildcnt1img}>
+                  <Image
+                    source={require("../assets/sports.png")}
+                    style={styles.img}
+                  ></Image>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.topchildcnt1}>
-              <TouchableOpacity style={styles.topchildcnt1img}>
-                <Image
-                  source={require("../assets/casino.png")}
-                  style={styles.img}
-                ></Image>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.topchildcnt1img}>
-                <Image
-                  source={require("../assets/sports.png")}
-                  style={styles.img}
-                ></Image>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.scrollcntmain}>
-            <View style={styles.scrollcards}>
-              <Text style={styles.headingtext}>Lottery</Text>
-              <ScrollView>
-                <View style={styles.cardscroller}>
-                  <FlatList
-                    data={shuffledImages1}
-                    renderItem={viewImage}
-                    keyExtractor={(item, index) => index.toString()}
-                    horizontal={true}
-                  />
+            <View style={styles.scrollcntmain}>
+              <View style={styles.scrollcards}>
+                <Text style={styles.headingtext}>Lottery</Text>
+                <ScrollView>
+                  <View style={styles.cardscroller}>
+                    <FlatList
+                      data={shuffledImages1}
+                      renderItem={viewImage}
+                      keyExtractor={(item, index) => index.toString()}
+                      horizontal={true}
+                    />
+                  </View>
+                </ScrollView>
+                <ScrollView>
+                  <View style={styles.cardscroller}>
+                    <FlatList
+                      data={shuffledImages2}
+                      renderItem={viewImage}
+                      keyExtractor={(item, index) => index.toString()}
+                      horizontal={true}
+                    />
+                  </View>
+                </ScrollView>
+                <View>
+                  <Text style={styles.headingtext}>Super Win Original</Text>
+                  <ScrollView>
+                    <View style={styles.cardscroller}>
+                      <FlatList
+                        data={shuffledImages3}
+                        renderItem={viewImage}
+                        keyExtractor={(item, index) => index.toString()}
+                        horizontal={true}
+                      />
+                    </View>
+                  </ScrollView>
                 </View>
-              </ScrollView>
-              <ScrollView>
-                <View style={styles.cardscroller}>
-                  <FlatList
-                    data={shuffledImages2}
-                    renderItem={viewImage}
-                    keyExtractor={(item, index) => index.toString()}
-                    horizontal={true}
-                  />
+                <View>
+                  <Text style={styles.headingtext}>Recommmended Games</Text>
+                  <ScrollView>
+                    <View style={styles.cardscroller}>
+                      <FlatList
+                        data={shuffledImages4}
+                        renderItem={viewImage}
+                        keyExtractor={(item, index) => index.toString()}
+                        horizontal={true}
+                      />
+                    </View>
+                  </ScrollView>
                 </View>
-              </ScrollView>
-              <View>
-                <Text style={styles.headingtext}>Super Win Original</Text>
-                <ScrollView>
-                  <View style={styles.cardscroller}>
-                    <FlatList
-                      data={shuffledImages3}
-                      renderItem={viewImage}
-                      keyExtractor={(item, index) => index.toString()}
-                      horizontal={true}
-                    />
-                  </View>
-                </ScrollView>
-              </View>
-              <View>
-                <Text style={styles.headingtext}>Recommmended Games</Text>
-                <ScrollView>
-                  <View style={styles.cardscroller}>
-                    <FlatList
-                      data={shuffledImages4}
-                      renderItem={viewImage}
-                      keyExtractor={(item, index) => index.toString()}
-                      horizontal={true}
-                    />
-                  </View>
-                </ScrollView>
-              </View>
-              <View>
-                <Text style={styles.headingtext}>Sports</Text>
-                <ScrollView>
-                  <View style={styles.cardscroller}>
-                    <FlatList
-                      data={shuffledImages5}
-                      renderItem={viewImage}
-                      keyExtractor={(item, index) => index.toString()}
-                      horizontal={true}
-                    />
-                  </View>
-                </ScrollView>
+                <View>
+                  <Text style={styles.headingtext}>Sports</Text>
+                  <ScrollView>
+                    <View style={styles.cardscroller}>
+                      <FlatList
+                        data={shuffledImages5}
+                        renderItem={viewImage}
+                        keyExtractor={(item, index) => index.toString()}
+                        horizontal={true}
+                      />
+                    </View>
+                  </ScrollView>
+                </View>
               </View>
             </View>
           </View>
-          <View style={styles.gap20}></View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 const styles = StyleSheet.create({
-  gap20: {
-    height: 40,
-  },
+ 
   mainView: {
     flex: 1,
     backgroundColor: "#000",
+    paddingBottom: 100,
   },
   backgroundStyle: {
     width: "100%",
     height: "80%",
     position: "absolute",
   },
-  
-  logoheader:{
-    width:60,
-    height:50,
+
+  logoheader: {
+    width: 60,
+    height: 50,
   },
   topcntbackground: {
     justifyContent: "space-between",
@@ -230,8 +234,8 @@ const styles = StyleSheet.create({
     aspectRatio: 1.75, // Maintain aspect ratio of the image
   },
   image: {
-    width:120,
-    height:120,
+    width: 120,
+    height: 120,
   },
   headingtext: {
     color: "white",
@@ -246,13 +250,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
 
-  scrollcntmain: { paddingVertical: 10 },
-  totalmoneyctn: { alignItems: "flex-end" },
+  scrollcntmain: { 
+    paddingVertical: 10 
+  },
+  totalmoneyctn: { 
+    alignItems: "flex-end" 
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    padding: 20,
+    paddingVertical:20,
+    paddingHorizontal:10,
   },
   balncetext: {
     color: "white",
