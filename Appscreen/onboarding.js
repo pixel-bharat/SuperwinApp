@@ -44,17 +44,15 @@ export default function SignUpPage() {
   
       const data = await response.json();
       if (response.ok) {
-        Alert.alert("Success", "Account created successfully.");
-        // Navigate to OTP screen after successful signup
-        navigation.replace("otp", { email }); // Pass email to OTP screen
+        // Navigate to OTP screen after successful signup without success alert
+        navigation.navigate("OtpScreen", { email }); // Make sure 'OtpScreen' is the correct route name
       } else {
         Alert.alert("Error", data.message || "Failed to create account.");
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to create account.");
+      Alert.alert("Error", "Failed to create account due to network issues.");
     }
   };
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <StatusBar style="auto" />

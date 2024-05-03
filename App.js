@@ -12,7 +12,7 @@ import Onboardpage from "./Appscreen/onboarding";
 import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
 import GamesScreen from "./Appscreen/gamesScreen";
-import Otpscreen from "./Appscreen/otp"
+import OtpScreen from "./Appscreen/otp"
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
@@ -98,7 +98,7 @@ function AppNavigator() {
           component={Onboardpage}
           options={{ headerShown: false }}
         />
-            <Stack.Screen name="otp" component={Otpscreen} />
+            <Stack.Screen name="OtpScreen" component={OtpScreen} />
         <Stack.Screen
           name="profileScreen"
           component={ProfileScreen}
