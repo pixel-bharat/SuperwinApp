@@ -20,27 +20,27 @@ export default function Nav() {
           switch (route.name) {
             case "Home":
               iconName = "home";
-            //  label = "Home";
+              label = "Home";
               break;
             case "Profile":
               iconName = focused ? "user" : "user-circle";
-            //  label = "Profile";
+              label = "Profile";
               break;
             case "Wallet":
               iconName = "money";
-            //  label = "Wallet";
+              label = "Wallet";
               break;
               case "notification":
               iconName = "bell";
-            //  label = "Notification";
+              label = "Notification";
               break;
             case "gamesScreen":
               iconName = focused ? "gamepad" : "gamepad";
-             // label = "Games";
+              label = "Games";
               break;
             default:
               iconName = "circle";
-            //  label = "";
+              label = "";
           }
 
           return (
@@ -48,32 +48,33 @@ export default function Nav() {
               flex: 1,
               justifyContent: 'center',
               alignItems: 'center',
+              padding: 10,
             }}>
               {focused ? (
                 <LinearGradient
                   colors={['rgb(243, 154, 21)', 'rgb(169, 3, 210)']}
                   style={{
-                    width:80,
-                    height: "100%",
-                    borderTopLeftRadius:20,
-                    borderBottomRightRadius:20,
+                    width: 80,
+                    height: 76,
+                    borderTopLeftRadius:30,
+                    borderBottomRightRadius:30,
                     justifyContent: 'center',
                     alignItems: 'center',
                   }}>
                   <FontAwesome name={iconName} size={size} color={color} />
-                  {/* <Text style={{ color, fontSize: 12 }}>{label}</Text> */}
+                  <Text style={{ color, fontSize: 12 }}>{label}</Text>
                 </LinearGradient>
               ) : (
                 <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                   <FontAwesome name={iconName} size={size} color={color} />
-                  {/* <Text style={{ color, fontSize: 12 }}>{label}</Text> */}
+                  <Text style={{ color, fontSize: 12 }}>{label}</Text>
                 </View>
               )}
             </View>
           );
         },
         tabBarStyle: {
-          height: 100,
+          height: 80,
           backgroundColor: "black",
           borderTopLeftRadius: 30,
           borderTopRightRadius: 30,
@@ -86,13 +87,13 @@ export default function Nav() {
           overflow:"hidden"
         },
         tabBarActiveTintColor: "#fff",
-        tabBarInactiveTintColor: "#A903D2",
+        tabBarInactiveTintColor: "gray",
         tabBarItemStyle: {
           justifyContent: 'center',
           alignItems: 'center'
         },
         tabBarLabelStyle: {
-          paddingBottom: 0,
+          paddingBottom: 5,
           display: 'none'  // Hide the default label
         },
       })}
