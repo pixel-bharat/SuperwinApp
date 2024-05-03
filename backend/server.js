@@ -1,3 +1,4 @@
+
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
@@ -18,6 +19,8 @@ app.use(bodyParser.json());
 mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
 });
+
+
 
 const db = mongoose.connection;
 
@@ -56,8 +59,8 @@ const transporter = nodemailer.createTransport({
   host: 'smtp.ethereal.email',
   port: 587,
   auth: {
-      user: 'julianne.doyle@ethereal.email',
-      pass: 'BGWbGtTcBSbe5ebGGC'
+      user: 'korbin28@ethereal.email',
+      pass: 'H87UBGc5ByMVpHMujT'
   }
 });
 
@@ -196,3 +199,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+

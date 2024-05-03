@@ -122,7 +122,6 @@ export default function SignUpPage() {
     </ScrollView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -192,6 +191,35 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 16,
+    fontWeight: "bold",
+  },
+  orContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#FFFFFF6B",
+  },
+  orText: {
+    width: 30,
+    textAlign: "center",
+    color: "#fff",
+  },
+  socialButtons: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  socialButton: {
+    flexDirection: "column",
+    alignItems: "center",
+  },
+  socialText: {
+    color: "#fff",
+    textDecorationLine: "underline",
     fontWeight: "bold",
   },
 });
