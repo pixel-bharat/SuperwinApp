@@ -1,6 +1,6 @@
 import React from "react";
 
-import { useState ,useEffect} from "react";
+import { useState, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -14,9 +14,10 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
 
 const Stack = createNativeStackNavigator();
-
 
 export default function ProfileScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
@@ -29,13 +30,26 @@ export default function ProfileScreen({ navigation }) {
   const fetchUserData = async () => {
     try {
       // Make fetch request to fetch user data
-      const response = await fetch("http://192.168.1.2:3000/api/members");
+      const response = await fetch("http://192.168.1.26:3000/api/members");
       const data = await response.json();
-      
+
       // Update state with fetched user data
       setUserData(data);
     } catch (error) {
       console.error("Error fetching user data:", error);
+    }
+  };
+
+  // logout Function
+  const handleLogout = async () => {
+    try {
+      // Clear user token or any data from AsyncStorage
+      await AsyncStorage.removeItem("userToken");
+
+      // Redirect to the Login Screen
+      navigation.navigate("Login");
+    } catch (error) {
+      console.error("Failed to log out:", error);
     }
   };
 
@@ -45,280 +59,275 @@ export default function ProfileScreen({ navigation }) {
         source={require("../assets/Maskbackround.png")}
         style={styles.backgroundStyle}
       ></ImageBackground>
-    
-    <SafeAreaView >
-      
-      <ScrollView>
-        <View style={styles.container}>
-          <Image source={require("../assets/profile.png")}></Image>
-          <View style={styles.profileView}>
-            <View style={styles.memberView}>
-              <Image
-                source={require("../assets/star.png")}
-                style={{ width: 20, height: 20 }}
-              ></Image>
-              <Text style={styles.membernametext}>Member name</Text>
-            </View>
 
-            <View style={styles.uidVeiw}>
-              <View style={styles.uidbackground}>
-                <Text style={styles.uidtext}>UID</Text>
-                <Text style={styles.uidtext}>456732420</Text>
+      <SafeAreaView>
+        <ScrollView>
+          <View style={styles.container}>
+            <Image source={require("../assets/profile.png")}></Image>
+            <View style={styles.profileView}>
+              <View style={styles.memberView}>
+                <Image
+                  source={require("../assets/star.png")}
+                  style={{ width: 20, height: 20 }}
+                ></Image>
+                <Text style={styles.membernametext}>Member name</Text>
               </View>
 
-              <Image
-                source={require("../assets/Transfer.png")}
-                style={{ marginLeft: 6 }}
-              ></Image>
-            </View>
+              <View style={styles.uidVeiw}>
+                <View style={styles.uidbackground}>
+                  <Text style={styles.uidtext}>UID</Text>
+                  <Text style={styles.uidtext}>456732420</Text>
+                </View>
 
-            <Text style={styles.lastlogintext}>
-              Last login:2024-11-23, 18:16:23
-            </Text>
+                <Image
+                  source={require("../assets/Transfer.png")}
+                  style={{ marginLeft: 6 }}
+                ></Image>
+              </View>
+
+              <Text style={styles.lastlogintext}>
+                Last login:2024-11-23, 18:16:23
+              </Text>
+            </View>
+            <StatusBar style="auto" />
           </View>
-          <StatusBar style="auto" />
-        </View>
-        <View style={styles.gap10}></View>
-        <Image
-          source={require("../assets/Line.png")}
-          style={{ marginTop: 16,alignSelf:'center' }}
-        ></Image>
-      
-        
-        <View style={styles.gap10}></View>
-        <View style={styles.cardView}>
+          <View style={styles.gap10}></View>
           <Image
-            source={require("../assets/Background.png")}
-            style={{
-              width: "100%",
-              height: "100%",
-              position: "absolute",
-              borderRadius: 10,
-            }}
+            source={require("../assets/Line.png")}
+            style={{ marginTop: 16, alignSelf: "center" }}
           ></Image>
-          <TouchableOpacity>
+
+          <View style={styles.gap10}></View>
+          <View style={styles.cardView}>
             <Image
-              source={require("../assets/Share.png")}
-              style={{ alignSelf: "flex-end" }}
+              source={require("../assets/Background.png")}
+              style={{
+                width: "100%",
+                height: "100%",
+                position: "absolute",
+                borderRadius: 10,
+              }}
             ></Image>
-          </TouchableOpacity>
-          <View style={styles.cardmember}>
-            <View style={styles.memberView}>
+            <TouchableOpacity>
               <Image
-                source={require("../assets/star.png")}
-                style={{ width: 20, height: 20 }}
+                source={require("../assets/Share.png")}
+                style={{ alignSelf: "flex-end" }}
               ></Image>
-              <Text style={styles.membernametext2}>Member name</Text>
-            </View>
+            </TouchableOpacity>
+            <View style={styles.cardmember}>
+              <View style={styles.memberView}>
+                <Image
+                  source={require("../assets/star.png")}
+                  style={{ width: 20, height: 20 }}
+                ></Image>
+                <Text style={styles.membernametext2}>Member name</Text>
+              </View>
 
-            <View style={styles.uidVeiw}>
-              <LinearGradient
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0, y: 1 }}
-                colors={["#FFE590", "#FFC600"]}
-                style={{
-                  width: 119,
-                  height: 27,
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderRadius: 4,
-                  marginBottom: 12,
-                }}
-              >
-                <Text
+              <View style={styles.uidVeiw}>
+                <LinearGradient
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0, y: 1 }}
+                  colors={["#FFE590", "#FFC600"]}
                   style={{
-                    color: "#2A2A2A",
-                    fontSize: 14,
-                    marginRight: 12,
+                    width: 119,
+                    height: 27,
+                    flexDirection: "row",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    borderRadius: 4,
+                    marginBottom: 12,
                   }}
                 >
-                  {"UID:"}
-                </Text>
-                <Text
-                  style={{
-                    color: "#2A2A2A",
-                    fontSize: 14,
-                  }}
-                >
-                  {"45938630"}
-                </Text>
-              </LinearGradient>
-            </View>
-          </View>
-        </View>
-        <View style={styles.gap20}></View>
-        <View style={styles.moneycardbackgroung}>
-          <Text
-            style={{
-              color: "#FFFFFF",
-              fontSize: 14,
-              marginBottom: 1,
-            }}
-          >
-            {"Total Balance"}
-          </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              marginBottom: 10,
-            }}
-          >
-            <Image
-              source={require("../assets/coin.png")}
-              resizeMode={"stretch"}
-              style={{
-                width: 32,
-                height: 32,
-                marginRight: 8,
-              }}
-            />
-            <Text
-              style={{
-                color: "#FFFFFF",
-                fontSize: 18,
-                marginRight: 11,
-              }}
-            >
-              {"50,684.89"}
-            </Text>
-            <Image
-              source={require("../assets/reuse.png")}
-              resizeMode={"stretch"}
-              style={{
-                width: 32,
-                height: 32,
-                marginRight: 8,
-              }}
-            />
-          </View>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <View>
-              <Image
-                source={require("../assets/moneybag.png")}
-                resizeMode={"stretch"}
-                style={{
-                  width: 32,
-                height: 32,
-                marginRight: 8,
-                }}
-              />
-              <Text
-                style={{
-                  color: "#FFFFFF",
-                  fontSize: 14,
-                  marginHorizontal: 8,
-                }}
-              >
-                {"Deposit"}
-              </Text>
-            </View>
-            <Image source={require("../assets/vrticalline.png")}></Image>
-
-            <View>
-              <Image
-                source={require("../assets/money.png")}
-                resizeMode={"stretch"}
-                style={{
-                  width: 32,
-                height: 32,
-                marginRight: 8,
-                }}
-              />
-              <Text
-                style={{
-                  color: "#FFFFFF",
-                  fontSize: 14,
-                  marginHorizontal: 8,
-                }}
-              >
-                {"Withdraw"}
-              </Text>
-            </View>
-            <Image source={require("../assets/vrticalline.png")}></Image>
-
-            <View>
-              <Image
-                source={require("../assets/bookmark.png")}
-                resizeMode={"stretch"}
-                style={{
-                  width: 32,
-                height: 32,
-                marginRight: 8,
-                }}
-              />
-              <Text
-                style={{
-                  color: "#FFFFFF",
-                  fontSize: 14,
-                  marginHorizontal: 8,
-                }}
-              >
-                {"Membership"}
-              </Text>
-            </View>
-          </View>
-        </View>
-        <View style={styles.gap20}></View>
-        <Text style={styles.accountText}>Your Account History</Text>
-        <View style={styles.gap20}></View>
-        <View style={styles.accountcard}>
-          <View style={styles.firstView}>
-            <View style={styles.firstcard}>
-              <Image source={require("../assets/magic-trick.png")}></Image>
-              <Text style={styles.magictext}>Game History</Text>
-            </View>
-            
-            <View style={styles.secondcard}>
-              <Image source={require("../assets/copy.png")}></Image>
-              <Text style={styles.magictext}>Transaction</Text>
+                  <Text
+                    style={{
+                      color: "#2A2A2A",
+                      fontSize: 14,
+                      marginRight: 12,
+                    }}
+                  >
+                    {"UID:"}
+                  </Text>
+                  <Text
+                    style={{
+                      color: "#2A2A2A",
+                      fontSize: 14,
+                    }}
+                  >
+                    {"45938630"}
+                  </Text>
+                </LinearGradient>
+              </View>
             </View>
           </View>
           <View style={styles.gap20}></View>
-          <View style={styles.firstView}>
-            <View style={styles.firstcard}>
-              <Image source={require("../assets/moneybag.png")}></Image>
-              <Text style={styles.magictext}>Deposit</Text>
+          <View style={styles.moneycardbackgroung}>
+            <Text
+              style={{
+                color: "#FFFFFF",
+                fontSize: 14,
+                marginBottom: 1,
+              }}
+            >
+              {"Total Balance"}
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 10,
+              }}
+            >
+              <Image
+                source={require("../assets/coin.png")}
+                resizeMode={"stretch"}
+                style={{
+                  width: 32,
+                  height: 32,
+                  marginRight: 8,
+                }}
+              />
+              <Text
+                style={{
+                  color: "#FFFFFF",
+                  fontSize: 18,
+                  marginRight: 11,
+                }}
+              >
+                {"50,684.89"}
+              </Text>
+              <Image
+                source={require("../assets/reuse.png")}
+                resizeMode={"stretch"}
+                style={{
+                  width: 32,
+                  height: 32,
+                  marginRight: 8,
+                }}
+              />
             </View>
-            <View style={styles.secondcard}>
-              <Image source={require("../assets/money.png")}></Image>
-              <Text style={styles.magictext}>Withdraw</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <View>
+                <Image
+                  source={require("../assets/moneybag.png")}
+                  resizeMode={"stretch"}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    marginRight: 8,
+                  }}
+                />
+                <Text
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: 14,
+                    marginHorizontal: 8,
+                  }}
+                >
+                  {"Deposit"}
+                </Text>
+              </View>
+              <Image source={require("../assets/vrticalline.png")}></Image>
+
+              <View>
+                <Image
+                  source={require("../assets/money.png")}
+                  resizeMode={"stretch"}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    marginRight: 8,
+                  }}
+                />
+                <Text
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: 14,
+                    marginHorizontal: 8,
+                  }}
+                >
+                  {"Withdraw"}
+                </Text>
+              </View>
+              <Image source={require("../assets/vrticalline.png")}></Image>
+
+              <View>
+                <Image
+                  source={require("../assets/bookmark.png")}
+                  resizeMode={"stretch"}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    marginRight: 8,
+                  }}
+                />
+                <Text
+                  style={{
+                    color: "#FFFFFF",
+                    fontSize: 14,
+                    marginHorizontal: 8,
+                  }}
+                >
+                  {"Membership"}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
-        <Image
-          source={require("../assets/Line.png")}
-          style={{
-            marginTop: 16,
-            justifyContent: "center",
-            alignSelf: "center",
-          }}
-        ></Image>
-        <View style={styles.logoutbtn}>
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <LinearGradient
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 1 }}
-            colors={["#A903D2", "#410095"]}
-            style={styles.linearGradient}
-            angle={"45"}
-            useAngle={true}
-          >
-            <Text style={styles.buttonText}>Logout</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-        </View>
-        <View style={styles.gap10}></View>
-       
-      </ScrollView>
-    </SafeAreaView>
+          <View style={styles.gap20}></View>
+          <Text style={styles.accountText}>Your Account History</Text>
+          <View style={styles.gap20}></View>
+          <View style={styles.accountcard}>
+            <View style={styles.firstView}>
+              <View style={styles.firstcard}>
+                <Image source={require("../assets/magic-trick.png")}></Image>
+                <Text style={styles.magictext}>Game History</Text>
+              </View>
+
+              <View style={styles.secondcard}>
+                <Image source={require("../assets/copy.png")}></Image>
+                <Text style={styles.magictext}>Transaction</Text>
+              </View>
+            </View>
+            <View style={styles.gap20}></View>
+            <View style={styles.firstView}>
+              <View style={styles.firstcard}>
+                <Image source={require("../assets/moneybag.png")}></Image>
+                <Text style={styles.magictext}>Deposit</Text>
+              </View>
+              <View style={styles.secondcard}>
+                <Image source={require("../assets/money.png")}></Image>
+                <Text style={styles.magictext}>Withdraw</Text>
+              </View>
+            </View>
+          </View>
+          <Image
+            source={require("../assets/Line.png")}
+            style={{
+              marginTop: 16,
+              justifyContent: "center",
+              alignSelf: "center",
+            }}
+          ></Image>
+          <View style={styles.logoutBtn}>
+            <TouchableOpacity onPress={handleLogout}>
+              <LinearGradient
+                start={{ x: 0, y: 0 }}
+                end={{ x: 0, y: 1 }}
+                colors={["#A903D2", "#410095"]}
+                style={styles.linearGradient}
+              >
+                <Text style={styles.buttonText}>Logout</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.gap10}></View>
+        </ScrollView>
+      </SafeAreaView>
     </View>
   );
 }
@@ -338,13 +347,12 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
 
- 
   container: {
     justifyContent: "flex-start",
     alignItems: "center",
     flexDirection: "row",
-    paddingVertical:20,
-    paddingHorizontal:10,
+    paddingVertical: 20,
+    paddingHorizontal: 10,
   },
 
   backgroundStyle: {
@@ -362,8 +370,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  star: { 
-    width: 30 
+  star: {
+    width: 30,
   },
 
   uidVeiw: {
@@ -390,27 +398,28 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
   },
 
-  uidtext: { 
-    fontSize: 14, 
-    fontWeight: "400", 
-    color: "white" 
+  uidtext: {
+    fontSize: 14,
+    fontWeight: "400",
+    color: "white",
   },
 
-  lastlogintext: { 
-    fontSize: 12, 
-    fontWeight: "400", 
-    color: "#FFF" 
-  },
-  
-  cardView: { 
-    height: 212 ,  
-    marginHorizontal:10,
+  lastlogintext: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: "#FFF",
   },
 
-  profileView: { 
-    marginLeft: 16, 
-    height: 80, 
-    justifyContent: "space-between" },
+  cardView: {
+    height: 212,
+    marginHorizontal: 10,
+  },
+
+  profileView: {
+    marginLeft: 16,
+    height: 80,
+    justifyContent: "space-between",
+  },
 
   cardmember: {
     height: 60,
@@ -443,23 +452,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     paddingVertical: 19,
     paddingHorizontal: 16,
-    marginHorizontal:10,
+    marginHorizontal: 10,
   },
 
   accountText: {
     fontWeight: "700",
     fontSize: 18,
     color: "rgba(255, 255, 255, 1)",
-    paddingHorizontal:10,
+    paddingHorizontal: 10,
   },
 
   accountcard: {
-    paddingHorizontal:10,
+    paddingHorizontal: 10,
   },
 
-  firstView: { 
-    flexDirection: "row", 
-    justifyContent: "space-between" 
+  firstView: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
 
   firstcard: {
@@ -472,8 +481,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",
-    paddingHorizontal:10,
-    marginRight:"4%",
+    paddingHorizontal: 10,
+    marginRight: "4%",
   },
 
   secondcard: {
@@ -486,7 +495,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",
-    paddingHorizontal:10,
+    paddingHorizontal: 10,
   },
 
   magictext: {
@@ -508,13 +517,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  logoutbtn:{
-    paddingHorizontal:10,
+  logoutbtn: {
+    paddingHorizontal: 10,
   },
   buttonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
   },
-
 });

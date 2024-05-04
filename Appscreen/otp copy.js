@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,51 +7,25 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native"; // Added useRoute to get params
-import { LinearGradient } from "expo-linear-gradient";
 
-const OtpInput = ({ value, onChangeText, maxLength, onKeyPress, refInput }) => (
+import { LinearGradient } from "expo-linear-gradient";
+const OtpInput = ({ value, onChangeText, maxLength }) => (
   <TextInput
-    ref={refInput}
     style={styles.otpInput}
     maxLength={maxLength}
     keyboardType="numeric"
     value={value}
     onChangeText={onChangeText}
-    onKeyPress={onKeyPress}
-    textContentType="oneTimeCode" // iOS only: for automatic SMS OTP handling
   />
 );
 
-const OtpScreen = () => {
+const OtpScreen = ({ myauth, callback, subject, email }) => {
   const [otp, setOtp] = useState(["", "", "", ""]);
-  const inputRefs = [
-    useRef(null),
-    useRef(null),
-    useRef(null),
-    useRef(null),
-  ];
-  const navigation = useNavigation();
-  const route = useRoute(); // Get params passed to this screen
-  const { email } = route.params; // Destructure email from route.params
 
   const handleOtpChange = (index, value) => {
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-
-    // Move to next input
-    if (value.length === 1 && index < 3) {
-      inputRefs[index + 1].current.focus();
-    }
-  };
-
-  const handleKeyPress = ({ nativeEvent: { key: keyValue } }, index) => {
-    if (keyValue === 'Backspace' && otp[index] === '') {
-      if (index > 0) {
-        inputRefs[index - 1].current.focus();
-      }
-    }
   };
 
   const handleSubmit = async () => {
@@ -68,31 +42,42 @@ const OtpScreen = () => {
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Success", "OTP is verified", [
-          { text: "OK", onPress: () => navigation.navigate("nav") } // Navigate to HomeScreen after successful verification
-        ]);
+          { text: "OK", onPress: () => navigation.navigate("nav") },
+        ]); // Added closing parenthesis here
       } else {
-        Alert.alert("Error", data.message || "An unexpected error occurred.");
+        Alert.alert("Error", data.message); // Added 'Error' title for consistency
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      Alert.alert("Network Error", "Failed to verify OTP due to network issues.");
+      Alert.alert("Failed to verify OTP");
     }
   };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Enter OTP</Text>
-      <Text style={styles.subtitle}>{'Please enter the OTP sent to ' + email}</Text>
+      <Text style={styles.subtitle}>{subject}</Text>
       <View style={styles.otpContainer}>
-        {otp.map((value, index) => (
-          <OtpInput
-            key={index}
-            refInput={inputRefs[index]}
-            value={value}
-            onChangeText={(value) => handleOtpChange(index, value)}
-            maxLength={1}
-            onKeyPress={(e) => handleKeyPress(e, index)}
-          />
-        ))}
+        <OtpInput
+          value={otp[0]}
+          onChangeText={(value) => handleOtpChange(0, value)}
+          maxLength={1}
+        />
+        <OtpInput
+          value={otp[1]}
+          onChangeText={(value) => handleOtpChange(1, value)}
+          maxLength={1}
+        />
+        <OtpInput
+          value={otp[2]}
+          onChangeText={(value) => handleOtpChange(2, value)}
+          maxLength={1}
+        />
+        <OtpInput
+          value={otp[3]}
+          onChangeText={(value) => handleOtpChange(3, value)}
+          maxLength={1}
+        />
       </View>
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <LinearGradient colors={["#A903D2", "#410095"]} style={styles.gradient}>
@@ -102,10 +87,6 @@ const OtpScreen = () => {
     </View>
   );
 };
-
-
-
-
 
 const styles = StyleSheet.create({
   container: {
