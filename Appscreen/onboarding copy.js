@@ -21,21 +21,18 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword) {
       Alert.alert("Error", "Please fill all fields.");
       return;
     }
-
+  
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match.");
       return;
     }
-
-    setIsLoading(true);
-
+  
     try {
       const response = await fetch("http://192.168.1.26:3000/api/signup", {
         method: "POST",
@@ -44,21 +41,18 @@ export default function SignUpPage() {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await response.json();
       if (response.ok) {
-        // Assuming 'OtpScreen' is set to handle the OTP process and verify it
-        navigation.navigate("OtpScreen", { email }); 
+        // Navigate to OTP screen after successful signup without success alert
+        navigation.navigate("OtpScreen", { email }); // Make sure 'OtpScreen' is the correct route name
       } else {
         Alert.alert("Error", data.message || "Failed to create account.");
       }
     } catch (error) {
       Alert.alert("Error", "Failed to create account due to network issues.");
-    } finally {
-      setIsLoading(false);
     }
   };
-
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <StatusBar style="auto" />
@@ -76,7 +70,9 @@ export default function SignUpPage() {
         <Image source={require("../assets/logo.png")} style={styles.logo} />
         <View style={styles.formContainer}>
           <Text style={styles.title}>Create Your Account</Text>
-          <Text style={styles.subtitle}>Join SUPERWIN and start your journey!</Text>
+          <Text style={styles.subtitle}>
+            Join SUPERWIN and start your journey!
+          </Text>
           <View style={styles.inputContainer}>
             <FontAwesomeIcon icon={faUser} size={20} color="#fff" />
             <TextInput
@@ -111,11 +107,7 @@ export default function SignUpPage() {
               onChangeText={setConfirmPassword}
             />
           </View>
-          <TouchableOpacity 
-            style={styles.signUpButton} 
-            onPress={handleSignUp}
-            disabled={isLoading}
-          >
+          <TouchableOpacity style={styles.signUpButton} onPress={handleSignUp}>
             <LinearGradient
               colors={["#A903D2", "#410095"]}
               style={styles.gradient}
@@ -128,8 +120,6 @@ export default function SignUpPage() {
     </ScrollView>
   );
 }
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
