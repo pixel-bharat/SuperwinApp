@@ -14,20 +14,19 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faLock, faUser, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
-import * as AuthSession from 'expo-auth-session';
-import * as Google from 'expo-auth-session/providers/google';
-import * as WebBrowser from 'expo-web-browser';
 
 export default function LoginPage({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);  // State to manage loading during API call
 
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter both email and password.");
       return;
     }
-    
+
+    setIsLoading(true); // Start loading
     try {
       const response = await fetch('http://192.168.1.26:3000/api/login', {
         method: 'POST',
@@ -36,46 +35,19 @@ export default function LoginPage({ navigation }) {
         },
         body: JSON.stringify({ email, password }),
       });
-  
-      const data = await response.json();
-      if (response.ok) {
-        // Fetch random member name and unique user ID
-        const randomMemberResponse = await fetch('http://192.168.1.2:3000/api/randomMember');
-        const randomMemberData = await randomMemberResponse.json();
-  
-        if (randomMemberResponse.ok) {
-          const { memberName, uniqueId } = randomMemberData;
-  
-          // Alert successful login
-          Alert.alert("Login Successful");
-  
-          // Navigate to main screen with random member data
-          navigation.replace("nav", { memberName, uniqueId });
-        } else {
-          Alert.alert("Random Member Fetch Failed", randomMemberData.message);
-        }
-      } else {
-        Alert.alert("Login Failed", data.message);
-      }
-    } catch (error) {
-      Alert.alert("Login Failed", "An unexpected error occurred.");
-      console.error("Login error:", error);
-    }
-  };
-  
 
-  const handleGoogleSignIn = async () => {
-    try {
-      const result = await Google.startAsync({ clientId: 'Your Google Client ID' });
-      if (result.type === 'success') {
-        // Implement what happens after successful Google login,
-        // typically navigating to the home screen or fetching user details
-        navigation.navigate("Home");
-      } else {
-        Alert.alert("Google Sign-In Error", "Google sign-in was cancelled.");
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
       }
+
+      const data = await response.json();
+      Alert.alert("Login Successful", "You have logged in successfully.");
+      navigation.navigate("Home"); // Assuming 'Home' is the correct route name
     } catch (error) {
-      Alert.alert("Google Sign-In Error", "An unexpected error occurred. Please try again later.");
+      Alert.alert("Login Failed", error.message || "An unexpected error occurred.");
+      console.error("Login error:", error);
+    } finally {
+      setIsLoading(false); // Stop loading
     }
   };
 
@@ -121,7 +93,7 @@ export default function LoginPage({ navigation }) {
             <TouchableOpacity onPress={() => Alert.alert("Forgot Password Pressed")}>
               <Text style={styles.forgotPassword}>Forgot Password?</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
               <LinearGradient
                 colors={["#A903D2", "#410095"]}
                 style={styles.gradient}
@@ -129,21 +101,15 @@ export default function LoginPage({ navigation }) {
                 <Text style={styles.buttonText}>LOG IN</Text>
               </LinearGradient>
             </TouchableOpacity>
-            <View style={styles.orContainer}>
-              <View style={styles.line} />
-              <Text style={styles.orText}>Or continue with</Text>
-              <View style={styles.line} />
-            </View>
-            <TouchableOpacity style={styles.socialButton} onPress={handleGoogleSignIn}>
-              <Image source={require("../assets/Google.png")} style={styles.socialIcon} />
-              <Text style={styles.socialText}>Google</Text>
-            </TouchableOpacity>
           </View>
         </ScrollView>
       </ImageBackground>
     </View>
   );
 }
+
+// Styles remain unchanged
+
 
 const styles = StyleSheet.create({
   container: {
