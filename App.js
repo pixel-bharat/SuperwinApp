@@ -13,6 +13,7 @@ import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
 import GamesScreen from "./Appscreen/gamesScreen";
 import OtpScreen from "./Appscreen/otp"
+import UserProfileScreen from "./Appscreen/profilesetup";
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
@@ -60,6 +61,12 @@ function AppNavigator() {
           name="Start"
           component={Start}
           options={{ headerShown: false }}
+        />
+          <Stack.Screen 
+          name="UserProfileScreen"
+          component={UserProfileScreen} 
+          options={{ headerShown: false }}
+          
         />
         <Stack.Screen
           name="nav"

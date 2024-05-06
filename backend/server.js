@@ -5,8 +5,10 @@ const dotenv = require("dotenv");
 const nodemailer = require("nodemailer");
 const randomstring = require("randomstring");
 const { v4: uuidv4 } = require('uuid'); // Corrected import
+const multer  = require('multer');
 
 dotenv.config();
+
 
 const app = express();
 app.use(express.json());
@@ -32,6 +34,16 @@ const memberSchema = new mongoose.Schema({
 });
 const Member = mongoose.model("Member", memberSchema);
 
+
+//schema for profilestup
+const userProfileSchema = new mongoose.Schema({
+  userId: String,
+  avatar: String,
+  images: [String],
+  memberName: String
+});
+
+const UserProfile = mongoose.model('UserProfile', userProfileSchema);
 // Setup Nodemailer transporter
 const transporter = nodemailer.createTransport({
   host: 'smtp.ethereal.email',
@@ -150,6 +162,35 @@ app.post("/api/login", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+      cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage });
+
+// API endpoint for updating avatar and uploading images
+app.post('/api/profile/avatar', upload.array('images'), (req, res) => {
+  const { userId, memberName } = req.body;
+  const avatar = req.files[0] ? req.files[0].filename : null; // Get the first uploaded file as the avatar
+
+  // If memberName is provided, update it
+  const updateFields = { avatar };
+  if (memberName) {
+      updateFields.memberName = memberName;
+  }
+
+  // Update user profile with avatar and possibly memberName
+  UserProfile.findOneAndUpdate({ userId }, updateFields, { new: true })
+      .then(profile => res.json(profile))
+      .catch(err => res.status(400).json({ error: err.message }));
+});
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));

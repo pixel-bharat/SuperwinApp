@@ -57,7 +57,7 @@ const OtpScreen = () => {
   const handleSubmit = async () => {
     const otpValue = otp.join("");
     try {
-      const response = await fetch("http://192.168.1.26:3000/api/verifyOTP", {
+      const response = await fetch("http://192.168.1.2:3000/api/verifyOTP", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,7 +68,7 @@ const OtpScreen = () => {
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Success", "OTP is verified", [
-          { text: "OK", onPress: () => navigation.navigate("nav") } // Navigate to HomeScreen after successful verification
+          { text: "OK", onPress: () => navigation.navigate("UserProfileScreen") } // Navigate to HomeScreen after successful verification
         ]);
       } else {
         Alert.alert("Error", data.message || "An unexpected error occurred.");

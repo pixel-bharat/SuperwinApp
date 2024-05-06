@@ -42,7 +42,7 @@ const OtpScreen = ({ myauth, callback, subject, email }) => {
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Success", "OTP is verified", [
-          { text: "OK", onPress: () => navigation.navigate("nav") },
+          { text: "OK", onPress: () => navigation.navigate("profilesetup") },
         ]); // Added closing parenthesis here
       } else {
         Alert.alert("Error", data.message); // Added 'Error' title for consistency
