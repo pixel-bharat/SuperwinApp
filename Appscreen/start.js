@@ -46,9 +46,9 @@ export default function Start({ navigation }) {
               </TouchableOpacity>
             </LinearGradient>
             <View style={styles.footer}>
-              <Text style={styles.footerText}>Already have an account?</Text>
+              <Text style={styles.footerText}>Don't have an account?</Text>
               <TouchableOpacity
-                onPress={() => navigation.navigate("Onboard")}
+                onPress={() => navigation.navigate("onboarding")}
               >
                 <Text style={styles.signInText}>Sign Up Here</Text>
               </TouchableOpacity>

@@ -4,15 +4,19 @@ import { Easing } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import Start from "./Appscreen/start"; 
-import LoginPage from "./Appscreen/login"; 
-import Nav from "./Appscreen/nav"; 
+import Start from "./Appscreen/start";
+import LoginPage from "./Appscreen/login";
+import Nav from "./Appscreen/nav";
 import Homepage from "./Appscreen/home";
-import Onboardpage from "./Appscreen/onboarding"; 
+import Onboarding from "./Appscreen/onboarding";
 import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
 import GamesScreen from "./Appscreen/gamesScreen";
-import OtpScreen from "./Appscreen/otp"
+import OtpScreen from "./Appscreen/otp";
+import ProfileSetup from "./Appscreen/ProfileSetup";
+
+
+
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
@@ -72,7 +76,7 @@ function AppNavigator() {
           options={{ headerShown: false }}
           screenOptions={{
             headerShown: false,
-            animation: "fade", 
+            animation: "fade",
             animationTypeForReplace: "pop",
             gestureEnabled: true,
             gestureDirection: "horizontal",
@@ -94,13 +98,22 @@ function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Onboard"
-          component={Onboardpage}
+          name="onboarding"
+          component={Onboarding}
           options={{ headerShown: false }}
         />
-            <Stack.Screen name="OtpScreen" component={OtpScreen} />
         <Stack.Screen
-          name="profileScreen"
+          name="OtpScreen"
+          component={OtpScreen}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="ProfileSet"
+          component={ProfileSetup}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ProfileScreen"
           component={ProfileScreen}
           options={{ headerShown: false }}
         />
