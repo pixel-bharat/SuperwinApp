@@ -11,38 +11,49 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+import { ActivityIndicator } from 'react-native';
 import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faLock, faUser, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function LoginPage({ navigation }) {
+
+export default function LoginPage() {
+  const navigation = useNavigation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);  // State to manage loading during API call
+  const [isLoading, setIsLoading] = useState(false); // State to manage loading during API call
 
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter both email and password.");
       return;
     }
-
+  
     setIsLoading(true); // Start loading
     try {
-      const response = await fetch('http://192.168.1.26:3000/api/login', {
-        method: 'POST',
+      const response = await fetch("http://192.168.1.26:3000/api/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
       });
-
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+  
+      const data = await response.json(); // Parse JSON response
+  
+      if (response.status === 307) {
+        Alert.alert("Action Required", data.message, [
+          { text: "OK", onPress: () => navigation.navigate("onboarding") }
+        ]);
+      } else if (response.status === 200) {
+        AsyncStorage.setItem('userToken', data.token); // Save token
+        Alert.alert("Login Successful", "You have logged in successfully.");
+        navigation.navigate("nav");
+      } else {
+        throw new Error(data.message || "An unexpected error occurred");
       }
-
-      const data = await response.json();
-      Alert.alert("Login Successful", "You have logged in successfully.");
-      navigation.navigate("Home"); // Assuming 'Home' is the correct route name
     } catch (error) {
       Alert.alert("Login Failed", error.message || "An unexpected error occurred.");
       console.error("Login error:", error);
@@ -61,12 +72,17 @@ export default function LoginPage({ navigation }) {
         <StatusBar barStyle="light-content" />
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <Image source={require("../assets/logo.png")} style={styles.logo} />
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <FontAwesomeIcon icon={faArrowLeft} size={20} color="#fff" />
           </TouchableOpacity>
           <View style={styles.loginForm}>
             <Text style={styles.title}>Welcome Back!</Text>
-            <Text style={styles.subtitle}>Log in to your existing account of SUPERWIN</Text>
+            <Text style={styles.subtitle}>
+              Log in to your existing account of SUPERWIN
+            </Text>
             <View style={styles.inputContainer}>
               <FontAwesomeIcon icon={faUser} size={20} color="#fff" />
               <TextInput
@@ -90,18 +106,39 @@ export default function LoginPage({ navigation }) {
                 onChangeText={setPassword}
               />
             </View>
-            <TouchableOpacity onPress={() => Alert.alert("Forgot Password Pressed")}>
+            <TouchableOpacity
+              onPress={() => Alert.alert("Forgot Password Pressed")}
+            >
               <Text style={styles.forgotPassword}>Forgot Password?</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={isLoading}>
+            <TouchableOpacity
+              style={[
+                styles.loginButton,
+                isLoading ? styles.disabledButton : null,
+              ]}
+              onPress={handleLogin}
+              disabled={isLoading}
+            >
               <LinearGradient
                 colors={["#A903D2", "#410095"]}
                 style={styles.gradient}
               >
-                <Text style={styles.buttonText}>LOG IN</Text>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>LOG IN</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
           </View>
+          <View style={styles.footer}>
+              <Text style={styles.footerText}>Don't have an account?</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("onboarding")}
+              >
+                <Text style={styles.signInText}>Sign Up Here</Text>
+              </TouchableOpacity>
+            </View>
         </ScrollView>
       </ImageBackground>
     </View>
@@ -109,7 +146,6 @@ export default function LoginPage({ navigation }) {
 }
 
 // Styles remain unchanged
-
 
 const styles = StyleSheet.create({
   container: {
@@ -134,13 +170,13 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 50,
     left: 20,
   },
   loginForm: {
     marginTop: 20,
-    width:"100%",
-    padding:10,
+    width: "100%",
+    padding: 10,
   },
   title: {
     fontSize: 24,
@@ -220,5 +256,5 @@ const styles = StyleSheet.create({
   socialText: {
     color: "#fff",
     fontSize: 16,
-  }
+  },
 });

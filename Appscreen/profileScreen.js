@@ -11,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -29,11 +30,10 @@ export default function ProfileScreen({ navigation }) {
 
   const fetchUserData = async () => {
     try {
-      // Make fetch request to fetch user data
       const response = await fetch("http://192.168.1.26:3000/api/members");
-      const data = await response.json();
-
-      // Update state with fetched user data
+      const text = await response.text(); // Get response text
+      console.log(text); // Log it to see what's actually coming back
+      const data = JSON.parse(text); // Try to parse it as JSON
       setUserData(data);
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -41,17 +41,38 @@ export default function ProfileScreen({ navigation }) {
   };
 
   // logout Function
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleLogout = async () => {
+    setIsLoading(true);
     try {
       // Clear user token or any data from AsyncStorage
       await AsyncStorage.removeItem("userToken");
 
-      // Redirect to the Login Screen
+      // Reset loading state and redirect to the Login Screen
+      setIsLoading(false);
       navigation.navigate("Login");
     } catch (error) {
       console.error("Failed to log out:", error);
+      setIsLoading(false);
+      // Optionally handle the error with a user-facing message, e.g.,
+      // Alert.alert("Logout Failed", "Unable to log out. Please try again.");
     }
   };
+
+  if (isLoading) {
+    return (
+      <ImageBackground
+        source={require("../assets/Maskbackround.png")}
+        style={[styles.backgroundStyle, {flex: 1, backgroundColor:"#000000"}]}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+      </ImageBackground>
+      
+    );
+  }
 
   return (
     <View style={styles.mainView}>
