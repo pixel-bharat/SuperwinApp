@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   ScrollView,
   View,
@@ -10,6 +10,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
@@ -24,40 +25,60 @@ export default function SignUpPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignUp = async () => {
+    
     if (!email || !password || !confirmPassword) {
-      Alert.alert("Error", "Please fill all fields.");
-      return;
+        Alert.alert("Error", "Please fill all fields.");
+        return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.");
-      return;
+        Alert.alert("Error", "Passwords do not match.");
+        return;
     }
 
-    setIsLoading(true);
+    setIsLoading(true); // Assuming setIsLoading is part of your state management
 
     try {
-      const response = await fetch("http://192.168.1.2:3000/api/signup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+        const response = await fetch("http://192.168.1.26:3000/api/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password }),
+        });
 
-      const data = await response.json();
-      if (response.ok) {
-        // Assuming 'OtpScreen' is set to handle the OTP process and verify it
-        navigation.navigate("OtpScreen", { email }); 
-      } else {
-        Alert.alert("Error", data.message || "Failed to create account.");
-      }
+        const data = await response.json();
+        if (response.ok) {
+            // Assuming server signals a successful registration scenario
+            // Navigate to OTP screen or similar for new registrations
+            navigation.navigate("OtpScreen", { email });
+        } else if (response.status === 409) {
+            // If email already exists, offer to navigate to the login page
+            Alert.alert(
+                "Email already registered",
+                "Do you want to log in instead?",
+                [
+                    { text: "Yes", onPress: () => navigation.navigate("Login", { email }) },
+                    { text: "No", onPress: () => console.log("User chose not to log in") }
+                ],
+                { cancelable: false }
+            );
+        } else {
+            // Handling other types of errors returned by the server
+            Alert.alert("Signup Failed", data.message || "An unknown error occurred during signup.");
+        }
     } catch (error) {
-      Alert.alert("Error", "Failed to create account due to network issues.");
+        // Handle errors related to the fetch operation
+        console.error("SignUp error:", error);
+        Alert.alert("Error", "Network error or server response is not valid.");
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
+
+  
+  
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -111,7 +132,28 @@ export default function SignUpPage() {
               onChangeText={setConfirmPassword}
             />
           </View>
-          <TouchableOpacity 
+          
+          <TouchableOpacity
+              style={[
+                styles.signUpButton,
+                isLoading ? styles.disabledButton : null,
+              ]}
+              onPress={handleSignUp}
+              disabled={isLoading}
+            >
+              <LinearGradient
+                colors={["#A903D2", "#410095"]}
+                style={styles.gradient}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>SIGN UP</Text>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+
+          {/* <TouchableOpacity 
             style={styles.signUpButton} 
             onPress={handleSignUp}
             disabled={isLoading}
@@ -122,7 +164,7 @@ export default function SignUpPage() {
             >
               <Text style={styles.buttonText}>SIGN UP</Text>
             </LinearGradient>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </ImageBackground>
     </ScrollView>
