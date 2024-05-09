@@ -7,12 +7,13 @@ import {
   TouchableOpacity,
   Alert,
   ImageBackground,
-  ScrollView,
+  ScrollView,SafeAreaView,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faArrowLeft, faEdit } from "@fortawesome/free-solid-svg-icons";
+import { uuid } from "uuidv4";
 
 const OtpInput = ({ value, onChangeText, maxLength, onKeyPress, refInput }) => (
   <TextInput
@@ -65,7 +66,7 @@ export default function OtpScreen({}) {
       const data = await response.json();
       if (response.ok) {
         Alert.alert("Success", "OTP is verified", [
-          { text: "OK", onPress: () => navigation.navigate("ProfileSet") },
+          { text: "OK", onPress: () => navigation.navigate("ProfileSetup", { email, uid}) },
         ]);
       } else {
         Alert.alert("Error", data.message || "An unexpected error occurred.");
@@ -111,7 +112,8 @@ export default function OtpScreen({}) {
   };
 
   return (
-      <View style={styles.container}>
+    <View style={{ flex: 1, backgroundColor:"pink" }}>
+      <ScrollView contentContainerStyle={styles.container}>
         <ImageBackground
           source={require("../assets/dashboardbg.png")}
           resizeMode="cover"
@@ -129,6 +131,7 @@ export default function OtpScreen({}) {
               <Text style={styles.subtitle}>Please enter the OTP sent to</Text>
               <Text style={styles.sub_mail}>
                 {email + "  "}
+                {uid + "  "}
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                   <FontAwesomeIcon icon={faEdit} size={18} color="#fff" />
                 </TouchableOpacity>
@@ -161,6 +164,7 @@ export default function OtpScreen({}) {
             </TouchableOpacity>
           </View>
         </ImageBackground>
+      </ScrollView>
       </View>
   );
 }
@@ -169,6 +173,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+    justifyContent: "center",
   },
   backgroundImage: {
     flex: 1,

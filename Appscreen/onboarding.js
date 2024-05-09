@@ -16,6 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faLock, faUser, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useNavigation } from "@react-navigation/native";
+import { uuid } from "uuidv4";
 
 export default function SignUpPage() {
   const navigation = useNavigation();
@@ -49,9 +50,10 @@ export default function SignUpPage() {
 
         const data = await response.json();
         if (response.ok) {
+          const { uid } = data;
             // Assuming server signals a successful registration scenario
             // Navigate to OTP screen or similar for new registrations
-            navigation.navigate("OtpScreen", { email });
+            navigation.navigate("OtpScreen", { email, uid});
         } else if (response.status === 409) {
             // If email already exists, offer to navigate to the login page
             Alert.alert(
