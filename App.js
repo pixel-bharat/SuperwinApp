@@ -108,7 +108,7 @@ function AppNavigator() {
           options={{ headerShown: false }}
         />
          <Stack.Screen
-          name="ProfileSet"
+          name="ProfileSetup"
           component={ProfileSetup}
           options={{ headerShown: false }}
         />

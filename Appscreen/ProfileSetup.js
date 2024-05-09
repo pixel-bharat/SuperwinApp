@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import {
-  View, Text, TextInput, Button, Image, TouchableOpacity, StyleSheet
+  View,
+  Text,
+  TextInput,
+  Button,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 
-const UserProfileScreen = ({ userId }) => {
+const ProfileSetup = ({ route }) => {
+  const { email, uid } = route.params; // Assuming these are passed from the previous screen
   const [avatar, setAvatar] = useState(null);
   const [memberName, setMemberName] = useState("");
 
@@ -32,8 +39,6 @@ const UserProfileScreen = ({ userId }) => {
     const formData = new FormData();
     formData.append('userId', userId);
     formData.append('memberName', memberName);
-
-    // Append the avatar file to the FormData if it exists
     if (avatar) {
       const uriParts = avatar.split('.');
       const fileType = uriParts[uriParts.length - 1];
@@ -47,7 +52,7 @@ const UserProfileScreen = ({ userId }) => {
     try {
       const response = await axios.post("http://192.168.1.26:3000/api/profile/avatar", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data', // Correct header for file upload
+          'Content-Type': 'multipart/form-data',
         },
       });
 
@@ -75,6 +80,19 @@ const UserProfileScreen = ({ userId }) => {
         value={memberName}
         onChangeText={setMemberName}
       />
+      <TextInput
+        style={styles.input}
+        placeholder="UID"
+        value={uid}
+        editable={false} // This makes the UID field non-editable
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email ID"
+        value={email}
+        editable={false} // This makes the UID field non-editable
+      />
+     
       <Button title="Save Profile" onPress={saveProfile} />
     </View>
   );
@@ -114,4 +132,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default UserProfileScreen;
+export default ProfileSetup;
