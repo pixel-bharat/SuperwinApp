@@ -13,10 +13,9 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faLock, faUser, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useNavigation } from "@react-navigation/native";
-import { uuid } from "uuidv4";
+import { v4 as uuidv4 } from "uuid";
+import "react-native-get-random-values";
 
 export default function SignUpPage() {
   const navigation = useNavigation();
@@ -24,63 +23,67 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const uid = uuidv4();
   const handleSignUp = async () => {
-    
     if (!email || !password || !confirmPassword) {
-        Alert.alert("Error", "Please fill all fields.");
-        return;
+      Alert.alert("Error", "Please fill all fields.");
+      return;
     }
 
     if (password !== confirmPassword) {
-        Alert.alert("Error", "Passwords do not match.");
-        return;
+      Alert.alert("Error", "Passwords do not match.");
+      return;
     }
 
     setIsLoading(true); // Assuming setIsLoading is part of your state management
 
     try {
-        const response = await fetch("http://192.168.1.26:3000/api/signup", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
+      const response = await fetch("http://192.168.1.26:3000/api/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password, uid }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        const { uid } = data;
+        // Assuming server signals a successful registration scenario
+        // Navigate to OTP screen or similar for new registrations
+        navigation.navigate("OtpScreen", { email, uid });
+      } else if (response.status === 409) {
+        // If email already exists, offer to navigate to the login page
+        Alert.alert(
+          "Email already registered",
+          "Do you want to log in instead?",
+          [
+            {
+              text: "Yes",
+              onPress: () => navigation.navigate("Login", { email }),
             },
-            body: JSON.stringify({ email, password }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          const { uid } = data;
-            // Assuming server signals a successful registration scenario
-            // Navigate to OTP screen or similar for new registrations
-            navigation.navigate("OtpScreen", { email, uid});
-        } else if (response.status === 409) {
-            // If email already exists, offer to navigate to the login page
-            Alert.alert(
-                "Email already registered",
-                "Do you want to log in instead?",
-                [
-                    { text: "Yes", onPress: () => navigation.navigate("Login", { email }) },
-                    { text: "No", onPress: () => console.log("User chose not to log in") }
-                ],
-                { cancelable: false }
-            );
-        } else {
-            // Handling other types of errors returned by the server
-            Alert.alert("Signup Failed", data.message || "An unknown error occurred during signup.");
-        }
+            {
+              text: "No",
+              onPress: () => console.log("User chose not to log in"),
+            },
+          ],
+          { cancelable: false }
+        );
+      } else {
+        // Handling other types of errors returned by the server
+        Alert.alert(
+          "Signup Failed",
+          data.message || "An unknown error occurred during signup."
+        );
+      }
     } catch (error) {
-        // Handle errors related to the fetch operation
-        console.error("SignUp error:", error);
-        Alert.alert("Error", "Network error or server response is not valid.");
+      // Handle errors related to the fetch operation
+      console.error("SignUp error:", error);
+      Alert.alert("Error", "Network error or server response is not valid.");
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
-};
-
-  
-  
-
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -94,14 +97,22 @@ export default function SignUpPage() {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <FontAwesomeIcon icon={faArrowLeft} size={20} color="#fff" />
+          <Image
+            source={require("../assets/back.png")}
+            style={styles.icon}
+          ></Image>
         </TouchableOpacity>
         <Image source={require("../assets/logo.png")} style={styles.logo} />
         <View style={styles.formContainer}>
           <Text style={styles.title}>Create Your Account</Text>
-          <Text style={styles.subtitle}>Join SUPERWIN and start your journey!</Text>
+          <Text style={styles.subtitle}>
+            Join SUPERWIN and start your journey!
+          </Text>
           <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faUser} size={20} color="#fff" />
+            <Image
+              source={require("../assets/mail.png")}
+              style={styles.icon}
+            ></Image>
             <TextInput
               style={styles.input}
               placeholder="Email"
@@ -113,7 +124,10 @@ export default function SignUpPage() {
             />
           </View>
           <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faLock} size={20} color="#fff" />
+            <Image
+              source={require("../assets/Lock.png")}
+              style={styles.icon}
+            ></Image>
             <TextInput
               style={styles.input}
               placeholder="Password"
@@ -124,7 +138,10 @@ export default function SignUpPage() {
             />
           </View>
           <View style={styles.inputContainer}>
-            <FontAwesomeIcon icon={faLock} size={20} color="#fff" />
+            <Image
+              source={require("../assets/Lock.png")}
+              style={styles.icon}
+            ></Image>
             <TextInput
               style={styles.input}
               placeholder="Confirm Password"
@@ -134,27 +151,32 @@ export default function SignUpPage() {
               onChangeText={setConfirmPassword}
             />
           </View>
-          
-          <TouchableOpacity
-              style={[
-                styles.signUpButton,
-                isLoading ? styles.disabledButton : null,
-              ]}
-              onPress={handleSignUp}
-              disabled={isLoading}
-            >
-              <LinearGradient
-                colors={["#A903D2", "#410095"]}
-                style={styles.gradient}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.buttonText}>SIGN UP</Text>
-                )}
-              </LinearGradient>
-            </TouchableOpacity>
 
+          <TouchableOpacity
+            style={[
+              styles.signUpButton,
+              isLoading ? styles.disabledButton : null,
+            ]}
+            onPress={handleSignUp}
+            disabled={isLoading}
+          >
+            <LinearGradient
+              colors={["#A903D2", "#410095"]}
+              style={styles.gradient}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Text style={styles.buttonText}>SIGN UP</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+              <Text style={styles.buttonText}>SIGN IN</Text>
+            </TouchableOpacity>
+          </View>
           {/* <TouchableOpacity 
             style={styles.signUpButton} 
             onPress={handleSignUp}
@@ -173,12 +195,11 @@ export default function SignUpPage() {
   );
 }
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
-    width:"100%"
+    width: "100%",
   },
   backgroundImage: {
     flex: 1,
@@ -198,7 +219,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "100%",
-    padding:10,
+    padding: 10,
   },
   title: {
     fontSize: 24,
@@ -208,17 +229,21 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color:"#fff",
+    color: "#fff",
     textAlign: "center",
     marginBottom: 10,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff1",
+    backgroundColor: "#fff2",
     borderRadius: 10,
     paddingLeft: 16,
     marginBottom: 10,
+  },
+  icon: {
+    width: 20,
+    height: 20,
   },
   input: {
     flex: 1,
@@ -273,5 +298,17 @@ const styles = StyleSheet.create({
     color: "#fff",
     textDecorationLine: "underline",
     fontWeight: "bold",
+  },
+  footer: {
+    padding: 30,
+    width: "100%",
+    gap: 20,
+    alignItems: "center",
+  },
+  footerText: {
+    color: "white",
+  },
+  signInText: {
+    color: "#A903D2",
   },
 });
