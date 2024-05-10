@@ -1,117 +1,377 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  View, Text, TextInput, Button, Image, TouchableOpacity, StyleSheet
+  ScrollView,
+  View,
+  Image,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const UserProfileScreen = ({ userId }) => {
-  const [avatar, setAvatar] = useState(null);
-  const [memberName, setMemberName] = useState("");
+const ProfileSetup = ({ route, navigation }) => {
+  // Initialize state
+  const [userData, setUserData] = useState({
+    email: "",
+    uid: "",
+    avatar: null,
+    memberName: "",
+  });
+  const [isLoading, setIsLoading] = useState(false); // Added state for loading
 
-  // Function to select avatar with 1:1 aspect ratio
-  const selectAvatar = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      alert("Gallery permission is required!");
-      return;
+  useEffect(() => {
+    // If route.params are provided, use them, otherwise load from storage.
+    if (route.params?.email && route.params?.uid) {
+      setUserData((prev) => ({
+        ...prev,
+        email: route.params.email,
+        uid: route.params.uid,
+      }));
+    } else {
+      loadUserData();
     }
+  }, [route.params]); // Consider dependencies based on your app's behavior
+  
 
-    const pickerResult = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1], // Ensures the aspect ratio is 1:1
+  // Saving data
+const saveUserData = async (email, uid) => {
+  try {
+      await AsyncStorage.setItem('userEmail', email);
+      await AsyncStorage.setItem('userId', uid);
+  } catch (error) {
+      console.error("Error saving user data to AsyncStorage:", error);
+  }
+};
+
+// Retrieving data
+const loadUserData = async () => {
+  try {
+      const email = await AsyncStorage.getItem('userEmail');
+      const uid = await AsyncStorage.getItem('userId');
+      if (email && uid) {
+          setUserData((prev) => ({
+              ...prev,
+              email: email,
+              uid: uid,
+          }));
+      } else {
+          console.log("No user data in AsyncStorage.");
+      }
+  } catch (error) {
+      console.error("Failed to load user data from AsyncStorage:", error);
+      Alert.alert("Error", "Failed to load user data.");
+  }
+};
+
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
+  // An example list of avatar images
+  const avatars = [
+    require("../assets/avatar/avatar_1.png"),
+    require("../assets/avatar/avatar_2.png"),
+    require("../assets/avatar/avatar_3.png"),
+    require("../assets/avatar/avatar_4.png"),
+    require("../assets/avatar/avatar_5.png"),
+    require("../assets/avatar/upload_avatar.png"),
+  ];
+  // Function to handle avatar selection
+  const selectAvatar = (avatar) => {
+    setSelectedAvatar(avatar);
+    setUserData(prev => ({
+        ...prev,
+        avatar: avatar // Assuming avatar is a string or identifier
+    }));
+    console.log("Avatar selected:", avatar);
+};
+
+const saveProfile = async () => {
+  if (!userData.memberName || !userData.memberName.trim()) {
+      alert("Please enter your name.");
+      return;
+  }
+  if (!userData.avatar) {
+      alert("Please select an avatar.");
+      return;
+  }
+
+  setIsLoading(true);
+  try {
+    const response = await fetch('http://192.168.1.26:3000/api/avatar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
     });
 
-    if (!pickerResult.cancelled) {
-      setAvatar(pickerResult.uri);
-    }
-  };
-
-  const saveProfile = async () => {
-    const formData = new FormData();
-    formData.append('userId', userId);
-    formData.append('memberName', memberName);
-
-    // Append the avatar file to the FormData if it exists
-    if (avatar) {
-      const uriParts = avatar.split('.');
-      const fileType = uriParts[uriParts.length - 1];
-      formData.append('avatar', {
-        uri: avatar,
-        name: `avatar.${fileType}`, // Construct the file name
-        type: `image/${fileType}`, // Construct the MIME type
-      });
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     try {
-      const response = await axios.post("http://192.168.1.26:3000/api/profile/avatar", formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data', // Correct header for file upload
-        },
-      });
-
-      console.log(response.data);
-      alert('Profile saved successfully');
-    } catch (error) {
-      console.error("Error saving profile:", error);
-      alert('Failed to save profile');
+        const jsonResponse = await response.json();
+        alert("Profile saved successfully!");
+        console.log("Saved Profile:", jsonResponse);
+    } catch (e) {
+        throw new Error("Failed to parse JSON properly");
     }
-  };
+} catch (error) {
+    console.error("Save profile error:", error);
+    alert("Error saving profile: " + error.message);
+}
+};
+
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Setup Your Profile</Text>
-      <TouchableOpacity onPress={selectAvatar} style={styles.avatarContainer}>
-        {avatar ? (
-          <Image source={{ uri: avatar }} style={styles.avatar} />
-        ) : (
-          <Text>Select Avatar</Text>
-        )}
-      </TouchableOpacity>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Member Name"
-        value={memberName}
-        onChangeText={setMemberName}
-      />
-      <Button title="Save Profile" onPress={saveProfile} />
+    <View style={styles.mainView}>
+      <ImageBackground
+        source={require("../assets/dashboardbg.png")}
+        style={styles.backgroundStyle}
+      ></ImageBackground>
+
+      <ScrollView style={styles.container}>
+        <Text style={styles.heading}>Setup Your Profile</Text>
+        <Image
+          source={require("../assets/Line.png")}
+          style={{ marginTop: 16, alignSelf: "center" }}
+        ></Image>
+        <Text style={styles.heading__sub}>Select your Avatar</Text>
+        <Text style={styles.heading__text}>
+          This will display as your Profile Picture
+        </Text>
+        <View style={styles.container1}>
+          <View style={styles.avatarContainer}>
+            {avatars.map((avatar, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => selectAvatar(avatar)}
+              >
+                <Image
+                  source={avatar}
+                  style={[
+                    styles.avatar,
+                    avatar === selectedAvatar ? styles.selectedAvatar : null,
+                  ]}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View>
+          <Text style={styles.heading__text}>Full Name*</Text>
+          <View style={styles.inputContainer}>
+            <Image
+              source={require("../assets/PersonFill.png")}
+              style={styles.icon}
+            ></Image>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Member Name"
+              placeholderTextColor="#9E9E9E"
+              value={userData.memberName}
+              onChangeText={(text) =>
+                setUserData((prev) => ({ ...prev, memberName: text }))
+              }
+              keyboardType="Member Name"
+              autoCapitalize="none"
+            />
+          </View>
+          <Text style={styles.heading__text}>
+            UID (this is auto generated )
+          </Text>
+          <View style={styles.inputContainer}>
+            <Image
+              source={require("../assets/Lock.png")}
+              style={styles.icon}
+            ></Image>
+            <TextInput
+              style={styles.input_disable}
+              placeholder="UID"
+              placeholderTextColor="#9E9E9E"
+              value={userData.uid}
+              editable={false}
+              keyboardType="Member UID"
+              autoCapitalize="none"
+            />
+          </View>
+          <Text style={styles.heading__text}>
+            Email ID (This account is linked with this email ID )
+          </Text>
+          <View style={styles.inputContainer}>
+            <Image
+              source={require("../assets/mail.png")}
+              style={styles.icon}
+            ></Image>
+            <TextInput
+              style={styles.input_disable}
+              placeholder="Email ID"
+              placeholderTextColor="#9E9E9E"
+              value={userData.email}
+              editable={false}
+              keyboardType="Member Email ID"
+              autoCapitalize="none"
+            />
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.loginButton, isLoading ? styles.disabledButton : null]}
+          onPress={saveProfile}
+          disabled={isLoading}
+        >
+          <LinearGradient
+            colors={["#A903D2", "#410095"]}
+            style={styles.gradient}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.buttonText}>SAVE PROFILE</Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <TouchableOpacity onPress={() => navigation.navigate("nav")}>
+            <Text style={styles.skip_it}>SKIP IT</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  mainView: {
+    flex: 1,
+    backgroundColor: "#000",
+  },
+  backgroundStyle: {
+    width: "100%",
+    height: "80%",
+    position: "absolute",
+  },
+
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    padding: 20,
   },
+  heading__sub: {
+    fontSize: 18,
+    fontWeight: "bold",
+    margin: 4,
+    color: "#9E9E9E",
+  },
+  heading__text: {
+    fontSize: 14,
+    margin: 4,
+    color: "#9E9E9E",
+  },
+
   avatarContainer: {
-    margin: 20,
-    height: 200,
-    width: 200,
-    borderRadius: 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#dedede',
+    width: "100%",
+    flexDirection: "row", // Lays out children in a horizontal line.
+    flexWrap: "wrap", // Allows items to wrap to the next line.
+    justifyContent: "flex-start", // Aligns children at the start of the main-axis.
+    gap: 20,
+    paddingVertical: 20,
   },
   avatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 100,
+    width: "33%", // Each avatar takes up one-third of the container width.
+    aspectRatio: 1, // Ensures that the height is equal to the width.
+    borderWidth: 4, // Adds a border when selected.
+    borderRadius: 20,
+    borderColor: "#fff",
+  },
+  selectedAvatar: {
+    width: "33%", // Maintains the width for selected avatars.
+    aspectRatio: 1, // Ensures that the height is equal to the width.
+    borderWidth: 4, // Adds a border when selected.
+    borderRadius: 20,
+    overflow: "hidden",
+    borderColor: "#A903D2", // Sets the border color to blue.
+  },
+
+  avatar_upload: {
+    width: "30%", // Same width as the avatar to align in grid
+    aspectRatio: 1, // Keeps width and height the same
+    borderRadius: 10, // Rounds the corners
+    justifyContent: "center", // Centers the content vertically
+    alignItems: "center", // Centers the content horizontally
+    marginBottom: 20,
+    // Adds space below the row
+  },
+
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff2",
+    borderRadius: 10,
+    paddingLeft: 16,
+    marginBottom: 10,
   },
   input: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    width: '80%',
-    padding: 10,
-    marginVertical: 10,
+    flex: 1,
+    height: 60,
+    color: "#fff",
+    marginLeft: 16,
   },
+
+  input_disable:{
+    flex: 1,
+    height: 60,
+    color: "#9E9E9E",
+    marginLeft: 16,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+  },
+
+  loginButton: {
+    height: 60,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    overflow: "hidden",
+    marginBottom: 20,
+  },
+  gradient: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  skip_it: {
+    color: "#A903D2",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
   heading: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     margin: 10,
+    color: "white",
+  },
+  footer: {
+    padding: 30,
+    width: "100%",
+    gap: 20,
+    alignItems: "center",
   },
 });
 
-export default UserProfileScreen;
+export default ProfileSetup;

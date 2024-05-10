@@ -13,7 +13,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faArrowLeft, faEdit } from "@fortawesome/free-solid-svg-icons";
-import { uuid } from "uuidv4";
+import { v4 as uuidv4 } from 'uuid';
 
 const OtpInput = ({ value, onChangeText, maxLength, onKeyPress, refInput }) => (
   <TextInput
@@ -33,7 +33,7 @@ export default function OtpScreen({}) {
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
   const navigation = useNavigation();
   const route = useRoute();
-  const { email } = route.params;
+  const { email, uid } = route.params;
 
   const handleOtpChange = (index, value) => {
     const newOtp = [...otp];
@@ -60,7 +60,7 @@ export default function OtpScreen({}) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, otp: otpValue }),
+        body: JSON.stringify({ email, otp: otpValue, uid }),
       });
 
       const data = await response.json();
@@ -129,9 +129,10 @@ export default function OtpScreen({}) {
             <View style={styles.info_container}>
               <Text style={styles.title}>Enter OTP</Text>
               <Text style={styles.subtitle}>Please enter the OTP sent to</Text>
+              <Text style={styles.subtitle}> {uid}</Text>
+             
               <Text style={styles.sub_mail}>
                 {email + "  "}
-                {uid + "  "}
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                   <FontAwesomeIcon icon={faEdit} size={18} color="#fff" />
                 </TouchableOpacity>

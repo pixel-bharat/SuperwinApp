@@ -19,6 +19,8 @@ import ProfileSetup from "./Appscreen/ProfileSetup";
 
 const Stack = createNativeStackNavigator();
 
+
+
 function AppNavigator() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
