@@ -11,13 +11,10 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faLock, faUser, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function LoginPage() {
   const navigation = useNavigation();
@@ -30,7 +27,7 @@ export default function LoginPage() {
       Alert.alert("Error", "Please enter both email and password.");
       return;
     }
-  
+
     setIsLoading(true); // Start loading
     try {
       const response = await fetch("http://192.168.1.26:3000/api/login", {
@@ -40,22 +37,40 @@ export default function LoginPage() {
         },
         body: JSON.stringify({ email, password }),
       });
-  
+
       const data = await response.json(); // Parse JSON response
-  
-      if (response.status === 307) {
-        Alert.alert("Action Required", data.message, [
-          { text: "OK", onPress: () => navigation.navigate("onboarding") }
-        ]);
-      } else if (response.status === 200) {
-        AsyncStorage.setItem('userToken', data.token); // Save token
-        Alert.alert("Login Successful", "You have logged in successfully.");
-        navigation.navigate("nav");
+
+      if (response.ok) {
+        await AsyncStorage.setItem("userToken", data.token); // Save token using await
+        
+        if (data.profileSetupRequired) {
+          const { uid } = data;
+          // Redirect to Profile Setup Page
+          Alert.alert(
+            "Profile Setup Required",
+            "Please complete your profile setup.",
+            [{ text: "OK", onPress: () => navigation.navigate("ProfileSetup", {email, uid}) }]
+          );
+        } else {
+          Alert.alert("Login Successful", "You have logged in successfully.");
+          // Go to the main application or dashboard
+          navigation.navigate("nav"); // Make sure 'nav' is the correct navigation route
+        }
       } else {
-        throw new Error(data.message || "An unexpected error occurred");
+        // Handle other statuses like 307 or 401
+        if (response.status === 307) {
+          Alert.alert("Action Required", data.message, [
+            { text: "OK", onPress: () => navigation.navigate("onboarding", { email }) },
+          ]);
+        } else {
+          throw new Error(data.message || "An unexpected error occurred");
+        }
       }
     } catch (error) {
-      Alert.alert("Login Failed", error.message || "An unexpected error occurred.");
+      Alert.alert(
+        "Login Failed",
+        error.message || "An unexpected error occurred."
+      );
       console.error("Login error:", error);
     } finally {
       setIsLoading(false); // Stop loading
@@ -76,7 +91,10 @@ export default function LoginPage() {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <FontAwesomeIcon icon={faArrowLeft} size={20} color="#fff" />
+          <Image
+              source={require("../assets/back.png")}
+              style={styles.icon}
+            ></Image>
           </TouchableOpacity>
           <View style={styles.loginForm}>
             <Text style={styles.title}>Welcome Back!</Text>
@@ -84,7 +102,10 @@ export default function LoginPage() {
               Log in to your existing account of SUPERWIN
             </Text>
             <View style={styles.inputContainer}>
-              <FontAwesomeIcon icon={faUser} size={20} color="#fff" />
+            <Image
+              source={require("../assets/mail.png")}
+              style={styles.icon}
+            ></Image>
               <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -96,7 +117,11 @@ export default function LoginPage() {
               />
             </View>
             <View style={styles.inputContainer}>
-              <FontAwesomeIcon icon={faLock} size={20} color="#fff" />
+            <Image
+              source={require("../assets/Lock.png")}
+              style={styles.icon}
+            ></Image>
+             
               <TextInput
                 style={styles.input}
                 placeholder="Password"
@@ -132,13 +157,11 @@ export default function LoginPage() {
             </TouchableOpacity>
           </View>
           <View style={styles.footer}>
-              <Text style={styles.footerText}>Don't have an account?</Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate("onboarding")}
-              >
-                <Text style={styles.signInText}>Sign Up Here</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.footerText}>Don't have an account?</Text>
+            <TouchableOpacity onPress={() => navigation.navigate("onboarding")}>
+              <Text style={styles.buttonText}>Sign Up Here</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </ImageBackground>
     </View>
@@ -193,10 +216,14 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff1",
+    backgroundColor: "#fff2",
     borderRadius: 10,
     paddingLeft: 16,
     marginBottom: 10,
+  },
+  icon: {
+    width: 20,
+    height: 20,
   },
   input: {
     flex: 1,
@@ -256,5 +283,17 @@ const styles = StyleSheet.create({
   socialText: {
     color: "#fff",
     fontSize: 16,
+  },
+  footer: {
+    padding: 30,
+    width: "100%",
+    gap: 20,
+    alignItems: "center",
+  },
+  footerText: {
+    color: "white",
+  },
+  signInText: {
+    color: "#A903D2",
   },
 });
