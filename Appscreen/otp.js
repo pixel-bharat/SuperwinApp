@@ -55,7 +55,7 @@ export default function OtpScreen({}) {
   const handleSubmit = async () => {
     const otpValue = otp.join("");
     try {
-      const response = await fetch("http://192.168.1.26:3000/api/verifyOTP", {
+      const response = await fetch("http://192.168.1.13:3000/api/verifyOTP", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +84,7 @@ export default function OtpScreen({}) {
     console.log("Requesting OTP resend for:", email);
 
     try {
-      const response = await fetch("http://192.168.1.26:3000/api/resendOTP", {
+      const response = await fetch("http://192.168.1.13:3000/api/resendOTP", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

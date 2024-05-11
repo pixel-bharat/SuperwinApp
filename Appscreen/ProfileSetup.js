@@ -37,95 +37,93 @@ const ProfileSetup = ({ route, navigation }) => {
       loadUserData();
     }
   }, [route.params]); // Consider dependencies based on your app's behavior
-  
 
   // Saving data
-const saveUserData = async (email, uid) => {
-  try {
-      await AsyncStorage.setItem('userEmail', email);
-      await AsyncStorage.setItem('userId', uid);
-  } catch (error) {
+  const saveUserData = async (email, uid) => {
+    try {
+      await AsyncStorage.setItem("userEmail", email);
+      await AsyncStorage.setItem("userId", uid);
+    } catch (error) {
       console.error("Error saving user data to AsyncStorage:", error);
-  }
-};
+    }
+  };
 
-// Retrieving data
-const loadUserData = async () => {
-  try {
-      const email = await AsyncStorage.getItem('userEmail');
-      const uid = await AsyncStorage.getItem('userId');
+  // Retrieving data
+  const loadUserData = async () => {
+    try {
+      const email = await AsyncStorage.getItem("userEmail");
+      const uid = await AsyncStorage.getItem("userId");
       if (email && uid) {
-          setUserData((prev) => ({
-              ...prev,
-              email: email,
-              uid: uid,
-          }));
+        setUserData((prev) => ({
+          ...prev,
+          email: email,
+          uid: uid,
+        }));
       } else {
-          console.log("No user data in AsyncStorage.");
+        console.log("No user data in AsyncStorage.");
       }
-  } catch (error) {
+    } catch (error) {
       console.error("Failed to load user data from AsyncStorage:", error);
       Alert.alert("Error", "Failed to load user data.");
-  }
-};
+    }
+  };
 
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
   // An example list of avatar images
-  const avatars = [
-    require("../assets/avatar/avatar_1.png"),
-    require("../assets/avatar/avatar_2.png"),
-    require("../assets/avatar/avatar_3.png"),
-    require("../assets/avatar/avatar_4.png"),
-    require("../assets/avatar/avatar_5.png"),
-    require("../assets/avatar/upload_avatar.png"),
-  ];
+  const avatars = {
+    avatar1: require("../assets/avatar/avatar_1.png"),
+    avatar2: require("../assets/avatar/avatar_2.png"),
+    avatar3: require("../assets/avatar/avatar_3.png"),
+    avatar4: require("../assets/avatar/avatar_4.png"),
+    avatar5: require("../assets/avatar/avatar_5.png"),
+    uploadAvatar: require("../assets/avatar/upload_avatar.png"),
+  };
   // Function to handle avatar selection
-  const selectAvatar = (avatar) => {
-    setSelectedAvatar(avatar);
-    setUserData(prev => ({
-        ...prev,
-        avatar: avatar // Assuming avatar is a string or identifier
+  const [selectedAvatar, setSelectedAvatarKey] = useState(null);
+
+  const selectAvatar = (key) => {
+    const avatarKeys = {
+      avatar1: "avatar_1.png",
+      avatar2: "avatar_2.png",
+      avatar3: "avatar_3.png",
+      avatar4: "avatar_4.png",
+      avatar5: "avatar_5.png",
+      uploadAvatar: "upload_avatar.png",
+    };
+
+    const selectAvatar = (key) => {
+      setSelectedAvatar(key);
+      console.log("Avatar selected:", avatars[key]); // Assuming `avatars` is a dictionary of require statements
+    };
+    setUserData((prev) => ({
+      ...prev,
+      avatar: avatarKeys[key], // Sending the filename as a reference
     }));
-    console.log("Avatar selected:", avatar);
-};
+    console.log("Avatar selected:", avatarKeys[key]);
+  };
 
-const saveProfile = async () => {
-  if (!userData.memberName || !userData.memberName.trim()) {
-      alert("Please enter your name.");
-      return;
-  }
-  if (!userData.avatar) {
-      alert("Please select an avatar.");
-      return;
-  }
-
-  setIsLoading(true);
-  try {
-    const response = await fetch('http://192.168.1.26:3000/api/avatar', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(userData)
-    });
-
-    if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
+  const saveProfile = async () => {
+    setIsLoading(true);
     try {
-        const jsonResponse = await response.json();
-        alert("Profile saved successfully!");
-        console.log("Saved Profile:", jsonResponse);
-    } catch (e) {
-        throw new Error("Failed to parse JSON properly");
+      const response = await axios.post(
+        "http://192.168.1.13:3000/api/avatar",
+        userData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      Alert.alert("Profile saved successfully!.");
+      // Go to the main application or dashboard
+      navigation.navigate("nav");
+      console.log("Saved Profile:", response.data);
+    } catch (error) {
+      console.error("Save profile error:", error);
+      alert("Error saving profile: " + error.message);
+    } finally {
+      setIsLoading(false);
     }
-} catch (error) {
-    console.error("Save profile error:", error);
-    alert("Error saving profile: " + error.message);
-}
-};
-
+  };
 
   return (
     <View style={styles.mainView}>
@@ -144,23 +142,28 @@ const saveProfile = async () => {
         <Text style={styles.heading__text}>
           This will display as your Profile Picture
         </Text>
-        <View style={styles.container1}>
-          <View style={styles.avatarContainer}>
-            {avatars.map((avatar, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => selectAvatar(avatar)}
-              >
-                <Image
-                  source={avatar}
-                  style={[
-                    styles.avatar,
-                    avatar === selectedAvatar ? styles.selectedAvatar : null,
-                  ]}
-                />
-              </TouchableOpacity>
-            ))}
-          </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "space-around",
+            width: "100%",
+            gap: 20,
+            paddingVertical: 20,
+          }}
+        >
+          {Object.keys(avatars).map((key, index) => (
+            <TouchableOpacity key={index} onPress={() => selectAvatar(key)}>
+              <Image
+                source={avatars[key]}
+                style={[
+                  styles.avatar,
+                  key === selectedAvatar ? styles.selectedAvatar : null,
+                ]}
+              />
+            </TouchableOpacity>
+          ))}
         </View>
 
         <View>
@@ -283,15 +286,15 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
   },
   avatar: {
-    width: "33%", // Each avatar takes up one-third of the container width.
-    aspectRatio: 1, // Ensures that the height is equal to the width.
+    width: 110,// Each avatar takes up one-third of the container width.
+    height:110,
     borderWidth: 4, // Adds a border when selected.
     borderRadius: 20,
     borderColor: "#fff",
   },
   selectedAvatar: {
-    width: "33%", // Maintains the width for selected avatars.
-    aspectRatio: 1, // Ensures that the height is equal to the width.
+    width: 110,
+    height:110, // Maintains the width for selected avatars.
     borderWidth: 4, // Adds a border when selected.
     borderRadius: 20,
     overflow: "hidden",
@@ -323,7 +326,7 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
 
-  input_disable:{
+  input_disable: {
     flex: 1,
     height: 60,
     color: "#9E9E9E",
