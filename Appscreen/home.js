@@ -14,6 +14,21 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import axios from "axios";
+import jwtDecode from 'jwt-decode';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+const Stack = createNativeStackNavigator();
+
+const shuffleArray = (array) => {
+  const newArray = array.slice(); // Create a copy of the original array
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
+  }
+  return newArray;
+};
 
 const imageArray = [
   require("../assets/aviator.png"),
@@ -33,16 +48,6 @@ const imageArray = [
   require("../assets/cricket.png"),
 ];
 
-const shuffleArray = (array) => {
-  const newArray = array.slice(); // Create a copy of the original array
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
-  }
-  return newArray;
-};
-
-const Stack = createNativeStackNavigator();
 
 export default function Homepage({ navigation }) {
   const [shuffledImages1, setShuffledImages1] = useState([]);
@@ -65,6 +70,56 @@ export default function Homepage({ navigation }) {
     </TouchableOpacity>
   );
  
+
+ 
+
+
+
+  const [userData, setUserData] = useState(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const data = await displayUserData();
+            if (data) {
+              setUserData(data);
+              console.log(data);
+          } else {
+              console.log('No user data available');
+          }
+        };
+        fetchData();
+    }, []);
+
+    const displayUserData = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        if (token) {
+            const decoded = jwtDecode(token);
+            console.log('Decoded JWT:', decoded);
+            return decoded;
+        } else {
+            console.log('No token found');
+        }
+    } catch (error) {
+        console.error('Error retrieving or decoding token:', error);
+    }
+    return null;
+    };
+
+    const logoutUser = async () => {
+        try {
+            await AsyncStorage.removeItem('userToken');
+            console.log('User logged out successfully');
+            navigation.navigate('Login'); // Navigate to Login after logout
+        } catch (error) {
+            console.error('Failed to log out:', error);
+        }
+    };
+
+
+
+
+
   // Destructure navigation directly from props
   return (
     <View style={styles.mainView}>
@@ -81,7 +136,7 @@ export default function Homepage({ navigation }) {
               style={styles.logoheader}
             ></Image>
             <View style={styles.totalmoneyctn}>
-              <Text style={styles.balncetext}>Total Balance</Text>
+              <Text style={styles.balncetext}>Total Balance {userData.name}</Text>
               <View style={styles.totalmoneybackground}>
                 <TouchableOpacity style={styles.totalmoneybackground}>
                   <Image source={require("../assets/coin.png")}></Image>
@@ -105,7 +160,7 @@ export default function Homepage({ navigation }) {
               <View style={styles.scrollcards}>
                 <View style={styles.promobackground}>
                   <Text style={styles.promotext}>Your Last Played</Text>
-                  <TouchableOpacity>
+                  <TouchableOpacity onPress={logoutUser}>
                     <LinearGradient
                       start={{ x: 0, y: 0 }}
                       end={{ x: 0, y: 1 }}

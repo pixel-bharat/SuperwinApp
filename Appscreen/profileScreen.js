@@ -1,78 +1,82 @@
-import React from "react";
-
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
-  ScrollView,
   View,
+  Text,
   Image,
+  ScrollView,
   ImageBackground,
+  SafeAreaView,
+  TouchableOpacity,
+  ActivityIndicator,
   StatusBar,
   StyleSheet,
-  Text,
-  TouchableOpacity,
-  SafeAreaView,
-  ActivityIndicator,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-const Stack = createNativeStackNavigator();
+export default function ProfileScreen() {
+  const navigation = useNavigation();
 
-export default function ProfileScreen({ navigation }) {
-  const [userData, setUserData] = useState(null);
+  const [userDetails, setUserDetails] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fetch user data when component mounts
+    const fetchUserData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        if (!token) {
+          throw new Error("No token found");
+        }
+        const response = await fetch("http://192.168.1.13:3000/api/user", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.message || "Failed to fetch user data");
+        }
+
+        setUserDetails(data);
+      } catch (error) {
+        setError(error.message);
+        console.error("Error fetching user data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     fetchUserData();
   }, []);
 
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch("http://192.168.1.26:3000/api/members");
-      const text = await response.text(); // Get response text
-      console.log(text); // Log it to see what's actually coming back
-      const data = JSON.parse(text); // Try to parse it as JSON
-      setUserData(data);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-    }
-  };
+  if (isLoading) {
+    return <ActivityIndicator size="large" />;
+  }
 
-  // logout Function
-  const [isLoading, setIsLoading] = useState(false);
+  if (error) {
+    return <Text>Error: {error}</Text>;
+  }
+
+  if (!userDetails) {
+    return <Text>No user data available.</Text>;
+  }
 
   const handleLogout = async () => {
-    setIsLoading(true);
     try {
-      // Clear user token or any data from AsyncStorage
       await AsyncStorage.removeItem("userToken");
-
-      // Reset loading state and redirect to the Login Screen
-      setIsLoading(false);
-      navigation.navigate("Login");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
     } catch (error) {
-      console.error("Failed to log out:", error);
-      setIsLoading(false);
-      // Optionally handle the error with a user-facing message, e.g.,
-      // Alert.alert("Logout Failed", "Unable to log out. Please try again.");
+      console.error("Logout failed", error);
     }
   };
-
-  if (isLoading) {
-    return (
-      <ImageBackground
-        source={require("../assets/Maskbackround.png")}
-        style={[styles.backgroundStyle, {flex: 1, backgroundColor:"#000000"}]}
-      >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
-      </ImageBackground>
-      
-    );
-  }
 
   return (
     <View style={styles.mainView}>
@@ -91,13 +95,15 @@ export default function ProfileScreen({ navigation }) {
                   source={require("../assets/star.png")}
                   style={{ width: 20, height: 20 }}
                 ></Image>
-                <Text style={styles.membernametext}>Member name</Text>
+                <Text style={styles.membernametext}>
+                  {userDetails.member_name}
+                </Text>
               </View>
 
               <View style={styles.uidVeiw}>
                 <View style={styles.uidbackground}>
                   <Text style={styles.uidtext}>UID</Text>
-                  <Text style={styles.uidtext}>456732420</Text>
+                  <Text style={styles.uidtext}>{userDetails.userId}</Text>
                 </View>
 
                 <Image
@@ -106,9 +112,7 @@ export default function ProfileScreen({ navigation }) {
                 ></Image>
               </View>
 
-              <Text style={styles.lastlogintext}>
-                Last login:2024-11-23, 18:16:23
-              </Text>
+              <Text style={styles.lastlogintext}>{userDetails.email}</Text>
             </View>
             <StatusBar style="auto" />
           </View>
@@ -122,25 +126,20 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.cardView}>
             <Image
               source={require("../assets/Background.png")}
-              style={{
-                width: "100%",
-                height: "100%",
-                position: "absolute",
-                borderRadius: 10,
-              }}
-            ></Image>
+              style={styles.backgroundImage}
+            />
             <TouchableOpacity>
               <Image
                 source={require("../assets/Share.png")}
-                style={{ alignSelf: "flex-end" }}
-              ></Image>
+                style={styles.shareIcon}
+              />
             </TouchableOpacity>
             <View style={styles.cardmember}>
               <View style={styles.memberView}>
                 <Image
                   source={require("../assets/star.png")}
                   style={{ width: 20, height: 20 }}
-                ></Image>
+                />
                 <Text style={styles.membernametext2}>Member name</Text>
               </View>
 
@@ -149,153 +148,62 @@ export default function ProfileScreen({ navigation }) {
                   start={{ x: 0, y: 0 }}
                   end={{ x: 0, y: 1 }}
                   colors={["#FFE590", "#FFC600"]}
-                  style={{
-                    width: 119,
-                    height: 27,
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    borderRadius: 4,
-                    marginBottom: 12,
-                  }}
+                  style={styles.uidContainer}
                 >
-                  <Text
-                    style={{
-                      color: "#2A2A2A",
-                      fontSize: 14,
-                      marginRight: 12,
-                    }}
-                  >
-                    {"UID:"}
-                  </Text>
-                  <Text
-                    style={{
-                      color: "#2A2A2A",
-                      fontSize: 14,
-                    }}
-                  >
-                    {"45938630"}
-                  </Text>
+                  <Text style={styles.uidText}>{"UID:"}</Text>
+                  <Text style={styles.uidNumber}>{"45938630"}</Text>
                 </LinearGradient>
               </View>
             </View>
           </View>
           <View style={styles.gap20}></View>
-          <View style={styles.moneycardbackgroung}>
-            <Text
-              style={{
-                color: "#FFFFFF",
-                fontSize: 14,
-                marginBottom: 1,
-              }}
-            >
-              {"Total Balance"}
-            </Text>
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                marginBottom: 10,
-              }}
-            >
+          <View style={styles.moneycardBackground}>
+            <Text style={styles.balanceText}>{"Total Balance"}</Text>
+            <View style={styles.balanceContainer}>
               <Image
                 source={require("../assets/coin.png")}
                 resizeMode={"stretch"}
-                style={{
-                  width: 32,
-                  height: 32,
-                  marginRight: 8,
-                }}
+                style={styles.icon}
               />
-              <Text
-                style={{
-                  color: "#FFFFFF",
-                  fontSize: 18,
-                  marginRight: 11,
-                }}
-              >
-                {"50,684.89"}
-              </Text>
+              <Text style={styles.amountText}>{"50,684.89"}</Text>
               <Image
                 source={require("../assets/reuse.png")}
                 resizeMode={"stretch"}
-                style={{
-                  width: 32,
-                  height: 32,
-                  marginRight: 8,
-                }}
+                style={styles.icon}
               />
             </View>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <View>
+            <View style={styles.rowContainer}>
+              <View style={styles.sectionContainer}>
                 <Image
                   source={require("../assets/moneybag.png")}
                   resizeMode={"stretch"}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    marginRight: 8,
-                  }}
+                  style={styles.icon}
                 />
-                <Text
-                  style={{
-                    color: "#FFFFFF",
-                    fontSize: 14,
-                    marginHorizontal: 8,
-                  }}
-                >
-                  {"Deposit"}
-                </Text>
+                <Text style={styles.actionText}>{"Deposit"}</Text>
               </View>
-              <Image source={require("../assets/vrticalline.png")}></Image>
-
-              <View>
+              <Image
+                source={require("../assets/vrticalline.png")}
+                style={styles.verticalLine}
+              />
+              <View style={styles.sectionContainer}>
                 <Image
                   source={require("../assets/money.png")}
                   resizeMode={"stretch"}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    marginRight: 8,
-                  }}
+                  style={styles.icon}
                 />
-                <Text
-                  style={{
-                    color: "#FFFFFF",
-                    fontSize: 14,
-                    marginHorizontal: 8,
-                  }}
-                >
-                  {"Withdraw"}
-                </Text>
+                <Text style={styles.actionText}>{"Withdraw"}</Text>
               </View>
-              <Image source={require("../assets/vrticalline.png")}></Image>
-
-              <View>
+              <Image
+                source={require("../assets/vrticalline.png")}
+                style={styles.verticalLine}
+              />
+              <View style={styles.sectionContainer}>
                 <Image
                   source={require("../assets/bookmark.png")}
                   resizeMode={"stretch"}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    marginRight: 8,
-                  }}
+                  style={styles.icon}
                 />
-                <Text
-                  style={{
-                    color: "#FFFFFF",
-                    fontSize: 14,
-                    marginHorizontal: 8,
-                  }}
-                >
-                  {"Membership"}
-                </Text>
+                <Text style={styles.actionText}>{"Membership"}</Text>
               </View>
             </View>
           </View>
@@ -382,6 +290,113 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
     position: "absolute",
+  },
+
+  cardView: {
+    flex: 1, // You might need to adjust this depending on your layout needs
+    position: "relative", // For absolute positioning of the background image
+    borderRadius: 10, // Ensures the container itself also has rounded corners
+  },
+  backgroundImage: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    borderRadius: 10, // Match the parent's borderRadius
+  },
+  shareIcon: {
+    alignSelf: "flex-end",
+    margin: 10, // Adds some margin to the icon for better touchability
+  },
+  cardmember: {
+    flex: 1, // Adjust based on your content's needs
+    justifyContent: "space-between", // Adjust layout of inner items
+  },
+  memberView: {
+    flexDirection: "row",
+    alignItems: "center", // Align items in a row
+    padding: 10, // Adds padding around the content
+  },
+  membernametext2: {
+    marginLeft: 10, // Add some space between the star icon and text
+    color: "#000", // Adjust as needed
+    fontSize: 16, // Adjust as needed
+  },
+  uidVeiw: {
+    padding: 10, // Padding around the UID view for layout purposes
+  },
+  uidContainer: {
+    width: 119,
+    height: 27,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 4,
+    marginBottom: 12,
+  },
+  uidText: {
+    color: "#2A2A2A",
+    fontSize: 14,
+    marginRight: 12, // Space between "UID:" and the number
+  },
+  uidNumber: {
+    color: "#2A2A2A",
+    fontSize: 14,
+  },
+
+  moneycardBackground: {
+    flex: 1, // Use for layout scaling based on the available space
+    backgroundColor: "rgba(0, 0, 0, 0.60)", // Using RGBA for background color transparency
+    borderRadius: 10, // React Native uses camelCase for CSS properties
+    borderWidth: 1, // borderWidth instead of 'border'
+    borderColor: "rgba(84, 84, 88, 0.60)", // borderColor for specifying border color
+    // React Native does not support backdrop-filter or CSS variables, omit these
+    padding: 16, // Padding around the content inside the card
+    flexDirection: "column", // Main axis direction for children
+    justifyContent: "center", // Alignment of children along the main axis
+    alignItems: "center", // Alignment of children along the cross axis
+    alignSelf: "stretch", // Stretches to the container's width in the cross axis direction
+    gap: 10, // Gap is not supported in React Native. Use margin in child components instead.
+    marginHorizontal: 10,
+  },
+  balanceText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    marginBottom: 1,
+  },
+  balanceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  icon: {
+    width: 32,
+    height: 32,
+  },
+  amountText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    marginRight: 11,
+  },
+  rowContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  sectionContainer: {
+    flexDirection: "column",
+    alignItems: "center",
+    width: "30%",
+  },
+  actionText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    marginHorizontal: 8,
+  },
+  verticalLine: {
+    width: 1, // Specify your line's width
+    height: "100%", // Adjust based on your layout needs
+    backgroundColor: "#fff3", // Assuming white color for the line
+    marginHorizontal: 5,
   },
 
   memberView: {
