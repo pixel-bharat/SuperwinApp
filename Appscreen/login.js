@@ -30,7 +30,7 @@ export default function LoginPage() {
 
     setIsLoading(true); // Start loading
     try {
-      const response = await fetch("http://192.168.1.26:3000/api/login", {
+      const response = await fetch("http://192.168.1.13:3000/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,7 +44,7 @@ export default function LoginPage() {
         await AsyncStorage.setItem("userToken", data.token); // Save token using await
         
         if (data.profileSetupRequired) {
-          const { uid } = data;
+          const { uid} = data;
           // Redirect to Profile Setup Page
           Alert.alert(
             "Profile Setup Required",
@@ -77,6 +77,8 @@ export default function LoginPage() {
     }
   };
 
+
+ 
   return (
     <View style={styles.container}>
       <ImageBackground

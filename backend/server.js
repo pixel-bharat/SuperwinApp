@@ -38,10 +38,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   verificationOTPToken: { type: String },
   isVerified: { type: Boolean, default: false },
-  uniqueId: {
-    type: String,
-    default: () => `uuidv4${Math.floor(Math.random() * 100000)}`,
-  },
+  uniqueId: {type: String,default: uuidv4},
   name: String,
   avatar: String,
 });
@@ -112,6 +109,74 @@ app.post("/api/signup", async (req, res) => {
     res.status(500).json({ message: "Failed to process your request" });
   }
 });
+
+
+
+//
+// Login API Here
+//
+// Login Endpoint
+app.post("/api/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const normalizedEmail = email.trim().toLowerCase(); // Normalize email to prevent case-sensitive mismatches
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      console.log(`User not found: ${normalizedEmail}`);
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    if (!user.isVerified) {
+      console.log(`User not verified: ${normalizedEmail}`);
+      return res.status(401).json({
+        message: "Please verify your account.",
+        redirectUrl: "/verify-account", // Adjust the URL/path as necessary
+      });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log(`Invalid password attempt for user: ${normalizedEmail}`);
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // Check if member name is set to determine if profile setup is required
+    const profileSetupRequired = !user.name || !user.avatar; // true if memberName is not set
+
+    const token = jwt.sign(
+      { userId: user.uniqueId },
+      process.env.JWT_SECRET,
+      //{ expiresIn: "1h" } // Token is valid for 1 hour
+    );
+
+    console.log(
+      `User logged in successfully: ${normalizedEmail} with UID: ${user.uniqueId}`
+    );
+    res.status(200).json({
+      message: "Login successful",
+      email: user.email,
+      token,
+      avatar: user.avatar,
+      name: user.name,
+      uid: user.uniqueId, // Send back UID if you need it client-side
+      profileSetupRequired, // Indicate if the user needs to complete their profile setup
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+
+
+
+
+
+
 
 //
 // verify OTP API Here
@@ -203,133 +268,124 @@ app.post("/api/resendOTP", async (req, res) => {
   });
 });
 
-//
-// Login API Here
-//
-// Login Endpoint
-app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const normalizedEmail = email.trim().toLowerCase(); // Normalize email to prevent case-sensitive mismatches
-    const user = await User.findOne({ email: normalizedEmail });
-
-    if (!user) {
-      console.log(`User not found: ${normalizedEmail}`);
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    if (!user.isVerified) {
-      console.log(`User not verified: ${normalizedEmail}`);
-      return res.status(401).json({
-        message: "Please verify your account.",
-        redirectUrl: "/verify-account", // Adjust the URL/path as necessary
-      });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      console.log(`Invalid password attempt for user: ${normalizedEmail}`);
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    // Check if member name is set to determine if profile setup is required
-    const profileSetupRequired = !user.memberName; // true if memberName is not set
-
-    const token = jwt.sign(
-      { userId: user.uniqueId },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" } // Token is valid for 1 hour
-    );
-
-    console.log(
-      `User logged in successfully: ${normalizedEmail} with UID: ${user.uniqueId}`
-    );
-    res.status(200).json({
-      message: "Login successful",
-      email: normalizedEmail,
-      token,
-      uid: user.uniqueId, // Send back UID if you need it client-side
-      profileSetupRequired, // Indicate if the user needs to complete their profile setup
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 // POST endpoint to update user profile avatar and name
 
-app.post("/avatar", async (req, res) => {
-  const { uid, memberName, avatar } = req.body;
-  console.log(`Received update for UID: ${uid}`); // Debug log
-  const user = await User.findOne({ uniqueId: uid });
-  if (!user) {
-    console.log(`User not found with UID: ${uid}`); // Debug log
-    return res.status(404).json({ message: "User not found" });
-  }
+// Validation function to clean up main logic
+function validateAvatar(avatar) {
+  const allowedAvatars = [
+    "avatar_1.png",
+    "avatar_2.png",
+    "avatar_3.png",
+    "avatar_4.png",
+    "avatar_5.png",
+    "upload_avatar.png",
+  ];
 
-  if (!uid) {
-    return res.status(400).json({ message: "User ID is required" });
-  }
-  if (!memberName || !memberName.trim()) {
-    return res.status(400).json({ message: "Member name is required" });
-  }
+  // Check if the avatar is a valid URL
   if (
-    !avatar ||
-    !validator.isURL(avatar, {
+    validator.isURL(avatar, {
       protocols: ["http", "https"],
       require_protocol: true,
     })
   ) {
-    return res.status(400).json({ message: "Valid avatar URL is required" });
+    return true; // The avatar is a valid URL
   }
 
-  // Optional: Validate the content-type or size of the avatar URL
-  try {
-    const response = await axios.head(avatar);
-    const contentType = response.headers["content-type"];
-    const contentLength = response.headers["content-length"];
-
-    // Ensure the avatar is an image
-    if (!contentType.startsWith("image/")) {
-      return res.status(400).json({ message: "Avatar must be an image" });
-    }
-
-    // Optional: Check image size, example: less than 5MB
-    if (contentLength > 5000000) {
-      return res
-        .status(400)
-        .json({ message: "Avatar must be smaller than 5MB" });
-    }
-  } catch (error) {
-    return res.status(400).json({ message: "Failed to verify avatar URL" });
+  // If not a URL, check if it's a known avatar filename
+  if (allowedAvatars.includes(avatar)) {
+    return true; // The avatar is a recognized local filename
   }
 
-  // Proceed with existing user update logic
+  throw new Error(
+    "Invalid avatar provided. Must be a valid URL or a recognized filename."
+  );
+}
+
+app.post("/api/avatar", async (req, res) => {
+  const { uid, memberName, avatar, email } = req.body;
+
+  if (!uid || !email) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
+
+  const user = await User.findOne({ uniqueId: uid });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
   try {
-    const user = await User.findOne({ uniqueId: uid });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    // Update the name if provided
+    if (memberName && memberName.trim()) {
+      user.name = memberName.trim();
     }
 
-    user.name = memberName.trim();
-    user.avatar = avatar;
+    // Validate and optionally update the avatar
+    if (avatar) {
+      if (!validateAvatar(avatar)) {
+        return res.status(400).json({ message: "Invalid avatar reference" });
+      }
+      user.avatar = avatar; // Assume validateAvatar ensures validity
+    }
+
     await user.save();
-
     res.status(200).json({
       message: "Profile updated successfully",
-      profile: {
-        name: user.name,
-        avatar: user.avatar,
-        uid: user.uniqueId,
-      },
+      profile: { name: user.name, avatar: user.avatar, uid: user.uniqueId },
+    });
+
+    const token = jwt.sign(
+      { userId: user.uniqueId },
+      process.env.JWT_SECRET,
+    //  { expiresIn: "1h" } // Token is valid for 1 hour
+    );
+
+    res.status(200).json({
+      message: "Profile update successful",
+      email: user.email,
+      token,
+      name: user.name,
+      avatar: user.avatar,
+      uid: user.uniqueId, // Send back UID if you need it client-side
+      profileSetupRequired, // Indicate if the user needs to complete their profile setup
     });
   } catch (error) {
     console.error("Error updating profile:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
+
+
+//
+//
+//Logout API here
+
+const tokenBlacklistSchema = new mongoose.Schema({
+  token: String,
+  expiresAt: Date
+});
+
+const TokenBlacklist = mongoose.model('TokenBlacklist', tokenBlacklistSchema);
+
+app.post('/api/logout', async (req, res) => {
+  try {
+      const { token } = req.body; // Assuming the token is sent back on logout
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      const blacklistedToken = new TokenBlacklist({
+          token: token,
+          expiresAt: new Date(decoded.exp * 1000)
+      });
+
+      await blacklistedToken.save();
+      res.status(200).send('Logout successful and token blacklisted.');
+  } catch (error) {
+      res.status(500).json({ message: "Failed to logout" });
+  }
+});
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
