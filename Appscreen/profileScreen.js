@@ -11,70 +11,64 @@ import {
   StatusBar,
   StyleSheet,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation, useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
+import { jwtDecode } from "jwt-decode"; // Correct import
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
 
-  const [userDetails, setUserDetails] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const avatars = {
+    avatar_1: require("../assets/avatar/avatar_1.png"),
+    avatar_2: require("../assets/avatar/avatar_2.png"),
+    avatar_3: require("../assets/avatar/avatar_3.png"),
+    avatar_4: require("../assets/avatar/avatar_4.png"),
+    avatar_5: require("../assets/avatar/avatar_5.png"),
+    uploadAvatar: require("../assets/avatar/upload_avatar.png"),
+  };
 
+  const [userData, setUserData] = useState(null);
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = await AsyncStorage.getItem("userToken");
-        if (!token) {
-          throw new Error("No token found");
-        }
-        const response = await fetch("http://192.168.1.13:3000/api/user", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch user data");
-        }
-
-        setUserDetails(data);
-      } catch (error) {
-        setError(error.message);
-        console.error("Error fetching user data:", error);
-      } finally {
-        setIsLoading(false);
+    const fetchData = async () => {
+      const data = await displayUserData();
+      if (data) {
+        setUserData(data);
+        console.log("User data after JWT decoding:", data);
+      } else {
+        console.log("No user data available");
+        Alert.alert("Login Failed", "No user data available");
       }
     };
-
-    fetchUserData();
+    fetchData();
   }, []);
 
-  if (isLoading) {
-    return <ActivityIndicator size="large" />;
-  }
+  const displayUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (token) {
+        const decoded = jwtDecode(token);
+        console.log("Decoded JWT:", decoded);
+        return decoded;
+      } else {
+        console.log("No token found");
+        Alert.alert("Login Failed", "Token not found");
+      }
+    } catch (error) {
+      console.error("Error retrieving or decoding token:", error);
+      Alert.alert("Login Failed", error.message);
+    }
+    return null;
+  };
 
-  if (error) {
-    return <Text>Error: {error}</Text>;
-  }
-
-  if (!userDetails) {
-    return <Text>No user data available.</Text>;
-  }
-
-  const handleLogout = async () => {
+  const logoutUser = async () => {
     try {
       await AsyncStorage.removeItem("userToken");
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Login" }],
-      });
+      console.log("User logged out successfully");
+      navigation.navigate("Login"); // Ensure this route name is correct
     } catch (error) {
-      console.error("Logout failed", error);
+      console.error("Failed to log out:", error);
+      Alert.alert("Logout Failed", error.message);
     }
   };
 
@@ -88,22 +82,34 @@ export default function ProfileScreen() {
       <SafeAreaView>
         <ScrollView>
           <View style={styles.container}>
-            <Image source={require("../assets/profile.png")}></Image>
+            {userData ? (
+              <Image source={avatars[userData.avatar]} style={styles.pro_pic} />
+            ) : (
+              <Text>No Image</Text>
+            )}
             <View style={styles.profileView}>
               <View style={styles.memberView}>
                 <Image
                   source={require("../assets/star.png")}
                   style={{ width: 20, height: 20 }}
                 ></Image>
-                <Text style={styles.membernametext}>
-                  {userDetails.member_name}
-                </Text>
+                {userData ? (
+                  <Text style={styles.membernametext}>
+                    {userData.name || "No Name"}
+                  </Text>
+                ) : (
+                  <Text>Loading user data...</Text>
+                )}
               </View>
 
               <View style={styles.uidVeiw}>
                 <View style={styles.uidbackground}>
                   <Text style={styles.uidtext}>UID</Text>
-                  <Text style={styles.uidtext}>{userDetails.userId}</Text>
+                  {userData ? (
+                    <Text style={styles.uidtext}>{userData.userId}</Text>
+                  ) : (
+                    <Text>Loading user data...</Text>
+                  )}
                 </View>
 
                 <Image
@@ -111,8 +117,13 @@ export default function ProfileScreen() {
                   style={{ marginLeft: 6 }}
                 ></Image>
               </View>
-
-              <Text style={styles.lastlogintext}>{userDetails.email}</Text>
+              {userData ? (
+                <Text style={styles.lastlogintext}>
+                  {userData.email || "No email"}
+                </Text>
+              ) : (
+                <Text>Loading user data...</Text>
+              )}
             </View>
             <StatusBar style="auto" />
           </View>
@@ -140,7 +151,13 @@ export default function ProfileScreen() {
                   source={require("../assets/star.png")}
                   style={{ width: 20, height: 20 }}
                 />
-                <Text style={styles.membernametext2}>Member name</Text>
+                {userData ? (
+                  <Text style={styles.membernametext2}>
+                    {userData.name || "No Name"}
+                  </Text>
+                ) : (
+                  <Text>Loading user data...</Text>
+                )}
               </View>
 
               <View style={styles.uidVeiw}>
@@ -151,7 +168,11 @@ export default function ProfileScreen() {
                   style={styles.uidContainer}
                 >
                   <Text style={styles.uidText}>{"UID:"}</Text>
-                  <Text style={styles.uidNumber}>{"45938630"}</Text>
+                  {userData ? (
+                    <Text style={styles.uidNumber}>{userData.userId}</Text>
+                  ) : (
+                    <Text>Loading user data...</Text>
+                  )}
                 </LinearGradient>
               </View>
             </View>
@@ -165,7 +186,11 @@ export default function ProfileScreen() {
                 resizeMode={"stretch"}
                 style={styles.icon}
               />
-              <Text style={styles.amountText}>{"50,684.89"}</Text>
+              <Text style={styles.amountText}>
+                {userData
+                  ? userData.walletBalance || "00"
+                  : "Loading user data..."}
+              </Text>
               <Image
                 source={require("../assets/reuse.png")}
                 resizeMode={"stretch"}
@@ -243,7 +268,7 @@ export default function ProfileScreen() {
             }}
           ></Image>
           <View style={styles.logoutBtn}>
-            <TouchableOpacity onPress={handleLogout}>
+            <TouchableOpacity onPress={logoutUser}>
               <LinearGradient
                 start={{ x: 0, y: 0 }}
                 end={{ x: 0, y: 1 }}
@@ -290,6 +315,14 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
     position: "absolute",
+  },
+
+  pro_pic: {
+    width: 110, // Each avatar takes up one-third of the container width.
+    height: 110,
+    borderWidth: 4, // Adds a border when selected.
+    borderRadius: 20,
+    borderColor: "#fff",
   },
 
   cardView: {

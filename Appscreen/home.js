@@ -13,13 +13,9 @@ import {
   Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import axios from "axios";
-import jwtDecode from 'jwt-decode';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-
-const Stack = createNativeStackNavigator();
+import { useNavigation } from "@react-navigation/native";
+import { jwtDecode } from "jwt-decode"; // Correct import
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const shuffleArray = (array) => {
   const newArray = array.slice(); // Create a copy of the original array
@@ -48,8 +44,9 @@ const imageArray = [
   require("../assets/cricket.png"),
 ];
 
+export default function Homepage({}) {
+  const navigation = useNavigation();
 
-export default function Homepage({ navigation }) {
   const [shuffledImages1, setShuffledImages1] = useState([]);
   const [shuffledImages2, setShuffledImages2] = useState([]);
   const [shuffledImages3, setShuffledImages3] = useState([]);
@@ -69,58 +66,40 @@ export default function Homepage({ navigation }) {
       <Image source={item} style={styles.image} />
     </TouchableOpacity>
   );
- 
-
- 
-
-
 
   const [userData, setUserData] = useState(null);
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await displayUserData();
+      if (data) {
+        setUserData(data);
+        console.log("User data after JWT decoding:", data);
+      } else {
+        console.log("No user data available");
+        Alert.alert("Login Failed", "No user data available");
+      }
+    };
+    fetchData();
+  }, []);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const data = await displayUserData();
-            if (data) {
-              setUserData(data);
-              console.log(data);
-          } else {
-              console.log('No user data available');
-          }
-        };
-        fetchData();
-    }, []);
-
-    const displayUserData = async () => {
-      try {
-        const token = await AsyncStorage.getItem('userToken');
-        if (token) {
-            const decoded = jwtDecode(token);
-            console.log('Decoded JWT:', decoded);
-            return decoded;
-        } else {
-            console.log('No token found');
-        }
+  const displayUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (token) {
+        const decoded = jwtDecode(token);
+        console.log("Decoded JWT:", decoded);
+        return decoded;
+      } else {
+        console.log("No token found");
+        Alert.alert("Login Failed", "Token not found");
+      }
     } catch (error) {
-        console.error('Error retrieving or decoding token:', error);
+      console.error("Error retrieving or decoding token:", error);
+      Alert.alert("Login Failed", error.message);
     }
     return null;
-    };
+  };
 
-    const logoutUser = async () => {
-        try {
-            await AsyncStorage.removeItem('userToken');
-            console.log('User logged out successfully');
-            navigation.navigate('Login'); // Navigate to Login after logout
-        } catch (error) {
-            console.error('Failed to log out:', error);
-        }
-    };
-
-
-
-
-
-  // Destructure navigation directly from props
   return (
     <View style={styles.mainView}>
       <ImageBackground
@@ -129,18 +108,23 @@ export default function Homepage({ navigation }) {
       ></ImageBackground>
 
       <SafeAreaView>
-        <ScrollView>
+        <ScrollView style={styles.scroll__View}>
           <View style={styles.header}>
             <Image
               source={require("../assets/logomax.png")}
               style={styles.logoheader}
             ></Image>
             <View style={styles.totalmoneyctn}>
-              <Text style={styles.balncetext}>Total Balance {userData.name}</Text>
+              <Text style={styles.balncetext}>Total Balance</Text>
               <View style={styles.totalmoneybackground}>
                 <TouchableOpacity style={styles.totalmoneybackground}>
                   <Image source={require("../assets/coin.png")}></Image>
-                  <Text style={styles.headingtext}>50,684.89</Text>
+
+                  <Text style={styles.headingtext}>
+                    {userData
+                      ? userData.walletBalance || "00"
+                      : "Loading user data..."}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity>
@@ -151,7 +135,7 @@ export default function Homepage({ navigation }) {
           </View>
           <View style={styles.container}>
             <View style={styles.slidertop}></View>
-            
+
             <Image
               source={require("../assets/Line.png")}
               style={{ marginTop: 16, alignSelf: "center" }}
@@ -160,7 +144,7 @@ export default function Homepage({ navigation }) {
               <View style={styles.scrollcards}>
                 <View style={styles.promobackground}>
                   <Text style={styles.promotext}>Your Last Played</Text>
-                  <TouchableOpacity onPress={logoutUser}>
+                  <TouchableOpacity>
                     <LinearGradient
                       start={{ x: 0, y: 0 }}
                       end={{ x: 0, y: 1 }}
@@ -253,6 +237,10 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
 
+  scroll__View: {
+    padding: 16,
+  },
+
   backgroundStyle: {
     width: "100%",
     height: "80%",
@@ -268,8 +256,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    paddingVertical:20,
-    paddingHorizontal:10,
   },
 
   topcntbackground: {

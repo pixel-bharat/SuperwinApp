@@ -30,7 +30,7 @@ export default function LoginPage() {
 
     setIsLoading(true); // Start loading
     try {
-      const response = await fetch("http://192.168.1.13:3000/api/login", {
+      const response = await fetch("http://192.168.1.26:3000/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,14 +42,20 @@ export default function LoginPage() {
 
       if (response.ok) {
         await AsyncStorage.setItem("userToken", data.token); // Save token using await
-        
+
         if (data.profileSetupRequired) {
-          const { uid} = data;
+          const { uid } = data;
           // Redirect to Profile Setup Page
           Alert.alert(
             "Profile Setup Required",
             "Please complete your profile setup.",
-            [{ text: "OK", onPress: () => navigation.navigate("ProfileSetup", {email, uid}) }]
+            [
+              {
+                text: "OK",
+                onPress: () =>
+                  navigation.navigate("ProfileSetup", { email, uid }),
+              },
+            ]
           );
         } else {
           Alert.alert("Login Successful", "You have logged in successfully.");
@@ -58,10 +64,22 @@ export default function LoginPage() {
         }
       } else {
         // Handle other statuses like 307 or 401
-        if (response.status === 307) {
-          Alert.alert("Action Required", data.message, [
-            { text: "OK", onPress: () => navigation.navigate("onboarding", { email }) },
-          ]);
+        if (response.status === 401) {
+          Alert.alert(
+            "Email is not registered",
+            "Do you want to Signup instead?",
+            [
+              {
+                text: "Yes",
+                onPress: () => navigation.navigate("onboarding", { email }),
+              },
+              {
+                text: "No",
+                onPress: () => console.log("User chose not to log in"),
+              },
+            ],
+            { cancelable: false }
+          );
         } else {
           throw new Error(data.message || "An unexpected error occurred");
         }
@@ -77,8 +95,6 @@ export default function LoginPage() {
     }
   };
 
-
- 
   return (
     <View style={styles.container}>
       <ImageBackground
@@ -86,28 +102,29 @@ export default function LoginPage() {
         resizeMode="cover"
         style={styles.backgroundImage}
       >
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Image
+            source={require("../assets/back.png")}
+            style={styles.icon_back}
+          ></Image>
+        </TouchableOpacity>
         <StatusBar barStyle="light-content" />
         <ScrollView contentContainerStyle={styles.scrollViewContent}>
           <Image source={require("../assets/logo.png")} style={styles.logo} />
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-          <Image
-              source={require("../assets/back.png")}
-              style={styles.icon}
-            ></Image>
-          </TouchableOpacity>
+
           <View style={styles.loginForm}>
             <Text style={styles.title}>Welcome Back!</Text>
             <Text style={styles.subtitle}>
               Log in to your existing account of SUPERWIN
             </Text>
             <View style={styles.inputContainer}>
-            <Image
-              source={require("../assets/mail.png")}
-              style={styles.icon}
-            ></Image>
+              <Image
+                source={require("../assets/mail.png")}
+                style={styles.icon}
+              ></Image>
               <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -119,11 +136,11 @@ export default function LoginPage() {
               />
             </View>
             <View style={styles.inputContainer}>
-            <Image
-              source={require("../assets/Lock.png")}
-              style={styles.icon}
-            ></Image>
-             
+              <Image
+                source={require("../assets/Lock.png")}
+                style={styles.icon}
+              ></Image>
+
               <TextInput
                 style={styles.input}
                 placeholder="Password"
@@ -176,6 +193,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+    width: "100%",
   },
   backgroundImage: {
     flex: 1,
@@ -185,7 +203,6 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flex: 1,
     justifyContent: "center",
-    paddingVertical: 20,
     alignItems: "center",
   },
   logo: {
@@ -201,7 +218,7 @@ const styles = StyleSheet.create({
   loginForm: {
     marginTop: 20,
     width: "100%",
-    padding: 10,
+    padding: 20,
   },
   title: {
     fontSize: 24,
@@ -226,6 +243,10 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 20,
+  },
+  icon_back:{
+    width: 30,
+    height: 30,
   },
   input: {
     flex: 1,
