@@ -82,12 +82,12 @@ const ProfileSetup = ({ route, navigation }) => {
 
   const selectAvatar = (key) => {
     const avatarKeys = {
-      avatar1: "avatar_1.png",
-      avatar2: "avatar_2.png",
-      avatar3: "avatar_3.png",
-      avatar4: "avatar_4.png",
-      avatar5: "avatar_5.png",
-      uploadAvatar: "upload_avatar.png",
+      avatar1: "avatar_1",
+      avatar2: "avatar_2",
+      avatar3: "avatar_3",
+      avatar4: "avatar_4",
+      avatar5: "avatar_5",
+      uploadAvatar: "upload_avatar",
     };
 
     const selectAvatar = (key) => {
@@ -105,7 +105,7 @@ const ProfileSetup = ({ route, navigation }) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://192.168.1.13:3000/api/avatar",
+        "http://192.168.1.26:3000/api/avatar",
         userData,
         {
           headers: {
@@ -113,9 +113,9 @@ const ProfileSetup = ({ route, navigation }) => {
           },
         }
       );
-      Alert.alert("Profile saved successfully!.");
+      Alert.alert("Profile saved successfully!. ");
       // Go to the main application or dashboard
-      navigation.navigate("nav");
+      navigation.navigate("Login");
       console.log("Saved Profile:", response.data);
     } catch (error) {
       console.error("Save profile error:", error);

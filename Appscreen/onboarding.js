@@ -38,7 +38,7 @@ export default function SignUpPage() {
     setIsLoading(true); // Assuming setIsLoading is part of your state management
 
     try {
-      const response = await fetch("http://192.168.1.13:3000/api/signup", {
+      const response = await fetch("http://192.168.1.26:3000/api/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -99,7 +99,7 @@ export default function SignUpPage() {
         >
           <Image
             source={require("../assets/back.png")}
-            style={styles.icon}
+            style={styles.icon_back}
           ></Image>
         </TouchableOpacity>
         <Image source={require("../assets/logo.png")} style={styles.logo} />
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 40,
+    top: 50,
     left: 20,
   },
   logo: {
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     width: "100%",
-    padding: 10,
+    padding: 20,
   },
   title: {
     fontSize: 24,
@@ -244,6 +244,10 @@ const styles = StyleSheet.create({
   icon: {
     width: 20,
     height: 20,
+  },
+  icon_back:{
+    width: 30,
+    height: 30,
   },
   input: {
     flex: 1,
