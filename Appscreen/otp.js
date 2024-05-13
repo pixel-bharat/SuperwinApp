@@ -6,14 +6,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
+  Image,
   ImageBackground,
   ScrollView,SafeAreaView,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faArrowLeft, faEdit } from "@fortawesome/free-solid-svg-icons";
-import { v4 as uuidv4 } from 'uuid';
 
 const OtpInput = ({ value, onChangeText, maxLength, onKeyPress, refInput }) => (
   <TextInput
@@ -55,7 +53,7 @@ export default function OtpScreen({}) {
   const handleSubmit = async () => {
     const otpValue = otp.join("");
     try {
-      const response = await fetch("http://192.168.1.13:3000/api/verifyOTP", {
+      const response = await fetch("http://192.168.1.26:3000/api/verifyOTP", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +82,7 @@ export default function OtpScreen({}) {
     console.log("Requesting OTP resend for:", email);
 
     try {
-      const response = await fetch("http://192.168.1.13:3000/api/resendOTP", {
+      const response = await fetch("http://192.168.1.26:3000/api/resendOTP", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,20 +121,24 @@ export default function OtpScreen({}) {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <FontAwesomeIcon icon={faArrowLeft} size={20} color="#fff" />
+           <Image
+              source={require("../assets/back.png")}
+              style={styles.icon}
+            ></Image>
           </TouchableOpacity>
           <View style={styles.scrollViewContent}>
             <View style={styles.info_container}>
               <Text style={styles.title}>Enter OTP</Text>
               <Text style={styles.subtitle}>Please enter the OTP sent to</Text>
               <Text style={styles.subtitle}> {uid}</Text>
-             
-              <Text style={styles.sub_mail}>
-                {email + "  "}
+              <Text>{email + "  "}</Text>
+                
                 <TouchableOpacity onPress={() => navigation.goBack()}>
-                  <FontAwesomeIcon icon={faEdit} size={18} color="#fff" />
+                <Image
+              source={require("../assets/Edit.png")}
+              style={styles.icon}
+            ></Image>
                 </TouchableOpacity>
-              </Text>
               <View style={styles.otpContainer}>
                 {otp.map((value, index) => (
                   <View style={styles.input} key={index.toString()}>
@@ -199,7 +201,10 @@ const styles = StyleSheet.create({
     height: 120, // Set a fixed height for the logo
     resizeMode: "contain", // Ensures the image scales correctly within the bounds
   },
-
+  icon: {
+    width: 20,
+    height: 20,
+  },
   info_container: {
     flex: 1,
     justifyContent: "center",

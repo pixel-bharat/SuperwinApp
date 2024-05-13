@@ -13,7 +13,8 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(require("cors")());
+const cors = require('cors');
+app.use(cors());
 
 mongoose
   .connect(process.env.MONGODB_URI, {
@@ -38,10 +39,12 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   verificationOTPToken: { type: String },
   isVerified: { type: Boolean, default: false },
-  uniqueId: {type: String,default: uuidv4},
+  uniqueId: { type: String, default: uuidv4 },
   name: String,
   avatar: String,
+  walletBalance: { type: Number, default: 0 },
 });
+
 const User = mongoose.model("User", userSchema);
 
 const generateUniqueId = () => {
@@ -109,72 +112,6 @@ app.post("/api/signup", async (req, res) => {
     res.status(500).json({ message: "Failed to process your request" });
   }
 });
-
-
-
-//
-// Login API Here
-//
-// Login Endpoint
-app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const normalizedEmail = email.trim().toLowerCase(); // Normalize email to prevent case-sensitive mismatches
-    const user = await User.findOne({ email: normalizedEmail });
-
-    if (!user) {
-      console.log(`User not found: ${normalizedEmail}`);
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    if (!user.isVerified) {
-      console.log(`User not verified: ${normalizedEmail}`);
-      return res.status(401).json({
-        message: "Please verify your account.",
-        redirectUrl: "/verify-account", // Adjust the URL/path as necessary
-      });
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      console.log(`Invalid password attempt for user: ${normalizedEmail}`);
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    // Check if member name is set to determine if profile setup is required
-    const profileSetupRequired = !user.name || !user.avatar; // true if memberName is not set
-
-    const token = jwt.sign(
-      { userId: user.uniqueId },
-      process.env.JWT_SECRET,
-      //{ expiresIn: "1h" } // Token is valid for 1 hour
-    );
-
-    console.log(
-      `User logged in successfully: ${normalizedEmail} with UID: ${user.uniqueId}`
-    );
-    res.status(200).json({
-      message: "Login successful",
-      email: user.email,
-      token,
-      avatar: user.avatar,
-      name: user.name,
-      uid: user.uniqueId, // Send back UID if you need it client-side
-      profileSetupRequired, // Indicate if the user needs to complete their profile setup
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-
-
-
-
-
-
 
 
 
@@ -268,18 +205,17 @@ app.post("/api/resendOTP", async (req, res) => {
   });
 });
 
-
 // POST endpoint to update user profile avatar and name
 
 // Validation function to clean up main logic
 function validateAvatar(avatar) {
   const allowedAvatars = [
-    "avatar_1.png",
-    "avatar_2.png",
-    "avatar_3.png",
-    "avatar_4.png",
-    "avatar_5.png",
-    "upload_avatar.png",
+    "avatar_1",
+    "avatar_2",
+    "avatar_3",
+    "avatar_4",
+    "avatar_5",
+    "upload_avatar",
   ];
 
   // Check if the avatar is a valid URL
@@ -335,9 +271,15 @@ app.post("/api/avatar", async (req, res) => {
     });
 
     const token = jwt.sign(
-      { userId: user.uniqueId },
-      process.env.JWT_SECRET,
-    //  { expiresIn: "1h" } // Token is valid for 1 hour
+      {
+        userId: user.uniqueId,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+      //  profileSetupRequired,
+      },
+      process.env.JWT_SECRET
+      //  { expiresIn: "1h" } // Token is valid for 1 hour
     );
 
     res.status(200).json({
@@ -355,35 +297,259 @@ app.post("/api/avatar", async (req, res) => {
   }
 });
 
-
-
 //
 //
 //Logout API here
 
 const tokenBlacklistSchema = new mongoose.Schema({
   token: String,
-  expiresAt: Date
+  expiresAt: Date,
 });
 
-const TokenBlacklist = mongoose.model('TokenBlacklist', tokenBlacklistSchema);
+const TokenBlacklist = mongoose.model("TokenBlacklist", tokenBlacklistSchema);
 
-app.post('/api/logout', async (req, res) => {
+app.post("/api/logout", async (req, res) => {
   try {
-      const { token } = req.body; // Assuming the token is sent back on logout
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { token } = req.body; // Assuming the token is sent back on logout
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      const blacklistedToken = new TokenBlacklist({
-          token: token,
-          expiresAt: new Date(decoded.exp * 1000)
-      });
+    const blacklistedToken = new TokenBlacklist({
+      token: token,
+      expiresAt: new Date(decoded.exp * 1000),
+    });
 
-      await blacklistedToken.save();
-      res.status(200).send('Logout successful and token blacklisted.');
+    await blacklistedToken.save();
+    res.status(200).send("Logout successful and token blacklisted.");
   } catch (error) {
-      res.status(500).json({ message: "Failed to logout" });
+    res.status(500).json({ message: "Failed to logout" });
   }
 });
+
+
+
+
+
+
+
+
+
+//
+// Login API Here
+//
+// Login Endpoint
+
+app.post("/api/login", async (req, res) => {
+  const { email, password } = req.body;
+  console.log("Attempting to login user:", email);
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    console.log("Normalized email:", normalizedEmail);
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      console.log("No user found with email:", normalizedEmail);
+      return res.status(401).json({ message: "Email is not registered" });
+    }
+    if (!user.isVerified) {
+      console.log("User not verified:", normalizedEmail);
+      return res.status(401).json({ message: "Please verify your account.", redirectUrl: "/verify-account" });
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log("Invalid password for user:", normalizedEmail);
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    console.log("User authenticated, generating token:", normalizedEmail);
+    const token = jwt.sign({ userId: user.uniqueId, email: user.email }, process.env.JWT_SECRET);
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+        uid: user.uniqueId,
+      }
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+
+
+
+
+//
+//
+//Token Verification Middleware  here
+const authenticateToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) {
+    console.log("No token provided");
+    return res.status(401).json({ message: 'Access denied. No token provided.' });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    console.log("Token verified:", decoded);
+    next();
+  } catch (error) {
+    console.error("Invalid token:", error);
+    res.status(400).json({ message: 'Invalid token.' });
+  }
+};
+
+
+const Schema = mongoose.Schema;
+
+const transactionSchema = new Schema({
+  userId: { type: Schema.Types.ObjectId, ref: 'User' },
+  uniqueId: { type: String, required: true },  // Assuming uniqueId is a string identifier for users
+  amount: { type: Number, required: true },
+  transactionDate: { type: Date, default: Date.now },
+  transactionType: { type: String, enum: ['credit', 'debit'], required: true },
+  description: { type: String }
+});
+
+const Transaction = mongoose.model('Transaction', transactionSchema);
+
+
+
+
+//
+//// Middleware to verify token
+
+app.post('/api/add_money', authenticateToken, async (req, res) => {
+  const { amount } = req.body;
+  const numericAmount = parseFloat(amount);
+  console.log("Add money request for amount:", numericAmount);
+  if (isNaN(numericAmount) || numericAmount <= 0) {
+    console.log("Invalid amount:", numericAmount);
+    return res.status(400).json({ message: "Invalid amount" });
+  }
+  try {
+    const user = await User.findOne({ uniqueId: req.user.userId });
+    if (!user) {
+      console.log("User not found with uniqueId:", req.user.userId);
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.walletBalance += numericAmount;
+    await user.save();
+    console.log("Wallet balance updated for user:", req.user.userId);
+    
+    const transaction = new Transaction({
+      uniqueId: user.uniqueId, // Assuming transactions use `uniqueId`
+      amount: numericAmount,
+      transactionType: 'credit',
+      description: 'Add money to wallet'
+    });
+    await transaction.save();
+    console.log("Transaction saved for user:", req.user.userId);
+    
+    res.json({
+      message: "Money added successfully",
+      walletBalance: user.walletBalance
+    });
+  } catch (error) {
+    console.error("Error adding money:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+//
+//
+//Spend money API here
+app.post("/api/wallet/spend", authenticateToken, async (req, res) => {
+  const { amount } = req.body;
+  console.log("Spend money request:", amount);
+  try {
+    const user = await User.findOne({ uniqueId: req.user.userId });
+    if (!user) {
+      console.log("User not found with uniqueId:", req.user.userId);
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.walletBalance < amount) {
+      console.log("Insufficient balance for user:", req.user.userId);
+      return res.status(400).json({ message: "Insufficient balance" });
+    }
+    user.walletBalance -= amount;
+    await user.save();
+    console.log("Balance updated after spending for user:", req.user.userId);
+
+    const transaction = new Transaction({
+      uniqueId: user.uniqueId,
+      amount,
+      transactionType: 'debit',
+      description: 'Spent from wallet'
+    });
+    await transaction.save();
+    console.log("Debit transaction recorded for user:", req.user.userId);
+    
+    res.json({
+      message: "Amount spent successfully",
+      newBalance: user.walletBalance
+    });
+  } catch (error) {
+    console.error("Spend money error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+
+
+//
+//
+//Transaction History Endpoint
+
+app.get('/api/transactions', authenticateToken, async (req, res) => {
+  try {
+    console.log("Fetching transactions for user:", req.user.userId);
+    const transactions = await Transaction.find({ uniqueId: req.user.userId }).sort({ transactionDate: -1 });
+    console.log("Transactions retrieved:", transactions.length);
+    res.json(transactions);
+  } catch (error) {
+    console.error("Error fetching transactions:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+
+
+
+// User Data Endpoint
+app.get('/api/userdata', authenticateToken, async (req, res) => {
+  try {
+    console.log("Fetching data for user:", req.user.userId);
+    const user = await User.findOne({ uniqueId: req.user.userId }).select('-password');  // Exclude password from the response
+    if (!user) {
+      console.log("User not found:", req.user.userId);
+      return res.status(404).json({ message: 'User not found' });
+    }
+    console.log("User data retrieved:", user.email);
+    res.json({
+      email: user.email,
+      name: user.name,
+      avatar: user.avatar,
+      userId: user.uniqueId,  // Ensure consistency in naming, might be 'uid' or 'uniqueId'
+      walletBalance: user.walletBalance
+    });
+  } catch (error) {
+    console.error("Failed to retrieve user data:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
 
 
 
