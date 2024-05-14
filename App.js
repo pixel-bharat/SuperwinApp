@@ -14,6 +14,8 @@ import WalletScreen from "./Appscreen/welletScreen";
 import GamesScreen from "./Appscreen/gamesScreen";
 import OtpScreen from "./Appscreen/otp";
 import ProfileSetup from "./Appscreen/ProfileSetup";
+import Transactions from "./Appscreen/Transactions";
+import addMoney from "./Appscreen/addMoney";
 
 
 
@@ -125,8 +127,18 @@ function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="Transactions"
+          component={Transactions}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="gamesScreen"
           component={GamesScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="addMoney"
+          component={addMoney}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
