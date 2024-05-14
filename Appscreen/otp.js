@@ -130,8 +130,8 @@ export default function OtpScreen({}) {
             <View style={styles.info_container}>
               <Text style={styles.title}>Enter OTP</Text>
               <Text style={styles.subtitle}>Please enter the OTP sent to</Text>
-              <Text style={styles.subtitle}> {uid}</Text>
-              <Text>{email + "  "}</Text>
+              {/* <Text style={styles.subtitle}> Userid: {uid}</Text> */}
+              <Text style={styles.sub_mail}>{email + "  "}</Text>
                 
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Image
@@ -202,8 +202,8 @@ const styles = StyleSheet.create({
     resizeMode: "contain", // Ensures the image scales correctly within the bounds
   },
   icon: {
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
   },
   info_container: {
     flex: 1,
