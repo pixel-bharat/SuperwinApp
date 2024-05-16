@@ -79,8 +79,8 @@ export default function ProfileScreen() {
         style={styles.backgroundStyle}
       ></ImageBackground>
 
-      <SafeAreaView>
-        <ScrollView>
+      <SafeAreaView >
+        <ScrollView style={styles.Scroll__container}>
           <View style={styles.container}>
             {userData ? (
               <Image source={avatars[userData.avatar]} style={styles.pro_pic} />
@@ -177,86 +177,32 @@ export default function ProfileScreen() {
               </View>
             </View>
           </View>
-          <View style={styles.gap20}></View>
-          <View style={styles.moneycardBackground}>
-            <Text style={styles.balanceText}>{"Total Balance"}</Text>
-            <View style={styles.balanceContainer}>
-              <Image
-                source={require("../assets/coin.png")}
-                resizeMode={"stretch"}
-                style={styles.icon}
-              />
-              <Text style={styles.amountText}>
-                {userData
-                  ? userData.walletBalance || "00"
-                  : "Loading user data..."}
-              </Text>
-              <Image
-                source={require("../assets/reuse.png")}
-                resizeMode={"stretch"}
-                style={styles.icon}
-              />
-            </View>
-            <View style={styles.rowContainer}>
-              <View style={styles.sectionContainer}>
-                <Image
-                  source={require("../assets/moneybag.png")}
-                  resizeMode={"stretch"}
-                  style={styles.icon}
-                />
-                <Text style={styles.actionText}>{"Deposit"}</Text>
-              </View>
-              <Image
-                source={require("../assets/vrticalline.png")}
-                style={styles.verticalLine}
-              />
-              <View style={styles.sectionContainer}>
-                <Image
-                  source={require("../assets/money.png")}
-                  resizeMode={"stretch"}
-                  style={styles.icon}
-                />
-                <Text style={styles.actionText}>{"Withdraw"}</Text>
-              </View>
-              <Image
-                source={require("../assets/vrticalline.png")}
-                style={styles.verticalLine}
-              />
-              <View style={styles.sectionContainer}>
-                <Image
-                  source={require("../assets/bookmark.png")}
-                  resizeMode={"stretch"}
-                  style={styles.icon}
-                />
-                <Text style={styles.actionText}>{"Membership"}</Text>
-              </View>
-            </View>
-          </View>
+         
           <View style={styles.gap20}></View>
           <Text style={styles.accountText}>Your Account History</Text>
           <View style={styles.gap20}></View>
           <View style={styles.accountcard}>
             <View style={styles.firstView}>
-              <View style={styles.firstcard}>
+              <TouchableOpacity style={styles.firstcard}>
                 <Image source={require("../assets/magic-trick.png")}></Image>
                 <Text style={styles.magictext}>Game History</Text>
-              </View>
+              </TouchableOpacity>
 
-              <View style={styles.secondcard}>
+              <TouchableOpacity style={styles.secondcard} onPress={() => navigation.navigate("Transactions")}>
                 <Image source={require("../assets/copy.png")}></Image>
                 <Text style={styles.magictext}>Transaction</Text>
-              </View>
+              </TouchableOpacity>
             </View>
             <View style={styles.gap20}></View>
             <View style={styles.firstView}>
-              <View style={styles.firstcard}>
+              <TouchableOpacity style={styles.firstcard} onPress={() => navigation.navigate("addMoney")}>
                 <Image source={require("../assets/moneybag.png")}></Image>
                 <Text style={styles.magictext}>Deposit</Text>
-              </View>
-              <View style={styles.secondcard}>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondcard} onPress={() => navigation.navigate("spendMoney")}>
                 <Image source={require("../assets/money.png")}></Image>
                 <Text style={styles.magictext}>Withdraw</Text>
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
           <Image
@@ -300,13 +246,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     paddingBottom: 100,
   },
-
+  Scroll__container:{
+    paddingHorizontal: 10,
+  },
   container: {
     justifyContent: "flex-start",
     alignItems: "center",
     flexDirection: "row",
     paddingVertical: 20,
-    paddingHorizontal: 10,
   },
 
   backgroundStyle: {
@@ -588,6 +535,7 @@ const styles = StyleSheet.create({
   },
   logoutbtn: {
     paddingHorizontal: 10,
+    paddingVertical:10
   },
   buttonText: {
     color: "white",
