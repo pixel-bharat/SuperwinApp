@@ -16,6 +16,7 @@ import OtpScreen from "./Appscreen/otp";
 import ProfileSetup from "./Appscreen/ProfileSetup";
 import Transactions from "./Appscreen/Transactions";
 import addMoney from "./Appscreen/addMoney";
+import spendMoney from "./Appscreen/spendMoney";
 
 
 
@@ -139,6 +140,11 @@ function AppNavigator() {
         <Stack.Screen
           name="addMoney"
           component={addMoney}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="spendMoney"
+          component={spendMoney}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

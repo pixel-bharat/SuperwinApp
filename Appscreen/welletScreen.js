@@ -31,6 +31,12 @@ export default function WalletScreen() {
 
   useEffect(() => {
     fetchWalletDetails();
+    const interval = setInterval(() => {
+      fetchWalletDetails();
+    }, 10000); // Poll every 10 seconds
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
   }, []);
 
   const fetchWalletDetails = async () => {
@@ -111,14 +117,6 @@ export default function WalletScreen() {
       });
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.transactionItem}>
-      <Text>Date: {new Date(item.transactionDate).toLocaleDateString()}</Text>
-      <Text>Type: {item.transactionType}</Text>
-      <Text>Amount: ${item.amount.toFixed(2)}</Text>
-      <Text>Description: {item.description}</Text>
-    </View>
-  );
 
   return (
     <View style={styles.mainView}>
@@ -199,26 +197,24 @@ export default function WalletScreen() {
                 <View style={styles.totalwinsbackgroundcard}>
                   <Image source={require("../assets/up-arrow.png")}></Image>
                   <Text style={styles.Textw}>Total Withdraw</Text>
-                  <Text style={styles.money}>INR 72,540.99</Text>
+                  <Text style={styles.money}>INR 540.99</Text>
                 </View>
               </View>
             </View>
             <Text style={styles.promotext}>Quick Actions</Text>
             <View style={styles.quickCnt}>
-              <TouchableOpacity>
-                <View style={styles.quickCntblock}>
-                  <Image source={require("../assets/moneybag.png")}></Image>
-                  <Text
-                    style={styles.quicktext}
-                    title={loading ? "Processing..." : "Add Money"}
-                    onPress={() => navigation.navigate("addMoney")}
-                    disabled={loading}
-                  >
-                    Deposit
-                  </Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity>
+            <TouchableOpacity
+          style={styles.quickCntblock}
+          onPress={() => navigation.navigate("addMoney")}
+          disabled={loading}
+        >
+          <Image source={require("../assets/moneybag.png")} />
+          <Text style={styles.quicktext}>
+            {loading ? "Processing..." : "Add Money"}
+          </Text>
+        </TouchableOpacity>
+             
+              <TouchableOpacity onPress={() => navigation.navigate("spendMoney")}>
                 <View style={styles.quickCntblock}>
                   <Image source={require("../assets/money.png")}></Image>
                   <Text style={styles.quicktext}>Withdraw</Text>

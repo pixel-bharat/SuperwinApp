@@ -16,6 +16,12 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileSetup = ({ route, navigation }) => {
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const [avatarError, setAvatarError] = useState("");
+  const [selectedAvatar, setSelectedAvatar] = useState(null);
+
   // Initialize state
   const [userData, setUserData] = useState({
     email: "",
@@ -23,7 +29,6 @@ const ProfileSetup = ({ route, navigation }) => {
     avatar: null,
     memberName: "",
   });
-  const [isLoading, setIsLoading] = useState(false); // Added state for loading
 
   useEffect(() => {
     // If route.params are provided, use them, otherwise load from storage.
@@ -68,40 +73,23 @@ const ProfileSetup = ({ route, navigation }) => {
     }
   };
 
-  // An example list of avatar images
-  const avatars = {
-    avatar1: require("../assets/avatar/avatar_1.png"),
-    avatar2: require("../assets/avatar/avatar_2.png"),
-    avatar3: require("../assets/avatar/avatar_3.png"),
-    avatar4: require("../assets/avatar/avatar_4.png"),
-    avatar5: require("../assets/avatar/avatar_5.png"),
-    uploadAvatar: require("../assets/avatar/upload_avatar.png"),
-  };
-  // Function to handle avatar selection
-  const [selectedAvatar, setSelectedAvatarKey] = useState(null);
-
-  const selectAvatar = (key) => {
-    const avatarKeys = {
-      avatar1: "avatar_1",
-      avatar2: "avatar_2",
-      avatar3: "avatar_3",
-      avatar4: "avatar_4",
-      avatar5: "avatar_5",
-      uploadAvatar: "upload_avatar",
-    };
-
-    const selectAvatar = (key) => {
-      setSelectedAvatar(key);
-      console.log("Avatar selected:", avatars[key]); // Assuming `avatars` is a dictionary of require statements
-    };
-    setUserData((prev) => ({
-      ...prev,
-      avatar: avatarKeys[key], // Sending the filename as a reference
-    }));
-    console.log("Avatar selected:", avatarKeys[key]);
-  };
-
   const saveProfile = async () => {
+    // Check if name and avatar are provided
+    setNameError("");
+    setAvatarError("");
+
+    if (!userData.memberName) {
+      setNameError("Name is required.");
+    }
+
+    if (!userData.avatar) {
+      setAvatarError("Avatar selection is required.");
+    }
+
+    if (!userData.memberName || !userData.avatar) {
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await axios.post(
@@ -125,6 +113,39 @@ const ProfileSetup = ({ route, navigation }) => {
     }
   };
 
+  // An example list of avatar images
+  const avatars = {
+    avatar1: require("../assets/avatar/avatar_1.png"),
+    avatar2: require("../assets/avatar/avatar_2.png"),
+    avatar3: require("../assets/avatar/avatar_3.png"),
+    avatar4: require("../assets/avatar/avatar_4.png"),
+    avatar5: require("../assets/avatar/avatar_5.png"),
+    uploadAvatar: require("../assets/avatar/upload_avatar.png"),
+  };
+  // Function to handle avatar selection
+
+  const selectAvatar = (key) => {
+    const avatarKeys = {
+      avatar1: "avatar_1",
+      avatar2: "avatar_2",
+      avatar3: "avatar_3",
+      avatar4: "avatar_4",
+      avatar5: "avatar_5",
+      uploadAvatar: "upload_avatar",
+    };
+
+    const selectAvatar = (key) => {
+      setSelectedAvatar(key);
+      console.log("Avatar selected:", avatars[key]); // Assuming `avatars` is a dictionary of require statements
+    };
+    setUserData((prev) => ({
+      ...prev,
+      avatar: avatarKeys[key], // Sending the filename as a reference
+    }));
+    console.log("Avatar selected:", avatarKeys[key]);
+  };
+
+
   return (
     <View style={styles.mainView}>
       <ImageBackground
@@ -142,26 +163,32 @@ const ProfileSetup = ({ route, navigation }) => {
         <Text style={styles.heading__text}>
           This will display as your Profile Picture
         </Text>
-
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            justifyContent: "space-around",
-            width: "100%",
-            gap: 20,
-            paddingVertical: 20,
-          }}
-        >
-          {Object.keys(avatars).map((key, index) => (
-            <TouchableOpacity key={index} onPress={() => selectAvatar(key)}>
-              <Image
-                source={avatars[key]}
-                style={[
-                  styles.avatar,
-                  key === selectedAvatar ? styles.selectedAvatar : null,
-                ]}
-              />
+        <View style={styles.avatarContainer}>
+        {Object.keys(avatars).map((key) => (
+          <TouchableOpacity
+            key={key}
+            style={[
+              styles.avatarWrapper,
+              selectedAvatar === key && styles.selectedAvatar,
+            ]}
+            onPress={() => selectAvatar(key)}
+          >
+            <Image source={avatars[key]} style={styles.avatar} />
+          </TouchableOpacity>
+        ))}
+      </View>
+      {avatarError ? <Text style={styles.errorText}>{avatarError}</Text> : null}
+      <View style={styles.avatarContainer}>
+          {Object.keys(avatars).map((key) => (
+            <TouchableOpacity
+              key={key}
+              style={[
+                styles.avatarWrapper,
+                selectedAvatar === key && styles.selectedAvatar,
+              ]}
+              onPress={() => selectAvatar(key)}
+            >
+              <Image source={avatars[key]} style={styles.avatar} />
             </TouchableOpacity>
           ))}
         </View>
@@ -185,6 +212,7 @@ const ProfileSetup = ({ route, navigation }) => {
               autoCapitalize="none"
             />
           </View>
+          {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
           <Text style={styles.heading__text}>
             UID (this is auto generated )
           </Text>
@@ -240,11 +268,11 @@ const ProfileSetup = ({ route, navigation }) => {
           </LinearGradient>
         </TouchableOpacity>
 
-        <View style={styles.footer}>
+        {/* <View style={styles.footer}>
           <TouchableOpacity onPress={() => navigation.navigate("nav")}>
             <Text style={styles.skip_it}>SKIP IT</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </ScrollView>
     </View>
   );
@@ -278,27 +306,28 @@ const styles = StyleSheet.create({
   },
 
   avatarContainer: {
-    width: "100%",
-    flexDirection: "row", // Lays out children in a horizontal line.
-    flexWrap: "wrap", // Allows items to wrap to the next line.
-    justifyContent: "flex-start", // Aligns children at the start of the main-axis.
-    gap: 20,
-    paddingVertical: 20,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: 16,
+  },
+  avatarWrapper: {
+    padding: 5,
+    borderRadius: 50,
   },
   avatar: {
-    width: 110,// Each avatar takes up one-third of the container width.
-    height:110,
-    borderWidth: 4, // Adds a border when selected.
+    width: 60,
+    height: 60,
     borderRadius: 20,
+    borderWidth: 2,
     borderColor: "#fff",
   },
   selectedAvatar: {
-    width: 110,
-    height:110, // Maintains the width for selected avatars.
-    borderWidth: 4, // Adds a border when selected.
-    borderRadius: 20,
-    overflow: "hidden",
-    borderColor: "#A903D2", // Sets the border color to blue.
+    borderWidth: 2,
+    borderColor: "#A903D2",
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 16,
   },
 
   avatar_upload: {
