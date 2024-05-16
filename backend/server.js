@@ -203,6 +203,81 @@ app.post("/api/resendOTP", async (req, res) => {
   });
 });
 
+
+//
+// Login API Here
+//
+// Login Endpoint
+
+app.post("/api/login", async (req, res) => {
+  const { email, password } = req.body;
+  console.log("Attempting to login user:", email);
+  try {
+    const normalizedEmail = email.trim().toLowerCase();
+    console.log("Normalized email:", normalizedEmail);
+    const user = await User.findOne({ email: normalizedEmail });
+    if (!user) {
+      console.log("No user found with email:", normalizedEmail);
+      return res.status(401).json({ message: "Email is not registered" });
+    }
+    if (!user.isVerified) {
+      console.log("User not verified:", normalizedEmail);
+      return res
+        .status(401)
+        .json({
+          message: "Please verify your account.",
+          redirectUrl: "/verify-account",
+        });
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log("Invalid password for user:", normalizedEmail);
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+// Check if member name is set to determine if profile setup is required
+const profileSetupRequired = !user.memberName; // true if memberName is not set
+    console.log("User authenticated, generating token:", normalizedEmail);
+    const token = jwt.sign(
+      {
+        userId: user.uniqueId,
+        email: user.email,
+        avatar: user.avatar,
+        name: user.name,
+        walletBalance: user.walletBalance,
+      },
+      process.env.JWT_SECRET
+    ); 
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+        uid: user.uniqueId,
+        name: user.name,
+        profileSetupRequired
+      },
+    });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // POST endpoint to update user profile avatar and name
 
 // Validation function to clean up main logic
@@ -325,64 +400,7 @@ app.post("/api/logout", async (req, res) => {
   }
 });
 
-//
-// Login API Here
-//
-// Login Endpoint
 
-app.post("/api/login", async (req, res) => {
-  const { email, password } = req.body;
-  console.log("Attempting to login user:", email);
-  try {
-    const normalizedEmail = email.trim().toLowerCase();
-    console.log("Normalized email:", normalizedEmail);
-    const user = await User.findOne({ email: normalizedEmail });
-    if (!user) {
-      console.log("No user found with email:", normalizedEmail);
-      return res.status(401).json({ message: "Email is not registered" });
-    }
-    if (!user.isVerified) {
-      console.log("User not verified:", normalizedEmail);
-      return res
-        .status(401)
-        .json({
-          message: "Please verify your account.",
-          redirectUrl: "/verify-account",
-        });
-    }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      console.log("Invalid password for user:", normalizedEmail);
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    console.log("User authenticated, generating token:", normalizedEmail);
-    const token = jwt.sign(
-      {
-        userId: user.uniqueId,
-        email: user.email,
-        avatar: user.avatar,
-        name: user.name,
-        walletBalance: user.walletBalance,
-      },
-      process.env.JWT_SECRET
-    );
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      user: {
-        email: user.email,
-        name: user.name,
-        avatar: user.avatar,
-        uid: user.uniqueId,
-        name: user.name,
-      },
-    });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
 
 //
 //
@@ -462,7 +480,7 @@ app.post("/api/add_money", authenticateToken, async (req, res) => {
 //
 //
 //Spend money API here
-app.post("/api/wallet/spend", authenticateToken, async (req, res) => {
+app.post("/api/spend", authenticateToken, async (req, res) => {
   const { amount } = req.body;
   console.log("Spend money request:", amount);
   try {

@@ -16,6 +16,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { jwtDecode } from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
+//import Nav from "./nav";
+
+
 
 const shuffleArray = (array) => {
   const newArray = array.slice(); // Create a copy of the original array
@@ -222,6 +225,7 @@ export default function Homepage({}) {
             </View>
           </View>
         </ScrollView>
+       {/*  <Nav/> */}
       </SafeAreaView>
     </View>
   );

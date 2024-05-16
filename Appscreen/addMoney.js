@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   TextInput,
   Button,
   Text,
+  StatusBar,
   StyleSheet,
   Alert,
+  SafeAreaView,
   TouchableOpacity,
-  Image,
+  FlatList,
+  ImageBackground,
+  Image,ActivityIndicator ,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
@@ -16,44 +21,62 @@ import { useNavigation } from "@react-navigation/native";
 const AddMoneyScreen = () => {
   const navigation = useNavigation();
   const [amount, setAmount] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   // Quick fill options
   const quickAmounts = [100, 500, 1000, 2000, 5000];
 
-  const handleAddMoney = async () => {
-    const token = await AsyncStorage.getItem("userToken");
+  const [walletBalance, setWalletBalance] = useState(null);
+
+  useEffect(() => {
+    // Fetch the updated wallet balance when the component mounts
+    fetchWalletBalance();
+  }, []); // Only fetch once when the component mounts
+
+  const fetchWalletBalance = async () => {
+    const token = await AsyncStorage.getItem('userToken');
     if (!token) {
-      Alert.alert("Error", "You must be logged in to perform this action.");
+      Alert.alert('Error', 'You must be logged in to perform this action.');
+      return;
+    }
+
+    try {
+      const response = await axios.get('http://192.168.1.26:3000/api/userdata', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setWalletBalance(response.data.walletBalance);
+    } catch (error) {
+      console.error('Error fetching wallet balance:', error);
+      Alert.alert('Error', 'Failed to fetch wallet balance.');
+    }
+  };
+
+  const handleAddMoney = async () => {
+    const token = await AsyncStorage.getItem('userToken');
+    if (!token) {
+      Alert.alert('Error', 'You must be logged in to perform this action.');
       return;
     }
 
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
-      Alert.alert("Invalid Input", "Please enter a valid amount.");
+      Alert.alert('Invalid Input', 'Please enter a valid amount.');
       return;
     }
 
     setLoading(true);
     axios
-      .post(
-        "http://192.168.1.26:3000/api/add_money",
-        { amount: numericAmount },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      .then((response) => {
-        Alert.alert("Success", "Money added successfully!");
-        setAmount("");
+      .post('http://192.168.1.26:3000/api/add_money', { amount: numericAmount }, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (response) => {
+        Alert.alert('Success', 'Money added successfully!');
+        setAmount('');
+
+        // Fetch the updated wallet balance after adding money
+        await fetchWalletBalance();
       })
       .catch((error) => {
-        console.error(
-          "Error adding money:",
-          error.response?.data?.message || "An error occurred"
-        );
-        Alert.alert(
-          "Error",
-          error.response?.data?.message || "Failed to add money."
-        );
+        console.error('Error adding money:', error.response?.data?.message || 'An error occurred');
+        Alert.alert('Error', error.response?.data?.message || 'Failed to add money.');
       })
       .finally(() => {
         setLoading(false);
@@ -69,74 +92,136 @@ const AddMoneyScreen = () => {
       <ImageBackground
         source={require("../assets/dashboardbg.png")}
         style={styles.backgroundStyle}
-      ></ImageBackground>
-      <SafeAreaView>
+      />
+      <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
-        <ScrollView style={styles.scroll__View}>
-          <View style={styles.Header_container}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Image
-                source={require("../assets/back.png")}
-                style={styles.icon_back}
-              ></Image>
-            </TouchableOpacity>
-            <Text style={styles.header}>Transactions</Text>
-          </View>
+        <View style={styles.headerContainer}>
+          <Text style={styles.header}>Add Money</Text>
+        </View>
+        <Image
+          source={require("../assets/Line.png")}
+          style={{ marginTop: 0, alignSelf: "center" }}
+        />
+        <View style={styles.inputContainer}>
           <Image
-            source={require("../assets/Line.png")}
-            style={{ marginTop: 0, alignSelf: "center" }}
+            source={require("../assets/coin.png")}
+            style={styles.icon}
           ></Image>
-
           <TextInput
             style={styles.input}
             placeholder="Enter amount"
-            keyboardType="numeric"
+            placeholderTextColor="#fff"
             value={amount}
             onChangeText={setAmount}
+            keyboardType="numeric"
+            autoCapitalize="none"
           />
-          <View style={styles.quickFillRow}>
-            {quickAmounts.map((value) => (
-              <TouchableOpacity
-                key={value}
-                style={styles.quickFillButton}
-                onPress={() => fillAmount(value)}
-              >
-                <Text style={styles.quickFillText}>INR {value}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <Button
-            title={loading ? "Adding..." : "Add Money"}
-            onPress={handleAddMoney}
-            disabled={loading}
-          />
-        </ScrollView>
+        </View>
+        <Text style={styles.quickText}>Quick Select</Text>
+        <FlatList
+          style={styles.quickadd}
+          data={quickAmounts}
+          keyExtractor={(item) => item.toString()}
+          horizontal
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.quickFillButton}
+              onPress={() => fillAmount(item)}
+            >
+              <Text style={styles.quickFillText}>{item}</Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.quickFillRow}
+        />
+        <TouchableOpacity
+          style={[styles.loginButton, isLoading ? styles.disabledButton : null]}
+          onPress={handleAddMoney}
+          disabled={isLoading}
+        >
+          <LinearGradient
+            colors={["#A903D2", "#410095"]}
+            style={styles.gradient}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.buttonText}>Add Money</Text>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+        <View style={styles.linkcont}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={styles.linkText}>Back to Wallet</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  mainView: {
     flex: 1,
+    backgroundColor: "#000",
+    paddingBottom: 100,
+    justifyContent: "space-between", // Ensures proper distribution of space
+  },
+  container: {
     padding: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#000",
+    backgroundColor: "#fff",
   },
-  backButton: {
-    position: "absolute",
-    top: 50,
-    left: 20,
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff2",
+    borderRadius: 10,
+    paddingLeft: 16,
+    marginBottom: 10,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+  },
+  quickadd: {
+    height: 100,
+  },
+  linkcont: {
+    width: '100%',  // Sets the width of the container to 100%
+    alignItems: 'center',  // Centers the content horizontally
+    padding: 10,  // Optional: Adds some padding around the touchable area
+  },
+  linkText: {
+    color: "#A903D2",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: 'center',
   },
   input: {
-    width: "100%",
-    height: 50,
+    flex: 1,
+    height: 60,
+    color: "#fff",
+    marginLeft: 16,
+  },
+  loginButton: {
+    height: 60,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    overflow: "hidden",
     marginBottom: 20,
-    borderWidth: 1,
-    padding: 10,
+  },
+  gradient: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
     fontSize: 16,
-    borderColor: "gray",
+    fontWeight: "bold",
   },
   quickFillRow: {
     flexDirection: "row",
@@ -144,12 +229,57 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   quickFillButton: {
-    padding: 10,
-    backgroundColor: "#ddd",
-    borderRadius: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: "#fff6",
+    borderRadius: 16,
+    marginHorizontal: 5,
+    height: 40,
+    justifyContent: "center",
+  },
+  quickText: {
+    fontSize: 16,
+    color: "#fff",
+    fontWeight: "bold",
+    marginVertical: 10,
   },
   quickFillText: {
     fontSize: 16,
+    color: "#fff",
+  },
+  backgroundStyle: {
+    width: "100%",
+    height: "80%",
+    position: "absolute",
+  },
+  mainView: {
+    flex: 1,
+    backgroundColor: "#000",
+    paddingBottom: 100,
+  },
+  safeArea: {
+    padding: 16,
+  },
+  headerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  header: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    flex: 1,
+  },
+  loadingText: {
+    color: "#fff",
+    fontSize: 18,
+    textAlign: "center",
+  },
+  listContent: {
+    paddingBottom: 20,
   },
 });
 
