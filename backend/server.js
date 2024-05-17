@@ -220,6 +220,7 @@ app.post("/api/login", async (req, res) => {
       console.log("No user found with email:", normalizedEmail);
       return res.status(401).json({ message: "Email is not registered" });
     }
+   
     if (!user.isVerified) {
       console.log("User not verified:", normalizedEmail);
       return res
@@ -571,8 +572,11 @@ app.get("/api/userdata", authenticateToken, async (req, res) => {
 
 // Generate a 4-digit OTP
 function generateOTP() {
-  return Math.floor(1000 + Math.random() * 9000);
+  const otp = Math.floor(1000 + Math.random() * 9000);
+  console.log("Generated OTP:", otp);
+  return otp;
 }
+
 
 // Store OTPs for verification
 const otpStore = {};
@@ -582,6 +586,7 @@ app.post("/api/forgot-password", async (req, res) => {
   const { email } = req.body;
   console.log("Request received for forgot password:", email);
   try {
+    
     const user = await User.findOne({ email });
     if (!user) {
       console.log("No user found with email:", email);
@@ -593,8 +598,7 @@ app.post("/api/forgot-password", async (req, res) => {
     otpStore[email] = otp;
 
     // Log OTP for testing (remove this line in production)
-    console.log("Generated OTP:", otp);
-    // Send OTP to the user's email
+    console.log("Storing OTP for email:", email, "OTP:", otp);
     sendOTPByEmail(email, otp);
 
     console.log("OTP sent to:", email);
@@ -609,10 +613,14 @@ app.post("/api/forgot-password", async (req, res) => {
 app.post("/api/reset-password", async (req, res) => {
   const { email, otp, newPassword } = req.body;
   console.log("Request received for password reset:", email);
+  
   try {
     // Verify OTP
     const storedOTP = otpStore[email];
-    if (!storedOTP || storedOTP !== otp) {
+    console.log("entered otp: ", otp);
+    console.log("stored otp for ", email, ": ", storedOTP);
+    
+    if (!storedOTP || storedOTP !== parseInt(otp)) {
       console.log("Invalid OTP for email:", email);
       return res.status(400).json({ message: "Invalid OTP" });
     }
@@ -624,6 +632,11 @@ app.post("/api/reset-password", async (req, res) => {
       { password: hashedPassword },
       { new: true }
     );
+    
+    if (!user) {
+      console.log("User not found with email:", email);
+      return res.status(404).json({ message: "User not found" });
+    }
 
     console.log("Password reset for:", email);
     res.status(200).json({ message: "Password reset successfully" });

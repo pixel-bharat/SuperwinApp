@@ -27,7 +27,7 @@ export default function LoginPage() {
       Alert.alert("Error", "Please enter both email and password.");
       return;
     }
-
+  
     setIsLoading(true); // Start loading
     try {
       const response = await fetch("http://192.168.1.2:3000/api/login", {
@@ -37,12 +37,12 @@ export default function LoginPage() {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await response.json(); // Parse JSON response
-
+  
       if (response.ok) {
         await AsyncStorage.setItem("userToken", data.token); // Save token using await
-
+  
         if (data.profileSetupRequired) {
           const { uid } = data;
           // Redirect to Profile Setup Page
@@ -63,33 +63,34 @@ export default function LoginPage() {
           navigation.navigate("nav"); // Make sure 'nav' is the correct navigation route
         }
       } else {
-        // Handle other statuses like 307 or 401
         if (response.status === 401) {
-          Alert.alert(
-            "Email is not registered",
-            "Do you want to Signup instead?",
-            [
-              {
-                text: "Yes",
-                onPress: () => navigation.navigate("onboarding", { email }),
-              },
-              {
-                text: "No",
-                onPress: () => console.log("User chose not to log in"),
-              },
-            ],
-            { cancelable: false }
-          );
+          if (data.message === "Invalid email or password") {
+            Alert.alert("Error", "Invalid email or password. Please check your credentials.");
+          } else if (data.message === "Email is not registered") {
+            Alert.alert(
+              "Email is not registered",
+              "Do you want to Signup instead?",
+              [
+                {
+                  text: "Yes",
+                  onPress: () => navigation.navigate("onboarding", { email }),
+                },
+                {
+                  text: "No",
+                  onPress: () => console.log("User chose not to sign up"),
+                },
+              ],
+              { cancelable: false }
+            );
+          } else {
+            Alert.alert("Error", data.message || "An unexpected error occurred");
+          }
         } else {
           throw new Error(data.message || "An unexpected error occurred");
         }
       }
     } catch (error) {
-      Alert.alert(
-        "Login Failed",
-        error.message || "An unexpected error occurred."
-      );
-      console.error("Login error:", error);
+      Alert.alert("Error", error.message);
     } finally {
       setIsLoading(false); // Stop loading
     }
