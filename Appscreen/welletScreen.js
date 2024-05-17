@@ -48,10 +48,10 @@ export default function WalletScreen() {
 
     try {
       const [walletResponse, transactionsResponse] = await Promise.all([
-        axios.get("http://192.168.1.26:3000/api/userdata", {
+        axios.get("http://192.168.1.2:3000/api/userdata", {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://192.168.1.26:3000/api/transactions", {
+        axios.get("http://192.168.1.2:3000/api/transactions", {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -87,7 +87,7 @@ export default function WalletScreen() {
     setLoading(true);
     axios
       .post(
-        "http://192.168.1.26:3000/api/add_money",
+        "http://192.168.1.2:3000/api/add_money",
         { amount: numericAmount },
         {
           headers: { Authorization: `Bearer ${token}` },

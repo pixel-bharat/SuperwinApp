@@ -30,7 +30,7 @@ export default function LoginPage() {
 
     setIsLoading(true); // Start loading
     try {
-      const response = await fetch("http://192.168.1.26:3000/api/login", {
+      const response = await fetch("http://192.168.1.2:3000/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

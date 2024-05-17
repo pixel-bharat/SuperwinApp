@@ -11,13 +11,14 @@ import {
   TouchableOpacity,
   FlatList,
   ImageBackground,
-  Image,ActivityIndicator ,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
-
+import Nav from "./nav";
 const AddMoneyScreen = () => {
   const navigation = useNavigation();
   const [amount, setAmount] = useState("");
@@ -34,49 +35,59 @@ const AddMoneyScreen = () => {
   }, []); // Only fetch once when the component mounts
 
   const fetchWalletBalance = async () => {
-    const token = await AsyncStorage.getItem('userToken');
+    const token = await AsyncStorage.getItem("userToken");
     if (!token) {
-      Alert.alert('Error', 'You must be logged in to perform this action.');
+      Alert.alert("Error", "You must be logged in to perform this action.");
       return;
     }
 
     try {
-      const response = await axios.get('http://192.168.1.26:3000/api/userdata', {
+      const response = await axios.get("http://192.168.1.2:3000/api/userdata", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWalletBalance(response.data.walletBalance);
     } catch (error) {
-      console.error('Error fetching wallet balance:', error);
-      Alert.alert('Error', 'Failed to fetch wallet balance.');
+      console.error("Error fetching wallet balance:", error);
+      Alert.alert("Error", "Failed to fetch wallet balance.");
     }
   };
 
   const handleAddMoney = async () => {
-    const token = await AsyncStorage.getItem('userToken');
+    const token = await AsyncStorage.getItem("userToken");
     if (!token) {
-      Alert.alert('Error', 'You must be logged in to perform this action.');
+      Alert.alert("Error", "You must be logged in to perform this action.");
       return;
     }
 
     const numericAmount = parseFloat(amount);
     if (isNaN(numericAmount) || numericAmount <= 0) {
-      Alert.alert('Invalid Input', 'Please enter a valid amount.');
+      Alert.alert("Invalid Input", "Please enter a valid amount.");
       return;
     }
 
     setLoading(true);
     axios
-      .post('http://192.168.1.26:3000/api/add_money', { amount: numericAmount }, { headers: { Authorization: `Bearer ${token}` } })
+      .post(
+        "http://192.168.1.2:3000/api/add_money",
+        { amount: numericAmount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
       .then(async (response) => {
-        Alert.alert('Success', 'Money added successfully!');
-        setAmount('');
+        Alert.alert("Success", "Money added successfully!");
+        setAmount("");
 
         // Fetch the updated wallet balance after adding money
         await fetchWalletBalance();
       })
       .catch((error) => {
-        console.error('Error adding money:', error.response?.data?.message || 'An error occurred');
-        Alert.alert('Error', error.response?.data?.message || 'Failed to add money.');
+        console.error(
+          "Error adding money:",
+          error.response?.data?.message || "An error occurred"
+        );
+        Alert.alert(
+          "Error",
+          error.response?.data?.message || "Failed to add money."
+        );
       })
       .finally(() => {
         setLoading(false);
@@ -154,6 +165,7 @@ const AddMoneyScreen = () => {
             <Text style={styles.linkText}>Back to Wallet</Text>
           </TouchableOpacity>
         </View>
+        <Nav />
       </SafeAreaView>
     </View>
   );
@@ -188,15 +200,15 @@ const styles = StyleSheet.create({
     height: 100,
   },
   linkcont: {
-    width: '100%',  // Sets the width of the container to 100%
-    alignItems: 'center',  // Centers the content horizontally
-    padding: 10,  // Optional: Adds some padding around the touchable area
+    width: "100%", // Sets the width of the container to 100%
+    alignItems: "center", // Centers the content horizontally
+    padding: 10, // Optional: Adds some padding around the touchable area
   },
   linkText: {
     color: "#A903D2",
     fontSize: 16,
     fontWeight: "bold",
-    textAlign: 'center',
+    textAlign: "center",
   },
   input: {
     flex: 1,

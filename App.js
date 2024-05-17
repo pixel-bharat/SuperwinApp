@@ -97,6 +97,11 @@ function AppNavigator() {
             },
           }}
         />
+          <Stack.Screen
+          name="forgetScreen"
+          component={ForgetScreen}
+          options={{ headerShown: true}}
+        />
         <Stack.Screen
           name="home"
           component={Homepage}
@@ -147,11 +152,7 @@ function AppNavigator() {
           component={spendMoney}
           options={{ headerShown: false }}
         />
-          <Stack.Screen
-          name="forgetScreen"
-          component={ForgetScreen}
-          options={{ headerShown: false }}
-        />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
