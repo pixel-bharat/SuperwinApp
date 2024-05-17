@@ -461,7 +461,7 @@ app.post("/api/add_money", authenticateToken, async (req, res) => {
     const transaction = new Transaction({
       uniqueId: user.uniqueId, // Assuming transactions use `uniqueId`
       amount: numericAmount,
-      transactionType: "credit",
+      transactionType: "Credit",
       description: "Add money to wallet",
     });
     await transaction.save();
@@ -500,7 +500,7 @@ app.post("/api/spend", authenticateToken, async (req, res) => {
     const transaction = new Transaction({
       uniqueId: user.uniqueId,
       amount,
-      transactionType: "debit",
+      transactionType: "Debit",
       description: "Spent from wallet",
     });
     await transaction.save();
@@ -559,6 +559,103 @@ app.get("/api/userdata", authenticateToken, async (req, res) => {
   }
 });
 // User Data Endpoint
+
+
+
+
+
+
+//
+//
+// forgot-password Start from here
+
+// Generate a 4-digit OTP
+function generateOTP() {
+  return Math.floor(1000 + Math.random() * 9000);
+}
+
+// Store OTPs for verification
+const otpStore = {};
+
+// Define the POST endpoint for forgot password
+app.post("/api/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  console.log("Request received for forgot password:", email);
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log("No user found with email:", email);
+      return res.status(404).json({ message: "Email not found" });
+    }
+
+    // Generate and store OTP
+    const otp = generateOTP();
+    otpStore[email] = otp;
+
+    // Log OTP for testing (remove this line in production)
+    console.log("Generated OTP:", otp);
+    // Send OTP to the user's email
+    sendOTPByEmail(email, otp);
+
+    console.log("OTP sent to:", email);
+    res.status(200).json({ message: "OTP sent to your email" });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Define the POST endpoint for verifying OTP and resetting password
+app.post("/api/reset-password", async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  console.log("Request received for password reset:", email);
+  try {
+    // Verify OTP
+    const storedOTP = otpStore[email];
+    if (!storedOTP || storedOTP !== otp) {
+      console.log("Invalid OTP for email:", email);
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // Update password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const user = await User.findOneAndUpdate(
+      { email },
+      { password: hashedPassword },
+      { new: true }
+    );
+
+    console.log("Password reset for:", email);
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Function to send OTP by email
+function sendOTPByEmail(email, otp) {
+  // Email options
+  const mailOptions = {
+    from: 'your-email@gmail.com',
+    to: email,
+    subject: 'OTP for Password Reset',
+    text: `Your OTP for password reset is: ${otp}`
+  };
+
+  // Send email
+  transporter.sendMail(mailOptions, function(error, info) {
+    if (error) {
+      console.error("Email sending error:", error);
+    } else {
+      console.log("OTP Email sent:", info.response);
+    }
+  });
+}
+
+
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
