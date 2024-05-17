@@ -12,7 +12,7 @@ import {
   FlatList,
   Dimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+// import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { jwtDecode } from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,57 +20,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 
-const shuffleArray = (array) => {
-  const newArray = array.slice(); // Create a copy of the original array
-  for (let i = newArray.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [newArray[i], newArray[j]] = [newArray[j], newArray[i]]; // Swap elements
-  }
-  return newArray;
-};
-
-const imageArray = [
-  require("../assets/aviator.png"),
-  require("../assets/cartoonrace.png"),
-  require("../assets/pooltable.png"),
-  require("../assets/subway.png"),
-  require("../assets/templerun.png"),
-  require("../assets/spinforcash.png"),
-  require("../assets/scrabble.png"),
-  require("../assets/marvel.png"),
-  require("../assets/centa.png"),
-  require("../assets/nicke.png"),
-  require("../assets/girl.png"),
-  require("../assets/cat.png"),
-  require("../assets/mareo.png"),
-  require("../assets/basketball.png"),
-  require("../assets/cricket.png"),
-];
-
 export default function Homepage({}) {
   const navigation = useNavigation();
-
-  const [shuffledImages1, setShuffledImages1] = useState([]);
-  const [shuffledImages2, setShuffledImages2] = useState([]);
-  const [shuffledImages3, setShuffledImages3] = useState([]);
-  const [shuffledImages4, setShuffledImages4] = useState([]);
-  const [shuffledImages5, setShuffledImages5] = useState([]);
-
-  useEffect(() => {
-    setShuffledImages1(shuffleArray(imageArray));
-    setShuffledImages2(shuffleArray(imageArray));
-    setShuffledImages3(shuffleArray(imageArray));
-    setShuffledImages4(shuffleArray(imageArray));
-    setShuffledImages5(shuffleArray(imageArray));
-  }, []);
-
-  const viewImage = ({ item }) => (
-    <TouchableOpacity style={styles.gamecardcnt}>
-      <Image source={item} style={styles.image} />
-    </TouchableOpacity>
-  );
-
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState({
+    name: null,
+    avatar: null,
+    walletBalance: null,
+    uniqueId: null,
+    email: null,
+  });
   useEffect(() => {
     const fetchData = async () => {
       const data = await displayUserData();
@@ -124,9 +82,10 @@ export default function Homepage({}) {
                   <Image source={require("../assets/coin.png")}></Image>
 
                   <Text style={styles.headingtext}>
-                    {userData
-                      ? userData.walletBalance || "00"
-                      : "Loading user data..."}
+                  {userData.walletBalance !== null
+                  ? userData.walletBalance.toFixed(2)
+                  : "0.00"}
+                   
                   </Text>
                 </TouchableOpacity>
 
@@ -144,88 +103,39 @@ export default function Homepage({}) {
               style={{ marginTop: 16, alignSelf: "center" }}
             ></Image>
             <View style={styles.scrollcntmain}>
-              <View style={styles.scrollcards}>
-                <View style={styles.promobackground}>
-                  <Text style={styles.promotext}>Your Last Played</Text>
-                  <TouchableOpacity>
-                    <LinearGradient
-                      start={{ x: 0, y: 0 }}
-                      end={{ x: 0, y: 1 }}
-                      colors={["#A903D2", "#410095"]}
-                      style={styles.linearGradientseemore}
-                      angle={"45"}
-                      useAngle={true}
-                    >
-                      <Text style={styles.promobtntext}>VIEW ALL</Text>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </View>
-
-                <ScrollView>
-                  <View style={styles.cardscroller}>
-                    <FlatList
-                      data={shuffledImages1}
-                      renderItem={viewImage}
-                      keyExtractor={(item, index) => index.toString()}
-                      horizontal={true}
-                    />
-                  </View>
-                </ScrollView>
-
-                <View>
-                  <Text style={styles.headingtext}>Top Rated Games</Text>
-                  <ScrollView>
-                    <View style={styles.cardscroller}>
-                      <FlatList
-                        data={shuffledImages2}
-                        renderItem={viewImage}
-                        keyExtractor={(item, index) => index.toString()}
-                        horizontal={true}
-                      />
-                    </View>
-                  </ScrollView>
-                  <ScrollView>
-                    <View style={styles.cardscroller}>
-                      <FlatList
-                        data={shuffledImages3}
-                        renderItem={viewImage}
-                        keyExtractor={(item, index) => index.toString()}
-                        horizontal={true}
-                      />
-                    </View>
-                  </ScrollView>
-                </View>
-                <View>
-                  <Text style={styles.headingtext}>Recommmended Games</Text>
-                  <ScrollView>
-                    <View style={styles.cardscroller}>
-                      <FlatList
-                        data={shuffledImages4}
-                        renderItem={viewImage}
-                        keyExtractor={(item, index) => index.toString()}
-                        horizontal={true}
-                      />
-                    </View>
-                  </ScrollView>
-                </View>
-                <View>
-                  <Text style={styles.headingtext}>Sports</Text>
-                  <ScrollView>
-                    <View style={styles.cardscroller}>
-                      <FlatList
-                        data={shuffledImages5}
-                        renderItem={viewImage}
-                        keyExtractor={(item, index) => index.toString()}
-                        horizontal={true}
-                      />
-                    </View>
-                  </ScrollView>
-                </View>
+              <Text style={styles.promotextgames}>Games</Text>
+              <View style={styles.accountcard}>
+                <TouchableOpacity style={styles.firstcard}>
+                  <Image
+                    style={styles.image}
+                    source={require("../assets/spinforcash.png")}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.firstcard}>
+                  <Image
+                    style={styles.image}
+                    source={require("../assets/scrabble.png")}
+                  />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.accountcard}>
+                <TouchableOpacity style={styles.firstcard}>
+                  <Image
+                    style={styles.image}
+                    source={require("../assets/aviator.png")}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.firstcard}>
+                  <Image
+                    style={styles.image}
+                    source={require("../assets/cricket.png")}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           </View>
         </ScrollView>
-       {/*  <Nav/> */}
+        {/*  <Nav/> */}
       </SafeAreaView>
     </View>
   );
@@ -255,6 +165,14 @@ const styles = StyleSheet.create({
     width: 60,
     height: 50,
   },
+  
+  totalmoneyctn: { alignItems: "flex-end" },
+
+  balncetext: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "400",
+  },
 
   header: {
     flexDirection: "row",
@@ -280,31 +198,14 @@ const styles = StyleSheet.create({
   },
 
   slidertop: {
-    flex: 1, // Adjust based on your layout needs
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  slide: {
-    width: Dimensions.get("window").width, // Full width slides
-    height: 200, // Fixed height for each slide
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  slideImage: {
-    width: "100%", // Full width of the slide
-    height: "100%", // Full height of the slide
-    resizeMode: "cover", // Cover the whole slide area
+    alignSelf: "center",
+    height: 167,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "grey",
+    paddingHorizontal: 10,
   },
 
-  img: {
-    width: "100%", // Set width to 50% of the parent container
-    height: undefined, // Allow the height to adjust automatically based on aspect ratio
-    aspectRatio: 1.75, // Maintain aspect ratio of the image
-  },
-  image: {
-    width: 120,
-    height: 120,
-  },
   headingtext: {
     color: "white",
     fontSize: 18,
@@ -312,44 +213,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
-  gamecardcnt: {
-    justifyContent: "space-between",
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-  },
-
-  scrollcntmain: { paddingVertical: 10 },
-  totalmoneyctn: { alignItems: "flex-end" },
-
-  balncetext: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "400",
-  },
   totalmoneybackground: { flexDirection: "row", alignItems: "center" },
-  slidertop: {
-    alignSelf: "center",
-    height: 167,
-    width: "97%",
-    borderWidth: 1,
-    borderColor: "grey",
-    paddingHorizontal: 10,
+
+  // new stayling
+  promotextgames: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color:"#fff"
   },
-  promotext: { color: "white", fontSize: 18, fontWeight: "700" },
-  promobackground: {
+  accountcard: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 10,
+    marginBottom: 20, // Add marginBottom to create space between rows
   },
-  linearGradientseemore: {
-    borderRadius: 40,
-    justifyContent: "center", // Center the button text vertically
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  firstcard: {
+    width: '47%',
+    aspectRatio: 1, // Set the aspect ratio to 1:1
   },
-  promocardcnt: { justifyContent: "center", alignItems: "center" },
-  promobtntext: { color: "white", fontSize: 16, fontWeight: "700" },
+  image: {
+    flex: 1,
+    aspectRatio: 1, // Set the aspect ratio to 1:1
+    resizeMode: 'contain', // Adjust resizeMode based on your image requirements
+  },
 });

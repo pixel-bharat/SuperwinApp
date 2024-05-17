@@ -151,7 +151,7 @@ export default function LoginPage() {
               />
             </View>
             <TouchableOpacity
-              onPress={() => Alert.alert("Forgot Password Pressed")}
+              onPress={() => navigation.navigate('forgetScreen')}
             >
               <Text style={styles.forgotPassword}>Forgot Password?</Text>
             </TouchableOpacity>

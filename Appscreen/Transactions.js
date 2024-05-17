@@ -1,3 +1,5 @@
+//// my code start
+
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -46,26 +48,31 @@ const Transactions = () => {
     setLoading(false);
   };
 
-    const renderItem = ({ item }) => {
-      const transactionTypeStyle = item.transactionType === 'credit' ? styles.credit : styles.debit;
-  
-      return (
-        <View style={[styles.itemContainer, transactionTypeStyle]}>
-          <Text style={styles.dateText}>
-        {new Date(item.transactionDate).toLocaleDateString()}
-      </Text>
-      <View style={styles.tran_cont}>
-      <Text style={styles.text}>{item.transactionType} money to wallet </Text>
-      <Text style={styles.text}>Amount: INR {item.amount.toFixed(2)}</Text>
-      </View>
-      
-      <Text style={styles.text}>Description: {item.description}</Text>
+  const renderItem = ({ item }) => {
+    const transactionTypeStyle =
+      item.transactionType === "credit" ? styles.credit : styles.debit;
+
+    return (
+      <View style={[styles.itemContainer, transactionTypeStyle]}>
+        <View style={styles.tran_cont}>
+          <Text style={styles.text}>
+            ({item.transactionType}): {item.description}
+          </Text>
+          <Text style={styles.text}>INR: {item.amount.toFixed(2)}</Text>
         </View>
-      );
-    };
 
-
-    
+        <View style={styles.tran_cont}>
+          <Text style={styles.dateText}>
+            {new Date(item.transactionDate).toLocaleDateString()}
+          </Text>
+          {/* 
+          <Text style={styles.text}>
+             money to wallet{" "}
+          </Text> */}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.mainView}>
@@ -76,7 +83,7 @@ const Transactions = () => {
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <View style={styles.headerContainer}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.linkText}>Back to Wallet</Text>
           </TouchableOpacity>
           <Text style={styles.header}>Transactions</Text>
@@ -89,11 +96,11 @@ const Transactions = () => {
           <Text style={styles.loadingText}>Loading...</Text>
         ) : (
           <FlatList
-      data={transactions}
-      keyExtractor={(item) => item._id.toString()}
-      renderItem={renderItem}
-      contentContainerStyle={styles.listContent}
-    />
+            data={transactions}
+            keyExtractor={(item) => item._id.toString()}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+          />
         )}
         {/* <Nav/> */}
       </SafeAreaView>
@@ -137,22 +144,24 @@ const styles = StyleSheet.create({
     color: "#A903D2",
     fontSize: 16,
     fontWeight: "bold",
-    textAlign: 'center',
+    textAlign: "center",
   },
   itemContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    justifyContent: "space-between",
+    padding: 16,
     marginBottom: 8,
     borderRadius: 8,
+    gap: 8,
+  },
+  tran_cont: {
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   credit: {
-    backgroundColor:"#00FF8930",
+    backgroundColor: "#00FF8930",
   },
   debit: {
-    backgroundColor: '#FF00DE40',
+    backgroundColor: "#FF00DE40",
   },
   listContent: {
     paddingHorizontal: 16,
@@ -163,8 +172,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#333",
     padding: 16,
     marginBottom: 10,
-  
-    borderRadius:10,
+
+    borderRadius: 10,
   },
   text: {
     color: "#fff",
@@ -182,8 +191,6 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 20,
   },
-
-
 });
 
 export default Transactions;

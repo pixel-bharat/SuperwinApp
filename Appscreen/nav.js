@@ -3,10 +3,13 @@ import { View, Text } from "react-native";
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome } from "@expo/vector-icons"; // Ensure this import is correct
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
+
 import Homesrc from "./home";
 import Profilepage from "./profileScreen";
 import Wallet from "./welletScreen";
 import GamesScreen from "./gamesScreen";
+import NotificationScreen from "./notification";
 
 const Tab = createBottomTabNavigator();
 
@@ -115,7 +118,7 @@ export default function Nav() {
       />
       <Tab.Screen
         name="notification"
-        component={GamesScreen}
+        component={NotificationScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen

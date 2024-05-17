@@ -17,7 +17,7 @@ import ProfileSetup from "./Appscreen/ProfileSetup";
 import Transactions from "./Appscreen/Transactions";
 import addMoney from "./Appscreen/addMoney";
 import spendMoney from "./Appscreen/spendMoney";
-
+import ForgetScreen from "./Appscreen/forgetScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -145,6 +145,11 @@ function AppNavigator() {
          <Stack.Screen
           name="spendMoney"
           component={spendMoney}
+          options={{ headerShown: false }}
+        />
+          <Stack.Screen
+          name="forgetScreen"
+          component={ForgetScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
