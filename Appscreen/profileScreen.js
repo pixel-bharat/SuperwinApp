@@ -79,7 +79,7 @@ export default function ProfileScreen() {
         style={styles.backgroundStyle}
       ></ImageBackground>
 
-      <SafeAreaView >
+      <SafeAreaView>
         <ScrollView style={styles.Scroll__container}>
           <View style={styles.container}>
             {userData ? (
@@ -104,7 +104,7 @@ export default function ProfileScreen() {
 
               <View style={styles.uidVeiw}>
                 <View style={styles.uidbackground}>
-                  <Text style={styles.uidtext}>UID</Text>
+                  <Text style={styles.uidtext}>UID: </Text>
                   {userData ? (
                     <Text style={styles.uidtext}>{userData.userId}</Text>
                   ) : (
@@ -127,58 +127,52 @@ export default function ProfileScreen() {
             </View>
             <StatusBar style="auto" />
           </View>
-          <View style={styles.gap10}></View>
+          <View style={styles.gap20}></View>
           <Image
             source={require("../assets/Line.png")}
-            style={{ marginTop: 16, alignSelf: "center" }}
+            style={{ alignSelf: "center" }}
           ></Image>
 
-          <View style={styles.gap10}></View>
+          <View style={styles.gap20}></View>
           <View style={styles.cardView}>
-            <Image
+            <ImageBackground
               source={require("../assets/Background.png")}
               style={styles.backgroundImage}
-            />
-            <TouchableOpacity>
-              <Image
-                source={require("../assets/Share.png")}
-                style={styles.shareIcon}
-              />
-            </TouchableOpacity>
-            <View style={styles.cardmember}>
-              <View style={styles.memberView}>
+            >
+              <TouchableOpacity>
                 <Image
-                  source={require("../assets/star.png")}
-                  style={{ width: 20, height: 20 }}
+                  source={require("../assets/Share.png")}
+                  style={styles.shareIcon}
                 />
-                {userData ? (
-                  <Text style={styles.membernametext2}>
-                    {userData.name || "No Name"}
-                  </Text>
-                ) : (
-                  <Text>Loading user data...</Text>
-                )}
-              </View>
+              </TouchableOpacity>
+              <View style={styles.cardmember}>
+                <View style={styles.memberView}>
+                  <Image
+                    source={require("../assets/star.png")}
+                    style={{ width: 20, height: 20 }}
+                  />
+                  {userData ? (
+                    <Text style={styles.membernametext2}>
+                      {userData.name || "No Name"}
+                    </Text>
+                  ) : (
+                    <Text>Loading user data...</Text>
+                  )}
+                </View>
 
-              <View style={styles.uidVeiw}>
-                <LinearGradient
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 0, y: 1 }}
-                  colors={["#FFE590", "#FFC600"]}
-                  style={styles.uidContainer}
-                >
-                  <Text style={styles.uidText}>{"UID:"}</Text>
+                <View style={styles.uidContainer}>
+                  <Text style={styles.uidText}>UID: </Text>
                   {userData ? (
                     <Text style={styles.uidNumber}>{userData.userId}</Text>
                   ) : (
                     <Text>Loading user data...</Text>
                   )}
-                </LinearGradient>
+                </View>
               </View>
-            </View>
+            </ImageBackground>
           </View>
-         
-          <View style={styles.gap20}></View>
+
+          {/* <View style={styles.gap20}></View>
           <Text style={styles.accountText}>Your Account History</Text>
           <View style={styles.gap20}></View>
           <View style={styles.accountcard}>
@@ -188,18 +182,27 @@ export default function ProfileScreen() {
                 <Text style={styles.magictext}>Game History</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.secondcard} onPress={() => navigation.navigate("Transactions")}>
+              <TouchableOpacity
+                style={styles.secondcard}
+                onPress={() => navigation.navigate("Transactions")}
+              >
                 <Image source={require("../assets/copy.png")}></Image>
                 <Text style={styles.magictext}>Transaction</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.gap20}></View>
             <View style={styles.firstView}>
-              <TouchableOpacity style={styles.firstcard} onPress={() => navigation.navigate("addMoney")}>
+              <TouchableOpacity
+                style={styles.firstcard}
+                onPress={() => navigation.navigate("addMoney")}
+              >
                 <Image source={require("../assets/moneybag.png")}></Image>
                 <Text style={styles.magictext}>Deposit</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.secondcard} onPress={() => navigation.navigate("spendMoney")}>
+              <TouchableOpacity
+                style={styles.secondcard}
+                onPress={() => navigation.navigate("spendMoney")}
+              >
                 <Image source={require("../assets/money.png")}></Image>
                 <Text style={styles.magictext}>Withdraw</Text>
               </TouchableOpacity>
@@ -212,7 +215,7 @@ export default function ProfileScreen() {
               justifyContent: "center",
               alignSelf: "center",
             }}
-          ></Image>
+          ></Image> */}
           <View style={styles.logoutBtn}>
             <TouchableOpacity onPress={logoutUser}>
               <LinearGradient
@@ -246,14 +249,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     paddingBottom: 100,
   },
-  Scroll__container:{
-    paddingHorizontal: 10,
+  Scroll__container: {
+    paddingHorizontal: 16,
   },
   container: {
     justifyContent: "flex-start",
     alignItems: "center",
     flexDirection: "row",
-    paddingVertical: 20,
+    paddingTop: 16,
   },
 
   backgroundStyle: {
@@ -273,19 +276,22 @@ const styles = StyleSheet.create({
   },
 
   cardView: {
+    width: "100%",
     flex: 1, // You might need to adjust this depending on your layout needs
     position: "relative", // For absolute positioning of the background image
     borderRadius: 10, // Ensures the container itself also has rounded corners
+    height: 220,
   },
+
   backgroundImage: {
     width: "100%",
-    height: "100%",
+    height:220,
     position: "absolute",
     borderRadius: 10, // Match the parent's borderRadius
   },
   shareIcon: {
     alignSelf: "flex-end",
-    margin: 10, // Adds some margin to the icon for better touchability
+    margin: 16, // Adds some margin to the icon for better touchability
   },
   cardmember: {
     flex: 1, // Adjust based on your content's needs
@@ -294,33 +300,27 @@ const styles = StyleSheet.create({
   memberView: {
     flexDirection: "row",
     alignItems: "center", // Align items in a row
-    padding: 10, // Adds padding around the content
+    paddingVertical:10,
+    gap:6,
   },
-  membernametext2: {
-    marginLeft: 10, // Add some space between the star icon and text
-    color: "#000", // Adjust as needed
-    fontSize: 16, // Adjust as needed
-  },
-  uidVeiw: {
-    padding: 10, // Padding around the UID view for layout purposes
-  },
+
+ 
+
   uidContainer: {
-    width: 119,
-    height: 27,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 4,
-    marginBottom: 12,
+    flexDirection:"row",
+    gap: 0,
   },
   uidText: {
     color: "#2A2A2A",
     fontSize: 14,
-    marginRight: 12, // Space between "UID:" and the number
+    padding: 8,
+    backgroundColor: "#FFC700",
   },
   uidNumber: {
     color: "#2A2A2A",
     fontSize: 14,
+    padding: 8,
+    backgroundColor: "#FFE590",
   },
 
   moneycardBackground: {
@@ -379,13 +379,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
 
-  memberView: {
-    height: 25,
-    flexDirection: "row",
-    width: 160,
-    alignItems: "center",
-  },
-
   star: {
     width: 30,
   },
@@ -424,11 +417,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "400",
     color: "#FFF",
-  },
-
-  cardView: {
-    height: 212,
-    marginHorizontal: 10,
+    paddingTop:10,
   },
 
   profileView: {
@@ -451,16 +440,7 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
   },
 
-  uidbackground2: {
-    flexDirection: "row",
-    backgroundColor: "rgba(255, 229, 144, 1)",
-    width: 120,
-    height: 27,
-    borderRadius: 6,
-    justifyContent: "space-evenly",
-    alignItems: "center",
-  },
-
+  
   moneycardbackgroung: {
     backgroundColor: "#00000099",
     borderColor: "#545458",
@@ -471,54 +451,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
 
-  accountText: {
-    fontWeight: "700",
-    fontSize: 18,
-    color: "rgba(255, 255, 255, 1)",
-    paddingHorizontal: 10,
-  },
-
-  accountcard: {
-    paddingHorizontal: 10,
-  },
-
-  firstView: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-
-  firstcard: {
-    height: 64,
-    width: "48%",
-    backgroundColor: "#00000099",
-    borderColor: "#545458",
-    borderRadius: 10,
-    borderWidth: 1,
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    marginRight: "4%",
-  },
-
-  secondcard: {
-    height: 64,
-    width: "48%",
-    backgroundColor: "#00000099",
-    borderColor: "#545458",
-    borderRadius: 10,
-    borderWidth: 1,
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    paddingHorizontal: 10,
-  },
-
-  magictext: {
-    color: "rgba(255, 255, 255, 1)",
-    fontSize: 14,
-    fontWeight: "400",
-  },
+  
 
   linearGradient: {
     marginTop: 20,
@@ -535,7 +468,7 @@ const styles = StyleSheet.create({
   },
   logoutbtn: {
     paddingHorizontal: 10,
-    paddingVertical:10
+    paddingVertical: 10,
   },
   buttonText: {
     color: "white",

@@ -117,7 +117,6 @@ export default function WalletScreen() {
       });
   };
 
-
   return (
     <View style={styles.mainView}>
       <ImageBackground
@@ -203,18 +202,20 @@ export default function WalletScreen() {
             </View>
             <Text style={styles.promotext}>Quick Actions</Text>
             <View style={styles.quickCnt}>
-            <TouchableOpacity
-          style={styles.quickCntblock}
-          onPress={() => navigation.navigate("addMoney")}
-          disabled={loading}
-        >
-          <Image source={require("../assets/moneybag.png")} />
-          <Text style={styles.quicktext}>
-            {loading ? "Processing..." : "Add Money"}
-          </Text>
-        </TouchableOpacity>
-             
-              <TouchableOpacity onPress={() => navigation.navigate("spendMoney")}>
+              <TouchableOpacity
+                style={styles.quickCntblock}
+                onPress={() => navigation.navigate("addMoney")}
+                disabled={loading}
+              >
+                <Image source={require("../assets/moneybag.png")} />
+                <Text style={styles.quicktext}>
+                  {loading ? "Processing..." : "Add Money"}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => navigation.navigate("spendMoney")}
+              >
                 <View style={styles.quickCntblock}>
                   <Image source={require("../assets/money.png")}></Image>
                   <Text style={styles.quicktext}>Withdraw</Text>
@@ -271,24 +272,6 @@ export default function WalletScreen() {
         </ScrollView>
       </SafeAreaView>
     </View>
-
-    // <View style={styles.container}>
-    //   <Text style={styles.balanceText}>
-    //     Current Balance: ${walletBalance !== null ? walletBalance.toFixed(2) : 'Loading...'}
-    //   </Text>
-    //   <TextInput
-    //     style={styles.input}
-    //     placeholder="Enter amount"
-    //     keyboardType="numeric"
-    //     value={amount}
-    //     onChangeText={setAmount}
-    //   />
-    //   <Button
-    //     title={loading ? 'Processing...' : 'Add Money'}
-    //     onPress={handleAddMoney}
-    //     disabled={loading}
-    //   />
-    // </View>
   );
 }
 
@@ -298,12 +281,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     paddingBottom: 100,
   },
-  bgcolor1: { paddingTop: 20 },
+  bgcolor1: {
+     paddingTop: 20 
+    },
   container: {
     justifyContent: "space-evenly",
     alignItems: "center",
     padding: 0,
-    height: 279,
+    height: 300,
     width: "100%",
   },
   backgroundStyle: {
@@ -323,7 +308,7 @@ const styles = StyleSheet.create({
   withdrawmoney: { fontSize: 24, fontWeight: "600", color: "grey" },
   linearGradient: {
     borderColor: "rgba(84, 84, 88, 0.36)",
-    borderWidth: 1,
+    borderTopWidth:1,
     width: "100%",
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
@@ -358,6 +343,8 @@ const styles = StyleSheet.create({
     backgroundColor: "black",
     borderRadius: 10,
     paddingVertical: 16,
+    borderColor: "#FFFFFF1F",
+    borderWidth: 2,
   },
   quickCntblock: {
     paddingHorizontal: 20,

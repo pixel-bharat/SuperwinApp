@@ -11,8 +11,9 @@ import {
   SafeAreaView,
   FlatList,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { jwtDecode } from "jwt-decode"; // Correct import
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const imageArray = [
   require("../assets/aviator.png"),
@@ -65,6 +66,48 @@ export default function GamesScreen({ navigation }) {
   );
 
   // Destructure navigation directly from props
+
+
+  const [userData, setUserData] = useState({
+    name: null,
+    avatar: null,
+    walletBalance: null,
+    uniqueId: null,
+    email: null,
+  });
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await displayUserData();
+      if (data) {
+        setUserData(data);
+        console.log("User data after JWT decoding:", data);
+      } else {
+        console.log("No user data available");
+        Alert.alert("Login Failed", "No user data available");
+      }
+    };
+    fetchData();
+  }, []);
+
+  const displayUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (token) {
+        const decoded = jwtDecode(token);
+        console.log("Decoded JWT:", decoded);
+        return decoded;
+      } else {
+        console.log("No token found");
+        Alert.alert("Login Failed", "Token not found");
+      }
+    } catch (error) {
+      console.error("Error retrieving or decoding token:", error);
+      Alert.alert("Login Failed", error.message);
+    }
+    return null;
+  };
+
+
   return (
     <View style={styles.mainView}>
       <ImageBackground
@@ -84,7 +127,9 @@ export default function GamesScreen({ navigation }) {
               <View style={styles.totalmoneybackground}>
                 <TouchableOpacity style={styles.totalmoneybackground}>
                   <Image source={require("../assets/coin.png")}></Image>
-                  <Text style={styles.headingtext}>50,684.89</Text>
+                  <Text style={styles.headingtext}> {userData.walletBalance !== null
+                  ? userData.walletBalance.toFixed(2)
+                  : "0.00"}</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity>
