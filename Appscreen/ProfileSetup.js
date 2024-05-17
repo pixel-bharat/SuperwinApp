@@ -93,7 +93,7 @@ const ProfileSetup = ({ route, navigation }) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://192.168.1.26:3000/api/avatar",
+        "http://192.168.1.2:3000/api/avatar",
         userData,
         {
           headers: {

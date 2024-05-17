@@ -17,7 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
-
+import Nav from "./nav";
 const WithdrawScreen = () => {
     const navigation = useNavigation();
   const [amount, setAmount] = useState('');
@@ -40,7 +40,7 @@ const WithdrawScreen = () => {
     }
 
     try {
-      const response = await axios.get('http://192.168.1.26:3000/api/userdata', {
+      const response = await axios.get('http://192.168.1.2:3000/api/userdata', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWalletBalance(response.data.walletBalance);
@@ -70,7 +70,7 @@ const WithdrawScreen = () => {
     }
     setLoading(true);
     axios
-      .post('http://192.168.1.26:3000/api/spend', { amount: numericAmount }, { headers: { Authorization: `Bearer ${token}` } })
+      .post('http://192.168.1.2:3000/api/spend', { amount: numericAmount }, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
         Alert.alert('Success', 'Money spent successfully!');
         setAmount('');
@@ -160,6 +160,7 @@ const WithdrawScreen = () => {
           <Text style={styles.linkText}>Back to Wallet</Text>
         </TouchableOpacity>
       </View>
+      <Nav />
     </SafeAreaView>
   </View>
 
@@ -179,12 +180,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between", // Ensures proper distribution of space
   },
   container: {
+    flex: 1,
+
     padding: 20,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#fff",
   },
   inputContainer: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff2",

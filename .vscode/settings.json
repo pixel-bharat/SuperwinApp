@@ -1,3 +1,5 @@
 {
-    "cmake.sourceDirectory": "E:/superwin/node_modules/@react-native-community/slider/android/src/main/jni"
+    "cmake.sourceDirectory": "E:/superwin/node_modules/@react-native-community/slider/android/src/main/jni",
+    "debug.allowBreakpointsEverywhere": true,
+    "files.autoGuessEncoding": true
 }

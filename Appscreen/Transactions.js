@@ -36,7 +36,7 @@ const Transactions = () => {
 
     try {
       const response = await axios.get(
-        "http://192.168.1.26:3000/api/transactions",
+        "http://192.168.1.2:3000/api/transactions",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -50,13 +50,13 @@ const Transactions = () => {
 
   const renderItem = ({ item }) => {
     const transactionTypeStyle =
-      item.transactionType === "credit" ? styles.credit : styles.debit;
+      item.transactionType === "Credit" ? styles.credit : styles.debit;
 
     return (
       <View style={[styles.itemContainer, transactionTypeStyle]}>
         <View style={styles.tran_cont}>
           <Text style={styles.text}>
-            ({item.transactionType}): {item.description}
+            {item.transactionType}: {item.description}
           </Text>
           <Text style={styles.text}>INR: {item.amount.toFixed(2)}</Text>
         </View>
