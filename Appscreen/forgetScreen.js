@@ -111,7 +111,10 @@ const ForgetScreen = () => {
             value={newPassword}
             onChangeText={setNewPassword}
           />
-          <Button title="Reset Password" onPress={handleResetPassword} />
+        <Button 
+  title="Reset Password" 
+  onPress={() => handleResetPassword(email, otp, newPassword)} 
+/>
         </View>
       )}
     </View>
