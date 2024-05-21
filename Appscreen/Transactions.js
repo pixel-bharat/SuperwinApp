@@ -1,6 +1,8 @@
 //// my code start
 
 import React, { useState, useEffect } from "react";
+import { BASE_URL } from '../App';
+
 import {
   View,
   Text,
@@ -36,7 +38,7 @@ const Transactions = () => {
 
     try {
       const response = await axios.get(
-        "http://192.168.1.2:3000/api/transactions",
+        `${BASE_URL}/api/transactions`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

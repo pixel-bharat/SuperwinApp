@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { BASE_URL } from '../App';
+
 import {
   ScrollView,
   View,
@@ -24,7 +26,7 @@ const ProfileSetup = ({ route, navigation }) => {
 
   // Initialize state
   const [userData, setUserData] = useState({
-    email: "",
+    phoneNumber: "",
     uid: "",
     avatar: null,
     memberName: "",
@@ -32,10 +34,10 @@ const ProfileSetup = ({ route, navigation }) => {
 
   useEffect(() => {
     // If route.params are provided, use them, otherwise load from storage.
-    if (route.params?.email && route.params?.uid) {
+    if (route.params?.phoneNumber && route.params?.uid) {
       setUserData((prev) => ({
         ...prev,
-        email: route.params.email,
+        phoneNumber: route.params.phoneNumber,
         uid: route.params.uid,
       }));
     } else {
@@ -44,9 +46,9 @@ const ProfileSetup = ({ route, navigation }) => {
   }, [route.params]); // Consider dependencies based on your app's behavior
 
   // Saving data
-  const saveUserData = async (email, uid) => {
+  const saveUserData = async (phoneNumber, uid) => {
     try {
-      await AsyncStorage.setItem("userEmail", email);
+      await AsyncStorage.setItem("phoneNumber", phoneNumber);
       await AsyncStorage.setItem("userId", uid);
     } catch (error) {
       console.error("Error saving user data to AsyncStorage:", error);
@@ -56,12 +58,12 @@ const ProfileSetup = ({ route, navigation }) => {
   // Retrieving data
   const loadUserData = async () => {
     try {
-      const email = await AsyncStorage.getItem("userEmail");
+      const phoneNumber = await AsyncStorage.getItem("phoneNumber");
       const uid = await AsyncStorage.getItem("userId");
-      if (email && uid) {
+      if (phoneNumber && uid) {
         setUserData((prev) => ({
           ...prev,
-          email: email,
+          phoneNumber: phoneNumber,
           uid: uid,
         }));
       } else {
@@ -93,7 +95,7 @@ const ProfileSetup = ({ route, navigation }) => {
     setIsLoading(true);
     try {
       const response = await axios.post(
-        "http://192.168.1.2:3000/api/avatar",
+        `${BASE_URL}/api/avatar`,
         userData,
         {
           headers: {
@@ -232,7 +234,7 @@ const ProfileSetup = ({ route, navigation }) => {
             />
           </View>
           <Text style={styles.heading__text}>
-            Email ID (This account is linked with this email ID )
+            phoneNumber ID (This account is linked with this phoneNumber ID )
           </Text>
           <View style={styles.inputContainer}>
             <Image
@@ -241,11 +243,11 @@ const ProfileSetup = ({ route, navigation }) => {
             ></Image>
             <TextInput
               style={styles.input_disable}
-              placeholder="Email ID"
+              placeholder="phoneNumber ID"
               placeholderTextColor="#9E9E9E"
-              value={userData.email}
+              value={userData.phoneNumber}
               editable={false}
-              keyboardType="Member Email ID"
+              keyboardType="Member phoneNumber ID"
               autoCapitalize="none"
             />
           </View>

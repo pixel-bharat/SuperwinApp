@@ -1,4 +1,6 @@
 import React, { useState, useRef } from "react";
+import { BASE_URL } from "../App";
+
 import {
   View,
   Text,
@@ -8,7 +10,8 @@ import {
   Alert,
   Image,
   ImageBackground,
-  ScrollView,SafeAreaView,
+  ScrollView,
+  SafeAreaView,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -31,7 +34,7 @@ export default function OtpScreen({}) {
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
   const navigation = useNavigation();
   const route = useRoute();
-  const { email, uid } = route.params;
+  const { phoneNumber, uid } = route.params;
 
   const handleOtpChange = (index, value) => {
     const newOtp = [...otp];
@@ -53,18 +56,33 @@ export default function OtpScreen({}) {
   const handleSubmit = async () => {
     const otpValue = otp.join("");
     try {
-      const response = await fetch("http://192.168.1.2:3000/api/verifyOTP", {
+      const response = await fetch(`${BASE_URL}/api/verify-otp`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email, otp: otpValue, uid }),
+        body: JSON.stringify({ phoneNumber, otp: otpValue, uid }),
       });
-
+  
       const data = await response.json();
+      console.log(data);
       if (response.ok) {
         Alert.alert("Success", "OTP is verified", [
-          { text: "OK", onPress: () => navigation.navigate("ProfileSetup", { email, uid}) },
+          {
+            text: "OK",
+            onPress: () => {
+              if (data.exists) {
+                const phoneNumber = data.user.phoneNumber;
+                console.log(phoneNumber);
+               const uid = data.user.uid;
+                // If user exists, navigate to profile screen
+                navigation.navigate("nav", { phoneNumber, uid });
+              } else {
+                // If user is new, navigate to profile setup screen
+                navigation.navigate("ProfileSetup", { phoneNumber, uid });
+              }
+            },
+          },
         ]);
       } else {
         Alert.alert("Error", data.message || "An unexpected error occurred.");
@@ -77,27 +95,31 @@ export default function OtpScreen({}) {
       );
     }
   };
+  
 
   const resendOTP = async () => {
-    console.log("Requesting OTP resend for:", email);
+    console.log("Requesting OTP resend for:", phoneNumber);
 
     try {
-      const response = await fetch("http://192.168.1.2:3000/api/resendOTP", {
+      const response = await fetch(`${BASE_URL}/api/resendOTP`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ phoneNumber }),
       });
 
       const data = await response.json();
       if (response.ok) {
-        console.log("OTP resent successfully to:", email);
-        Alert.alert("OTP Resent", "A new OTP has been sent to your email.");
+        console.log("OTP resent successfully to:", phoneNumber);
+        Alert.alert(
+          "OTP Resent",
+          "A new OTP has been sent to your phoneNumber."
+        );
       } else {
         console.log(
           "Failed to resend OTP for:",
-          email,
+          phoneNumber,
           "Response:",
           data.message
         );
@@ -110,7 +132,7 @@ export default function OtpScreen({}) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor:"pink" }}>
+    <View style={{ flex: 1, backgroundColor: "pink" }}>
       <ScrollView contentContainerStyle={styles.container}>
         <ImageBackground
           source={require("../assets/dashboardbg.png")}
@@ -121,7 +143,7 @@ export default function OtpScreen({}) {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-           <Image
+            <Image
               source={require("../assets/back.png")}
               style={styles.icon}
             ></Image>
@@ -131,14 +153,14 @@ export default function OtpScreen({}) {
               <Text style={styles.title}>Enter OTP</Text>
               <Text style={styles.subtitle}>Please enter the OTP sent to</Text>
               {/* <Text style={styles.subtitle}> Userid: {uid}</Text> */}
-              <Text style={styles.sub_mail}>{email + "  "}</Text>
-                
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+              <Text style={styles.sub_mail}>{phoneNumber + "  "}</Text>
+
+              <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Image
-              source={require("../assets/Edit.png")}
-              style={styles.icon}
-            ></Image>
-                </TouchableOpacity>
+                  source={require("../assets/Edit.png")}
+                  style={styles.icon}
+                ></Image>
+              </TouchableOpacity>
               <View style={styles.otpContainer}>
                 {otp.map((value, index) => (
                   <View style={styles.input} key={index.toString()}>
@@ -168,7 +190,7 @@ export default function OtpScreen({}) {
           </View>
         </ImageBackground>
       </ScrollView>
-      </View>
+    </View>
   );
 }
 

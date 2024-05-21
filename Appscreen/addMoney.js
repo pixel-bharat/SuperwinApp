@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { BASE_URL } from '../App';
+
+
 import {
   View,
   TextInput,
@@ -42,7 +45,7 @@ const AddMoneyScreen = () => {
     }
 
     try {
-      const response = await axios.get("http://192.168.1.2:3000/api/userdata", {
+      const response = await axios.get(`${BASE_URL}/api/userdata`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWalletBalance(response.data.walletBalance);
@@ -68,7 +71,7 @@ const AddMoneyScreen = () => {
     setLoading(true);
     axios
       .post(
-        "http://192.168.1.2:3000/api/add_money",
+        `${BASE_URL}/api/add_money`,
         { amount: numericAmount },
         { headers: { Authorization: `Bearer ${token}` } }
       )
@@ -165,7 +168,7 @@ const AddMoneyScreen = () => {
             <Text style={styles.linkText}>Back to Wallet</Text>
           </TouchableOpacity>
         </View>
-        <Nav />
+        {/* <Nav /> */}
       </SafeAreaView>
     </View>
   );

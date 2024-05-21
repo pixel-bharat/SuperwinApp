@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
+import { BASE_URL } from '../App';
+
 import {
   View,
   Text,

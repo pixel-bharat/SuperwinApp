@@ -1,43 +1,26 @@
-// import React, { useState, useEffect } from "react";
-// import { BASE_URL } from '../App';
-
-// import {
-//   ScrollView,
-//   View,
-//   Image,
-//   ImageBackground,
-//   StatusBar,
-//   StyleSheet,
-//   Text,
-//   TouchableOpacity,
-//   SafeAreaView,
-//   FlatList,
-//   Dimensions,
-// } from "react-native";
-// // import { LinearGradient } from "expo-linear-gradient";
-// import { useNavigation } from "@react-navigation/native";
-// import { jwtDecode } from "jwt-decode"; // Correct import
-// import AsyncStorage from "@react-native-async-storage/async-storage";
-// //import Nav from "./nav";
-
-
 import React, { useState, useEffect } from "react";
-import { 
-  ScrollView, 
-  View, 
-  Image, 
-  ImageBackground, 
-  StatusBar, 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  SafeAreaView, 
-  Alert 
+import { BASE_URL } from '../App';
+
+import {
+  ScrollView,
+  View,
+  Image,
+  ImageBackground,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  FlatList,
+  Dimensions,
 } from "react-native";
+// import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
-import jwtDecode from "jwt-decode";
+import { jwtDecode } from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { BASE_URL } from "../App";
+//import Nav from "./nav";
+
+
 export default function Homepage({}) {
   const navigation = useNavigation();
   const [userData, setUserData] = useState({
@@ -56,7 +39,7 @@ export default function Homepage({}) {
         console.log("User data after JWT decoding:", data);
       } else {
         console.log("No user data available");
-        showAlert("Login Failed", "No user data available");
+        Alert.alert("Login Failed", "No user data available");
       }
     };
     fetchData();
@@ -64,24 +47,20 @@ export default function Homepage({}) {
 
   const displayUserData = async () => {
     try {
-      const token = await AsyncStorage.getItem("Token");
+      const token = await AsyncStorage.getItem("userToken");
       if (token) {
         const decoded = jwtDecode(token);
         console.log("Decoded JWT:", decoded);
         return decoded;
       } else {
         console.log("No token found");
-        showAlert("Login Failed", "Token not found");
+        Alert.alert("Login Failed", "Token not found");
       }
     } catch (error) {
       console.error("Error retrieving or decoding token:", error);
-      showAlert("Login Failed", error.message);
+      Alert.alert("Login Failed", error.message);
     }
     return null;
-  };
-
-  const showAlert = (title, message) => {
-    Alert.alert(title, message);
   };
 
   return (
@@ -105,9 +84,10 @@ export default function Homepage({}) {
                   <Image source={require("../assets/coin.png")}></Image>
 
                   <Text style={styles.headingtext}>
-                    {userData.walletBalance !== null
-                      ? userData.walletBalance.toFixed(2)
-                      : "0.00"}
+                  {userData.walletBalance !== null
+                  ? userData.walletBalance.toFixed(2)
+                  : "0.00"}
+                   
                   </Text>
                 </TouchableOpacity>
 
@@ -162,7 +142,6 @@ export default function Homepage({}) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   gap40: {
     height: 40,

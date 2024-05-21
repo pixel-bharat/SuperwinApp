@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { BASE_URL } from '../App';
+
 import {
   ScrollView,
   View,
@@ -48,10 +50,10 @@ export default function WalletScreen() {
 
     try {
       const [walletResponse, transactionsResponse] = await Promise.all([
-        axios.get("http://192.168.1.2:3000/api/userdata", {
+        axios.get(`${BASE_URL}/api/userdata`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://192.168.1.2:3000/api/transactions", {
+        axios.get(`${BASE_URL}/api/transactions`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -87,7 +89,7 @@ export default function WalletScreen() {
     setLoading(true);
     axios
       .post(
-        "http://192.168.1.2:3000/api/add_money",
+        `${BASE_URL}/api/add_money`,
         { amount: numericAmount },
         {
           headers: { Authorization: `Bearer ${token}` },

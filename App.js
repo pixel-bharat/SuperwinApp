@@ -159,3 +159,11 @@ function AppNavigator() {
 }
 
 export default AppNavigator;
+
+
+// app.js
+const BASE_URL = "http://192.168.1.10:3000";
+
+export { BASE_URL };
+
+// Your existing app.js code goes here

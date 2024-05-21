@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { BASE_URL } from '../App';
+
 import {
   View,
   TextInput,
@@ -40,7 +42,7 @@ const WithdrawScreen = () => {
     }
 
     try {
-      const response = await axios.get('http://192.168.1.2:3000/api/userdata', {
+      const response = await axios.get(`${BASE_URL}/api/userdata`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWalletBalance(response.data.walletBalance);
@@ -70,7 +72,7 @@ const WithdrawScreen = () => {
     }
     setLoading(true);
     axios
-      .post('http://192.168.1.2:3000/api/spend', { amount: numericAmount }, { headers: { Authorization: `Bearer ${token}` } })
+      .post(`${BASE_URL}/api/spend`, { amount: numericAmount }, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (response) => {
         Alert.alert('Success', 'Money spent successfully!');
         setAmount('');

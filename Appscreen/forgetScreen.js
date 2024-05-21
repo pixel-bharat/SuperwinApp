@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { BASE_URL } from '../App';
+
 import { View, Text, TextInput, Button, StyleSheet } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
@@ -18,7 +20,7 @@ const ForgetScreen = () => {
 
       // Call the backend API to send OTP
       const response = await fetch(
-        "http://192.168.1.2:3000/api/forgot-password",
+        `${BASE_URL}/api/forgot-password`,
         {
           method: "POST",
           headers: {
@@ -56,7 +58,7 @@ const ForgetScreen = () => {
 
       // Call the backend API to reset password
       const response = await fetch(
-        "http://192.168.1.2:3000/api/reset-password",
+        `${BASE_URL}/api/reset-password`,
         {
           method: "POST",
           headers: {

@@ -36,17 +36,18 @@ const transporter = nodemailer.createTransport({
 
 const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
-  walletBalance: { type: Number, default: 0 },
+  walletBalance: { type: Number, default: 0 },  
   phoneNumber: { type: Number, unique: true, required: true, lowercase: true },
   uniqueId: { type: String, default: uuidv4 },
   name: String,
   avatar: String,
 });
 
-const twilio = require("twilio");
 
-const accountSid = "AC88f7fc3fa10ad6a768ee8278dc43ed6d"; // Your Twilio account SID
-const authToken = "e4e503c5e372e41b1a0d4677403edcb5"; // Your Twilio Auth Token
+const twilio = require('twilio');
+
+const accountSid = 'AC88f7fc3fa10ad6a768ee8278dc43ed6d'; // Your Twilio account SID
+const authToken = 'e4e503c5e372e41b1a0d4677403edcb5'; // Your Twilio Auth Token
 const client = twilio(accountSid, authToken);
 
 const User = mongoose.model("User", userSchema);
@@ -75,7 +76,7 @@ app.post("/api/signup", async (req, res) => {
         length: 4,
         charset: "numeric",
       });
-
+      
       console.log(`OTP generated for ${phoneNumber}: ${verificationOTPToken}`);
 
       // Update user session with new OTP
@@ -88,24 +89,20 @@ app.post("/api/signup", async (req, res) => {
       };
 
       // Send OTP via SMS using Twilio
-      client.messages
-        .create({
-          body: `Please use the following OTP to verify your phone number: ${verificationOTPToken}`,
-          from: "+1 814 228 5252", // Your Twilio phone number
-          to: phoneNumber,
-        })
-        .then((message) => {
-          console.log("OTP SMS successfully sent to", phoneNumber);
-          res.status(200).json({
-            message:
-              "OTP sent to your phone number. Please verify to complete registration.",
-            uid: existingUser.uid,
-          });
-        })
-        .catch((error) => {
-          console.error("Failed to send OTP SMS to", phoneNumber, ":", error);
-          return res.status(500).json({ message: "Failed to send OTP SMS" });
+      client.messages.create({
+        body: `Please use the following OTP to verify your phone number: ${verificationOTPToken}`,
+        from: '+1 814 228 5252', // Your Twilio phone number
+        to: phoneNumber
+      }).then(message => {
+        console.log("OTP SMS successfully sent to", phoneNumber);
+        res.status(200).json({
+          message: "OTP sent to your phone number. Please verify to complete registration.",
+          uid: existingUser.uid,
         });
+      }).catch(error => {
+        console.error("Failed to send OTP SMS to", phoneNumber, ":", error);
+        return res.status(500).json({ message: "Failed to send OTP SMS" });
+      });
     } else {
       // If user doesn't exist, proceed with creating a new user
       const verificationOTPToken = randomstring.generate({
@@ -116,9 +113,7 @@ app.post("/api/signup", async (req, res) => {
       const username = generateRandomUsername();
 
       console.log(`OTP generated for ${phoneNumber}: ${verificationOTPToken}`);
-      console.log(
-        `Unique ID (${uid}) and username (${username}) assigned to ${phoneNumber}`
-      );
+      console.log(`Unique ID (${uid}) and username (${username}) assigned to ${phoneNumber}`);
 
       userSessions[phoneNumber] = {
         uid,
@@ -129,24 +124,20 @@ app.post("/api/signup", async (req, res) => {
       };
 
       // Send OTP via SMS using Twilio
-      client.messages
-        .create({
-          body: `Please use the following OTP to verify your phone number: ${verificationOTPToken}`,
-          from: "+1 814 228 5252", // Your Twilio phone number
-          to: phoneNumber,
-        })
-        .then((message) => {
-          console.log("OTP SMS successfully sent to", phoneNumber);
-          res.status(200).json({
-            message:
-              "OTP sent to your phone number. Please verify to complete registration.",
-            uid: uid,
-          });
-        })
-        .catch((error) => {
-          console.error("Failed to send OTP SMS to", phoneNumber, ":", error);
-          return res.status(500).json({ message: "Failed to send OTP SMS" });
+      client.messages.create({
+        body: `Please use the following OTP to verify your phone number: ${verificationOTPToken}`,
+        from: '+1 814 228 5252', // Your Twilio phone number
+        to: phoneNumber
+      }).then(message => {
+        console.log("OTP SMS successfully sent to", phoneNumber);
+        res.status(200).json({
+          message: "OTP sent to your phone number. Please verify to complete registration.",
+          uid: uid,
         });
+      }).catch(error => {
+        console.error("Failed to send OTP SMS to", phoneNumber, ":", error);
+        return res.status(500).json({ message: "Failed to send OTP SMS" });
+      });
     }
   } catch (error) {
     console.error("Signup error for", phoneNumber, ":", error);
@@ -154,56 +145,58 @@ app.post("/api/signup", async (req, res) => {
   }
 });
 
+
+
 // app.post("/api/verifylogin-otp", async (req, res) => {
-// const { phoneNumber, otp } = req.body;
-// console.log("Received OTP verification request for:", phoneNumber);
-// const session = userSessions[phoneNumber];
+  // const { phoneNumber, otp } = req.body;
+  // console.log("Received OTP verification request for:", phoneNumber);
+  // const session = userSessions[phoneNumber];
 
-// if (!session || session.verificationOTPToken !== otp) {
-//   console.log("OTP verification failed for", phoneNumber);
-//   return res.status(400).json({ message: "Invalid OTP" });
-// }
+  // if (!session || session.verificationOTPToken !== otp) {
+  //   console.log("OTP verification failed for", phoneNumber);
+  //   return res.status(400).json({ message: "Invalid OTP" });
+  // }
 
-// console.log("OTP verified for", phoneNumber);
+  // console.log("OTP verified for", phoneNumber);
 
-// try {
-//   // Find the user in the database by phone number
-//   const user = await User.findOne({ phoneNumber: session.phoneNumber });
+  // try {
+  //   // Find the user in the database by phone number
+  //   const user = await User.findOne({ phoneNumber: session.phoneNumber });
 
-//   if (!user) {
-//     // If user not found, return error
-//     console.log("User not found:", session.phoneNumber);
-//     return res.status(404).json({ message: "User not found" });
-//   }
+  //   if (!user) {
+  //     // If user not found, return error
+  //     console.log("User not found:", session.phoneNumber);
+  //     return res.status(404).json({ message: "User not found" });
+  //   }
 
-//   // If user found, create a new session and redirect to home screen
-//   const token = jwt.sign(
-//     {
-//       userId: user.uniqueId,
-//       email: user.email,
-//       avatar: user.avatar,
-//       name: user.name,
-//       walletBalance: user.walletBalance,
-//     },
-//     process.env.JWT_SECRET
-//   );
+  //   // If user found, create a new session and redirect to home screen
+  //   const token = jwt.sign(
+  //     {
+  //       userId: user.uniqueId,
+  //       email: user.email,
+  //       avatar: user.avatar,
+  //       name: user.name,
+  //       walletBalance: user.walletBalance,
+  //     },
+  //     process.env.JWT_SECRET
+  //   );
 
-//   res.status(200).json({
-//     message: "Login successful",
-//     token,
-//     user: {
-//       email: user.email,
-//       name: user.name,
-//       avatar: user.avatar,
-//       uid: user.uniqueId,
-//       name: user.name,
-//       profileSetupRequired: !user.memberName, // Determine if profile setup is required
-//     },
-//   });
-// } catch (error) {
-//   console.error("Failed to verifyfgh OTP:", error);
-//   res.status(500).json({ message: "Failed to vekrify OTP" });
-// }
+  //   res.status(200).json({
+  //     message: "Login successful",
+  //     token,
+  //     user: {
+  //       email: user.email,
+  //       name: user.name,
+  //       avatar: user.avatar,
+  //       uid: user.uniqueId,
+  //       name: user.name,
+  //       profileSetupRequired: !user.memberName, // Determine if profile setup is required
+  //     },
+  //   });
+  // } catch (error) {
+  //   console.error("Failed to verifyfgh OTP:", error);
+  //   res.status(500).json({ message: "Failed to vekrify OTP" });
+  // }
 // });
 
 app.post("/api/verify-otp", async (req, res) => {
@@ -213,10 +206,7 @@ app.post("/api/verify-otp", async (req, res) => {
     let existingUser = await User.findOne({ phoneNumber });
 
     if (existingUser) {
-      console.log(
-        "Received OTP verification request for existing user:",
-        phoneNumber
-      );
+      console.log("Received OTP verification request for existing user:", phoneNumber);
       const session = userSessions[phoneNumber];
 
       if (!session || session.verificationOTPToken !== otp) {
@@ -236,17 +226,12 @@ app.post("/api/verify-otp", async (req, res) => {
         },
         process.env.JWT_SECRET
       );
-      console.log(
-        existingUser.name,
-        existingUser.phoneNumber,
-        existingUser.avatar,
-        existingUser.uniqueId
-      );
+
       return res.status(200).json({
         message: "Login successful",
         token,
         user: {
-          phonerNumber: existingUser.phoneNumber,
+          phonerNumber: existingUser.phonerNumber,
           name: existingUser.name,
           avatar: existingUser.avatar,
           uid: existingUser.uniqueId,
@@ -254,14 +239,12 @@ app.post("/api/verify-otp", async (req, res) => {
         },
         exists: true, // Indicate that the user exists
       });
-    }
-
+    } 
+    
     // If user doenot exists then create a new user
+    
     else {
-      console.log(
-        "Received OTP verification request for new user:",
-        phoneNumber
-      );
+      console.log("Received OTP verification request for new user:", phoneNumber);
       const session = userSessions[phoneNumber];
 
       if (!session || session.verificationOTPToken !== otp) {
@@ -292,6 +275,14 @@ app.post("/api/verify-otp", async (req, res) => {
     res.status(500).json({ message: "Failed to process OTP verification" });
   }
 });
+
+
+
+
+
+
+
+
 
 //
 // verify OTP API Here
@@ -383,6 +374,7 @@ app.post("/api/resendOTP", async (req, res) => {
   });
 });
 
+
 //
 // Login API Here
 //
@@ -399,21 +391,23 @@ app.post("/api/login", async (req, res) => {
       console.log("No user found with email:", normalizedEmail);
       return res.status(401).json({ message: "Email is not registered" });
     }
-
+   
     if (!user.isVerified) {
       console.log("User not verified:", normalizedEmail);
-      return res.status(401).json({
-        message: "Please verify your account.",
-        redirectUrl: "/verify-account",
-      });
+      return res
+        .status(401)
+        .json({
+          message: "Please verify your account.",
+          redirectUrl: "/verify-account",
+        });
     }
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       console.log("Invalid password for user:", normalizedEmail);
       return res.status(401).json({ message: "Invalid email or password" });
     }
-    // Check if member name is set to determine if profile setup is required
-    const profileSetupRequired = !user.memberName; // true if memberName is not set
+// Check if member name is set to determine if profile setup is required
+const profileSetupRequired = !user.memberName; // true if memberName is not set
     console.log("User authenticated, generating token:", normalizedEmail);
     const token = jwt.sign(
       {
@@ -424,7 +418,7 @@ app.post("/api/login", async (req, res) => {
         walletBalance: user.walletBalance,
       },
       process.env.JWT_SECRET
-    );
+    ); 
     res.status(200).json({
       message: "Login successful",
       token,
@@ -434,7 +428,7 @@ app.post("/api/login", async (req, res) => {
         avatar: user.avatar,
         uid: user.uniqueId,
         name: user.name,
-        profileSetupRequired,
+        profileSetupRequired
       },
     });
   } catch (error) {
@@ -442,6 +436,19 @@ app.post("/api/login", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // POST endpoint to update user profile avatar and name
 
@@ -480,9 +487,7 @@ app.post("/api/avatar", async (req, res) => {
   const { uid, memberName, avatar, phoneNumber } = req.body;
 
   if (!uid || !phoneNumber) {
-    return res
-      .status(400)
-      .json({ message: "User ID and phoneNumber are required" });
+    return res.status(400).json({ message: "User ID and phoneNumber are required" });
   }
 
   try {
@@ -508,17 +513,13 @@ app.post("/api/avatar", async (req, res) => {
     const profileSetupRequired = !(user.name && user.avatar);
 
     // Generate JWT token before saving user to avoid async timing issues
-    const token = jwt.sign(
-      {
-        userId: user.uniqueId,
-        phoneNumber: user.phoneNumber,
-        name: user.name,
-        avatar: user.avatar,
-        profileSetupRequired,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    ); // Token expiration is optional
+    const token = jwt.sign({
+      userId: user.uniqueId,
+      phoneNumber: user.phoneNumber,
+      name: user.name,
+      avatar: user.avatar,
+      profileSetupRequired,
+    }, process.env.JWT_SECRET, { expiresIn: "1h" }); // Token expiration is optional
 
     // Save updated user information
     await user.save();
@@ -531,15 +532,17 @@ app.post("/api/avatar", async (req, res) => {
         name: user.name,
         avatar: user.avatar,
         uid: user.uniqueId,
-        profileSetupRequired,
+        profileSetupRequired
       },
-      token,
+      token
     });
+
   } catch (error) {
     console.error("Error updating profile:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 
 //
 //
@@ -568,6 +571,8 @@ app.post("/api/logout", async (req, res) => {
     res.status(500).json({ message: "Failed to logout" });
   }
 });
+
+
 
 //
 //
@@ -727,6 +732,11 @@ app.get("/api/userdata", authenticateToken, async (req, res) => {
 });
 // User Data Endpoint
 
+
+
+
+
+
 //
 //
 // forgot-password Start from here
@@ -738,6 +748,7 @@ function generateOTP() {
   return otp;
 }
 
+
 // Store OTPs for verification
 const otpStore = {};
 
@@ -746,6 +757,7 @@ app.post("/api/forgot-password", async (req, res) => {
   const { email } = req.body;
   console.log("Request received for forgot password:", email);
   try {
+    
     const user = await User.findOne({ email });
     if (!user) {
       console.log("No user found with email:", email);
@@ -772,13 +784,13 @@ app.post("/api/forgot-password", async (req, res) => {
 app.post("/api/reset-password", async (req, res) => {
   const { email, otp, newPassword } = req.body;
   console.log("Request received for password reset:", email);
-
+  
   try {
     // Verify OTP
     const storedOTP = otpStore[email];
     console.log("entered otp: ", otp);
     console.log("stored otp for ", email, ": ", storedOTP);
-
+    
     if (!storedOTP || storedOTP !== parseInt(otp)) {
       console.log("Invalid OTP for email:", email);
       return res.status(400).json({ message: "Invalid OTP" });
@@ -791,7 +803,7 @@ app.post("/api/reset-password", async (req, res) => {
       { password: hashedPassword },
       { new: true }
     );
-
+    
     if (!user) {
       console.log("User not found with email:", email);
       return res.status(404).json({ message: "User not found" });
@@ -809,14 +821,14 @@ app.post("/api/reset-password", async (req, res) => {
 function sendOTPByEmail(email, otp) {
   // Email options
   const mailOptions = {
-    from: "your-email@gmail.com",
+    from: 'your-email@gmail.com',
     to: email,
-    subject: "OTP for Password Reset",
-    text: `Your OTP for password reset is: ${otp}`,
+    subject: 'OTP for Password Reset',
+    text: `Your OTP for password reset is: ${otp}`
   };
 
   // Send email
-  transporter.sendMail(mailOptions, function (error, info) {
+  transporter.sendMail(mailOptions, function(error, info) {
     if (error) {
       console.error("Email sending error:", error);
     } else {
@@ -824,6 +836,10 @@ function sendOTPByEmail(email, otp) {
     }
   });
 }
+
+
+
+
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server is running on port ${PORT}`));
