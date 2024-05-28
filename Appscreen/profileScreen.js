@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
-  Image,
+  Image,Alert,
   ScrollView,
   ImageBackground,
   SafeAreaView,
@@ -71,6 +71,7 @@ export default function ProfileScreen() {
       Alert.alert("Logout Failed", error.message);
     }
   };
+  
 
   return (
     <View style={styles.mainView}>
@@ -119,7 +120,7 @@ export default function ProfileScreen() {
               </View>
               {userData ? (
                 <Text style={styles.lastlogintext}>
-                  {userData.email || "No email"}
+                  {userData.phoneNumber || "loading"}
                 </Text>
               ) : (
                 <Text>Loading user data...</Text>

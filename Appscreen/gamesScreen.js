@@ -67,7 +67,6 @@ export default function GamesScreen({ navigation }) {
 
   // Destructure navigation directly from props
 
-
   const [userData, setUserData] = useState({
     name: null,
     avatar: null,
@@ -107,7 +106,6 @@ export default function GamesScreen({ navigation }) {
     return null;
   };
 
-
   return (
     <View style={styles.mainView}>
       <ImageBackground
@@ -127,9 +125,12 @@ export default function GamesScreen({ navigation }) {
               <View style={styles.totalmoneybackground}>
                 <TouchableOpacity style={styles.totalmoneybackground}>
                   <Image source={require("../assets/coin.png")}></Image>
-                  <Text style={styles.headingtext}> {userData.walletBalance !== null
-                  ? userData.walletBalance.toFixed(2)
-                  : "0.00"}</Text>
+                  <Text style={styles.headingtext}>
+                    {" "}
+                    {userData && userData.walletBalance !== undefined
+                      ? userData.walletBalance.toFixed(2)
+                      : "0.00"}
+                  </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity>
@@ -240,7 +241,6 @@ export default function GamesScreen({ navigation }) {
   );
 }
 const styles = StyleSheet.create({
- 
   mainView: {
     flex: 1,
     backgroundColor: "#000",
@@ -295,18 +295,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
 
-  scrollcntmain: { 
-    paddingVertical: 10 
+  scrollcntmain: {
+    paddingVertical: 10,
   },
-  totalmoneyctn: { 
-    alignItems: "flex-end" 
+  totalmoneyctn: {
+    alignItems: "flex-end",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
-    paddingVertical:20,
-    paddingHorizontal:10,
+    paddingVertical: 20,
+    paddingHorizontal: 10,
   },
   balncetext: {
     color: "white",

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
   ScrollView,
-  View,
+  View,Alert,
   Image,
   ImageBackground,
   StatusBar,
@@ -11,13 +11,14 @@ import {
   SafeAreaView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useIsFocused  } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BASE_URL from "../backend/config/config";
 
 export default function WalletScreen() {
   const navigation = useNavigation();
-
+  const isFocused = useIsFocused();
   const [amount, setAmount] = useState("");
   const [userData, setUserData] = useState({
     name: null,
@@ -29,15 +30,12 @@ export default function WalletScreen() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchWalletDetails();
-    const interval = setInterval(() => {
-      fetchWalletDetails();
-    }, 10000); // Poll every 10 seconds
 
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval);
-  }, []);
+  useEffect(() => {
+    if (isFocused) {
+      fetchWalletDetails();
+    }
+  }, [isFocused]);
 
   const fetchWalletDetails = async () => {
     const token = await AsyncStorage.getItem("userToken");
@@ -48,10 +46,10 @@ export default function WalletScreen() {
 
     try {
       const [walletResponse, transactionsResponse] = await Promise.all([
-        axios.get("http://192.168.1.26:3000/api/userdata", {
+        axios.get(`${BASE_URL}api/userdata`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get("http://192.168.1.26:3000/api/transactions", {
+        axios.get(`${BASE_URL}api/transactions`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
@@ -71,51 +69,7 @@ export default function WalletScreen() {
     }
   };
 
-  const handleAddMoney = async () => {
-    const token = await AsyncStorage.getItem("userToken");
-    if (!token) {
-      Alert.alert("Error", "You must be logged in to perform this action.");
-      return;
-    }
-
-    const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) {
-      Alert.alert("Invalid Input", "Please enter a valid amount.");
-      return;
-    }
-
-    setLoading(true);
-    axios
-      .post(
-        "http://192.168.1.26:3000/api/add_money",
-        { amount: numericAmount },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      .then((response) => {
-        Alert.alert("Success", "Money added successfully!");
-        setUserData((prevState) => ({
-          ...prevState,
-          walletBalance: response.data.walletBalance,
-        })); // Update local wallet balance state
-        fetchWalletDetails(); // Refresh wallet details including transactions
-        setAmount("");
-      })
-      .catch((error) => {
-        console.error(
-          "Error adding money:",
-          error.response?.data?.message || "An error occurred"
-        );
-        Alert.alert(
-          "Error",
-          error.response?.data?.message || "Failed to add money."
-        );
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
+  
 
   return (
     <View style={styles.mainView}>
@@ -282,8 +236,8 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   bgcolor1: {
-     paddingTop: 20 
-    },
+    paddingTop: 20,
+  },
   container: {
     justifyContent: "space-evenly",
     alignItems: "center",
@@ -308,7 +262,7 @@ const styles = StyleSheet.create({
   withdrawmoney: { fontSize: 24, fontWeight: "600", color: "grey" },
   linearGradient: {
     borderColor: "rgba(84, 84, 88, 0.36)",
-    borderTopWidth:1,
+    borderTopWidth: 1,
     width: "100%",
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,

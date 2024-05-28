@@ -3,45 +3,34 @@ import {
   ScrollView,
   View,
   Image,
+  Alert,
   ImageBackground,
   StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   SafeAreaView,
-  FlatList,
   Dimensions,
 } from "react-native";
-// import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
-import { jwtDecode } from "jwt-decode"; // Correct import
+import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
+import jwtDecode from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
-//import Nav from "./nav";
+import axios from "axios";
+import BASE_URL from "../backend/config/config";
 
-
-
-export default function Homepage({}) {
+export default function Homepage() {
   const navigation = useNavigation();
-  const [userData, setUserData] = useState({
-    name: null,
-    avatar: null,
-    walletBalance: null,
-    uniqueId: null,
-    email: null,
-  });
+  const isFocused = useIsFocused();
+  const [userData, setUserData] = useState(null);
+
+  
+
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await displayUserData();
-      if (data) {
-        setUserData(data);
-        console.log("User data after JWT decoding:", data);
-      } else {
-        console.log("No user data available");
-        Alert.alert("Login Failed", "No user data available");
-      }
-    };
-    fetchData();
-  }, []);
+    if (isFocused) {
+      fetchWalletDetails();
+    }
+  }, [isFocused]);
 
   const displayUserData = async () => {
     try {
@@ -60,6 +49,25 @@ export default function Homepage({}) {
     }
     return null;
   };
+
+  const fetchWalletDetails = async () => {
+    const token = await AsyncStorage.getItem("userToken");
+    if (!token) {
+      Alert.alert("Error", "Authentication token not found. Please log in.");
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${BASE_URL}api/userdata`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUserData(response.data);
+    } catch (error) {
+      console.error("Failed to fetch wallet details:", error);
+      Alert.alert("Error", "Failed to fetch wallet details");
+    }
+  };
+  
 
   return (
     <View style={styles.mainView}>
@@ -82,21 +90,25 @@ export default function Homepage({}) {
                   <Image source={require("../assets/coin.png")}></Image>
 
                   <Text style={styles.headingtext}>
-                  {userData.walletBalance !== null
-                  ? userData.walletBalance.toFixed(2)
-                  : "0.00"}
-                   
+                    {userData && userData.walletBalance !== undefined
+                      ? userData.walletBalance.toFixed(2)
+                      : "0.00"}
                   </Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity>
-                  <Image source={require("../assets/refresh.png")}></Image>
+                  <Image style={styles} source={require("../assets/addmoney.png")}></Image>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
           <View style={styles.container}>
-            <View style={styles.slidertop}></View>
+            <View style={styles.slidertop}>
+              <View style={styles.container}>
+                <Text>User Token: {userData ? JSON.stringify(userData) : "No token found"}</Text>
+                {/* Your other UI components */}
+              </View>
+            </View>
 
             <Image
               source={require("../assets/Line.png")}
@@ -135,11 +147,12 @@ export default function Homepage({}) {
             </View>
           </View>
         </ScrollView>
-        {/*  <Nav/> */}
+        
       </SafeAreaView>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   gap40: {
     height: 40,
@@ -165,7 +178,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 50,
   },
-  
+
   totalmoneyctn: { alignItems: "flex-end" },
 
   balncetext: {
@@ -218,9 +231,9 @@ const styles = StyleSheet.create({
   // new stayling
   promotextgames: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 10,
-    color:"#fff"
+    color: "#fff",
   },
   accountcard: {
     flexDirection: "row",
@@ -228,12 +241,30 @@ const styles = StyleSheet.create({
     marginBottom: 20, // Add marginBottom to create space between rows
   },
   firstcard: {
-    width: '47%',
+    width: "47%",
     aspectRatio: 1, // Set the aspect ratio to 1:1
   },
   image: {
     flex: 1,
     aspectRatio: 1, // Set the aspect ratio to 1:1
-    resizeMode: 'contain', // Adjust resizeMode based on your image requirements
+    resizeMode: "contain", // Adjust resizeMode based on your image requirements
+  },
+  logoutBtn: {
+    marginTop: 20,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  linearGradient: {
+    width: "100%",
+    height: 64,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
 });

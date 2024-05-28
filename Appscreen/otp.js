@@ -1,42 +1,36 @@
+// VerifyOtpPage.js
 import React, { useState, useRef } from "react";
 import {
+  ScrollView,
   View,
+  ImageBackground,
+  StyleSheet,
+  Image,
   Text,
   TextInput,
-  StyleSheet,
   TouchableOpacity,
   Alert,
-  Image,
-  ImageBackground,
-  ScrollView,SafeAreaView,
+  ActivityIndicator,
 } from "react-native";
-import { useNavigation, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useNavigation, useRoute } from "@react-navigation/native";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import BASE_URL from "../backend/config/config";
 
-const OtpInput = ({ value, onChangeText, maxLength, onKeyPress, refInput }) => (
-  <TextInput
-    ref={refInput}
-    style={styles.otpInput}
-    maxLength={maxLength}
-    keyboardType="numeric"
-    value={value}
-    onChangeText={onChangeText}
-    onKeyPress={onKeyPress}
-    textContentType="oneTimeCode"
-  />
-);
-
-export default function OtpScreen({}) {
+export default function OtpScreen() {
   const [otp, setOtp] = useState(["", "", "", ""]);
+  const [loading, setLoading] = useState(false);
   const inputRefs = [useRef(null), useRef(null), useRef(null), useRef(null)];
   const navigation = useNavigation();
   const route = useRoute();
-  const { email, uid } = route.params;
+  const { phoneNumber } = route.params;
 
   const handleOtpChange = (index, value) => {
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
+
     if (value.length === 1 && index < 3) {
       inputRefs[index + 1].current.focus();
     }
@@ -50,125 +44,103 @@ export default function OtpScreen({}) {
     }
   };
 
-  const handleSubmit = async () => {
-    const otpValue = otp.join("");
-    try {
-      const response = await fetch("http://192.168.1.26:3000/api/verifyOTP", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, otp: otpValue, uid }),
-      });
+  const submitOTP = async () => {
+    const enteredOtp = otp.join("");
 
-      const data = await response.json();
-      if (response.ok) {
-        Alert.alert("Success", "OTP is verified", [
-          { text: "OK", onPress: () => navigation.navigate("ProfileSetup", { email, uid}) },
-        ]);
-      } else {
-        Alert.alert("Error", data.message || "An unexpected error occurred.");
-      }
-    } catch (error) {
-      console.error("Error verifying OTP:", error);
-      Alert.alert(
-        "Network Error",
-        "Failed to verify OTP due to network issues."
+    try {
+      setLoading(true);
+      const response = await axios.post(
+        `${BASE_URL}verify-otp`,
+        {
+          phoneNumber,
+          otp: enteredOtp,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          }
+        }
       );
-    }
-  };
 
-  const resendOTP = async () => {
-    console.log("Requesting OTP resend for:", email);
+      if (response.status === 200 && response.data && response.data.token) {
+        const { uid, profileSetupRequired, token } = response.data;
+        await AsyncStorage.setItem("userToken", token); // Store token
+        Alert.alert("Phone number verified successfully!");
 
-    try {
-      const response = await fetch("http://192.168.1.26:3000/api/resendOTP", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        console.log("OTP resent successfully to:", email);
-        Alert.alert("OTP Resent", "A new OTP has been sent to your email.");
+        setTimeout(() => {
+          if (profileSetupRequired) {
+            navigation.navigate("ProfileSetup", { phoneNumber, uid });
+          } else {
+            navigation.navigate("nav"); // Navigate to HomePage or any other screen
+          }
+        }, 0);
       } else {
-        console.log(
-          "Failed to resend OTP for:",
-          email,
-          "Response:",
-          data.message
-        );
-        Alert.alert("Error", data.message || "Failed to resend OTP.");
+        Alert.alert("Verification failed", "Invalid OTP. Please try again.");
       }
     } catch (error) {
-      console.error("Error resending OTP:", error);
-      Alert.alert("Error", "Could not resend OTP due to a network error.");
+      console.error("Verification error:", error.response || error.message);
+
+      let errorMessage = "An unknown error occurred";
+      if (error.response) {
+        errorMessage =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          errorMessage;
+      }
+
+      Alert.alert("Verification failed", errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor:"pink" }}>
+    <View style={{ flex: 1, backgroundColor: "#000" }}>
       <ScrollView contentContainerStyle={styles.container}>
         <ImageBackground
           source={require("../assets/dashboardbg.png")}
           resizeMode="cover"
           style={styles.backgroundImage}
         >
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
-          >
-           <Image
-              source={require("../assets/back.png")}
-              style={styles.icon}
-            ></Image>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Image source={require("../assets/back.png")} style={styles.icon}></Image>
           </TouchableOpacity>
           <View style={styles.scrollViewContent}>
-            <View style={styles.info_container}>
-              <Text style={styles.title}>Enter OTP</Text>
-              <Text style={styles.subtitle}>Please enter the OTP sent to</Text>
-              {/* <Text style={styles.subtitle}> Userid: {uid}</Text> */}
-              <Text style={styles.sub_mail}>{email + "  "}</Text>
+          <Text style={styles.title}>Phone number : </Text>
+          <Text  style={styles.title}>{phoneNumber}  <Image  onPress={() => navigation.goBack()} source={require("../assets/Edit.png")} style={styles.icon}></Image></Text>
+            <Text style={styles.title}>Enter OTP</Text>
+            <View style={styles.otp_input}>
+            {otp.map((value, index) => (
+                <View style={styles.otpContainer}>
+                <TextInput
+                  key={index}
+                  ref={inputRefs[index]}
+                  style={styles.otpInput}
+                  placeholder="*"
+                  maxLength={1}
+                  value={value}
+                  onChangeText={(value) => handleOtpChange(index, value)}
+                  onKeyPress={(e) => handleKeyPress(e, index)}
+                  textContentType="oneTimeCode"
+                />
                 
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Image
-              source={require("../assets/Edit.png")}
-              style={styles.icon}
-            ></Image>
-                </TouchableOpacity>
-              <View style={styles.otpContainer}>
-                {otp.map((value, index) => (
-                  <View style={styles.input} key={index.toString()}>
-                    <OtpInput
-                      refInput={inputRefs[index]}
-                      value={value}
-                      onChangeText={(value) => handleOtpChange(index, value)}
-                      maxLength={1}
-                      onKeyPress={(e) => handleKeyPress(e, index)}
-                    />
-                  </View>
-                ))}
-              </View>
-              <Text style={styles.resentlink} onPress={resendOTP}>
-                Resend again
-              </Text>
             </View>
-
-            <TouchableOpacity style={styles.loginButton} onPress={handleSubmit}>
-              <LinearGradient
-                colors={["#A903D2", "#410095"]}
-                style={styles.gradient}
-              >
-                <Text style={styles.buttonText}>Confirm</Text>
+              ))}
+            </View>
+             
+            <TouchableOpacity
+              style={[styles.loginButton, loading ? styles.disabledButton : null]}
+              onPress={submitOTP}
+              disabled={loading}
+            >
+              <LinearGradient colors={["#A903D2", "#410095"]} style={styles.gradient}>
+                {loading ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={styles.buttonText}>Verify OTP</Text>}
               </LinearGradient>
             </TouchableOpacity>
           </View>
         </ImageBackground>
       </ScrollView>
-      </View>
+    </View>
   );
 }
 
@@ -196,82 +168,39 @@ const styles = StyleSheet.create({
     top: 50,
     left: 20,
   },
-  logo: {
-    width: 150, // Set a fixed width for the logo
-    height: 120, // Set a fixed height for the logo
-    resizeMode: "contain", // Ensures the image scales correctly within the bounds
-  },
   icon: {
     width: 24,
     height: 24,
   },
-  info_container: {
-    flex: 1,
+  otp_input:{
+    flexDirection: "row",
     justifyContent: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "white",
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "white",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  sub_mail: {
-    fontSize: 24,
-    marginBottom: 40,
-    color: "white",
-    textAlign: "center",
   },
   otpContainer: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "center",
-    margin: 40,
-    alignItems: "flex-end", // Align items to the bottom
-  },
-  input: {
-    flex: 1,
-    height: 80,
-    borderRadius: 10,
-    backgroundColor: "#FFFFFF1A",
-    marginHorizontal: 10,
-    justifyContent: "center",
-    alignContent: "center",
-    justifyContent: "center", // Center the TextInput vertically
-    alignItems: "center", // Center the TextInput horizontally
-    borderBottomWidth: 1, // Underline style for each input
+    margin: 10,
+    marginVertical: 20,
+    width: 60,
+    backgroundColor: "#fff2",
+    borderRadius:8,
+   
   },
   otpInput: {
-    width: 30,
-    height: 50,
-    borderBottomWidth: 1,
-    borderBottomColor: "#FFFFFF59",
-    fontSize: 20,
-    color: "white",
+    borderBottomWidth: 2,
+    borderColor: "#aaa",
+    fontSize: 30,
     textAlign: "center",
+    padding: 10,
+    margin: 10,
+    color: "#fff",
   },
-
-  resentlink: {
-    color: "white",
-    textAlign: "center",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-
   loginButton: {
-    width: "100%",
     height: 60,
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
     overflow: "hidden",
     marginBottom: 20,
+    width: "100%",
   },
   gradient: {
     width: "100%",
@@ -283,5 +212,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 10,
   },
 });

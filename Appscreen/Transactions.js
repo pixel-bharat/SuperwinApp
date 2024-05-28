@@ -15,6 +15,7 @@ import {
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import BASE_URL from "../backend/config/config";
 //import Nav from "./nav";
 
 const Transactions = () => {
@@ -36,7 +37,7 @@ const Transactions = () => {
 
     try {
       const response = await axios.get(
-        "http://192.168.1.26:3000/api/transactions",
+        `${BASE_URL}api/transactions`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -83,15 +84,19 @@ const Transactions = () => {
       <SafeAreaView style={styles.safeArea}>
         <StatusBar barStyle="light-content" backgroundColor="#000" />
         <View style={styles.headerContainer}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.linkText}>Back to Wallet</Text>
+        {/* <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Image source={require("../assets/back.png")} style={styles.icon}></Image>
+          </TouchableOpacity> */}
+          <TouchableOpacity style={{width:40, height:40}} onPress={() => navigation.goBack()}>
+          <Image source={require("../assets/back.png")} style={styles.icon}></Image>
           </TouchableOpacity>
           <Text style={styles.header}>Transactions</Text>
         </View>
         <Image
           source={require("../assets/Line.png")}
-          style={{ marginTop: 0, alignSelf: "center" }}
+          style={{ margin: 10, alignSelf: "center" }}
         />
+        <View style={{ paddingHorizontal:16 }}>
         {loading ? (
           <Text style={styles.loadingText}>Loading...</Text>
         ) : (
@@ -102,6 +107,8 @@ const Transactions = () => {
             contentContainerStyle={styles.listContent}
           />
         )}
+        </View>
+      
         {/* <Nav/> */}
       </SafeAreaView>
     </View>
@@ -127,10 +134,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
+    paddingHorizontal:16
   },
   iconBack: {
     width: 30,
     height: 30,
+  },
+  icon: {
+    width: 32,
+    height: 32,
   },
   header: {
     fontSize: 22,
