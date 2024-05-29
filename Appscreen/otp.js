@@ -58,7 +58,7 @@ export default function OtpScreen() {
         {
           headers: {
             "Content-Type": "application/json",
-          }
+          },
         }
       );
 
@@ -102,39 +102,62 @@ export default function OtpScreen() {
           resizeMode="cover"
           style={styles.backgroundImage}
         >
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Image source={require("../assets/back.png")} style={styles.icon}></Image>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Image
+              source={require("../assets/back.png")}
+              style={styles.icon}
+            ></Image>
           </TouchableOpacity>
           <View style={styles.scrollViewContent}>
-          <Text style={styles.title}>Phone number : </Text>
-          <Text  style={styles.title}>{phoneNumber}  <Image  onPress={() => navigation.goBack()} source={require("../assets/Edit.png")} style={styles.icon}></Image></Text>
+            <Text style={styles.title}>Phone number : </Text>
+            <Text style={styles.title}>
+              {phoneNumber}{" "}
+              <Image
+                onPress={() => navigation.goBack()}
+                source={require("../assets/Edit.png")}
+                style={styles.icon}
+              ></Image>
+            </Text>
             <Text style={styles.title}>Enter OTP</Text>
+           
+
             <View style={styles.otp_input}>
-            {otp.map((value, index) => (
-                <View style={styles.otpContainer}>
-                <TextInput
-                  key={index}
-                  ref={inputRefs[index]}
-                  style={styles.otpInput}
-                  placeholder="*"
-                  maxLength={1}
-                  value={value}
-                  onChangeText={(value) => handleOtpChange(index, value)}
-                  onKeyPress={(e) => handleKeyPress(e, index)}
-                  textContentType="oneTimeCode"
-                />
-                
-            </View>
+              {otp.map((value, index) => (
+                <View key={index} style={styles.otpContainer}>
+                  <TextInput
+                    ref={inputRefs[index]}
+                    style={styles.otpInput}
+                    placeholder="*"
+                    maxLength={1}
+                    value={value}
+                    onChangeText={(value) => handleOtpChange(index, value)}
+                    onKeyPress={(e) => handleKeyPress(e, index)}
+                    textContentType="oneTimeCode"
+                  />
+                </View>
               ))}
             </View>
-             
+
             <TouchableOpacity
-              style={[styles.loginButton, loading ? styles.disabledButton : null]}
+              style={[
+                styles.loginButton,
+                loading ? styles.disabledButton : null,
+              ]}
               onPress={submitOTP}
               disabled={loading}
             >
-              <LinearGradient colors={["#A903D2", "#410095"]} style={styles.gradient}>
-                {loading ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={styles.buttonText}>Verify OTP</Text>}
+              <LinearGradient
+                colors={["#A903D2", "#410095"]}
+                style={styles.gradient}
+              >
+                {loading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>Verify OTP</Text>
+                )}
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -172,7 +195,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
   },
-  otp_input:{
+  otp_input: {
     flexDirection: "row",
     justifyContent: "center",
   },
@@ -181,8 +204,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     width: 60,
     backgroundColor: "#fff2",
-    borderRadius:8,
-   
+    borderRadius: 8,
   },
   otpInput: {
     borderBottomWidth: 2,
