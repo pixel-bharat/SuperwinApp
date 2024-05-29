@@ -1,237 +1,116 @@
+// SendOtpPage.js
 import React, { useState } from "react";
 import {
   ScrollView,
   View,
-  Image,
   ImageBackground,
-  StatusBar,
   StyleSheet,
+  Image,
   Text,
   TextInput,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
-import { ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+import BASE_URL from "../backend/config/config";
 
 export default function LoginPage() {
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // State to manage loading during API call
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please enter both email and password.");
+  const handleSendOtp = async () => {
+    const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
+
+    if (!/^(\+?\d{1,3})?\d{10}$/.test(cleanedPhoneNumber)) {
+      Alert.alert("Invalid phone number format");
       return;
     }
-  
-    setIsLoading(true); // Start loading
+
     try {
-      const response = await fetch("http://192.168.1.2:3000/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-  
-      const data = await response.json(); // Parse JSON response
-  
-      if (response.ok) {
-        await AsyncStorage.setItem("userToken", data.token); // Save token using await
-  
-        if (data.profileSetupRequired) {
-          const { uid } = data;
-          // Redirect to Profile Setup Page
-          Alert.alert(
-            "Profile Setup Required",
-            "Please complete your profile setup.",
-            [
-              {
-                text: "OK",
-                onPress: () =>
-                  navigation.navigate("ProfileSetup", { email, uid }),
-              },
-            ]
-          );
-        } else {
-          Alert.alert("Login Successful", "You have logged in successfully.");
-          // Go to the main application or dashboard
-          navigation.navigate("nav"); // Make sure 'nav' is the correct navigation route
-        }
-      } else {
-        if (response.status === 401) {
-          if (data.message === "Invalid email or password") {
-            Alert.alert("Error", "Invalid email or password. Please check your credentials.");
-          } else if (data.message === "Email is not registered") {
-            Alert.alert(
-              "Email is not registered",
-              "Do you want to Signup instead?",
-              [
-                {
-                  text: "Yes",
-                  onPress: () => navigation.navigate("onboarding", { email }),
-                },
-                {
-                  text: "No",
-                  onPress: () => console.log("User chose not to sign up"),
-                },
-              ],
-              { cancelable: false }
-            );
-          } else {
-            Alert.alert("Error", data.message || "An unexpected error occurred");
-          }
-        } else {
-          throw new Error(data.message || "An unexpected error occurred");
-        }
-      }
+      setLoading(true);
+      await axios.post(`${BASE_URL}send-otp`, { phoneNumber: cleanedPhoneNumber });
+      Alert.alert("OTP sent to your phone number successfully");
+      navigation.navigate("OtpScreen", { phoneNumber: cleanedPhoneNumber });
     } catch (error) {
-      Alert.alert("Error", error.message);
+      console.error("Failed to send OTP:", error.response || error.message);
+      Alert.alert("Failed to send OTP", error.response?.data?.message || error.message);
     } finally {
-      setIsLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <ImageBackground
-        source={require("../assets/dashboardbg.png")}
-        resizeMode="cover"
-        style={styles.backgroundImage}
-      >
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
+    <View style={{ flex: 1, backgroundColor: "#000" }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <ImageBackground
+          source={require("../assets/dashboardbg.png")}
+          resizeMode="cover"
+          style={styles.backgroundImage}
         >
-          <Image
-            source={require("../assets/back.png")}
-            style={styles.icon_back}
-          ></Image>
-        </TouchableOpacity>
-        <StatusBar barStyle="light-content" />
-        <ScrollView contentContainerStyle={styles.scrollViewContent}>
-          <Image source={require("../assets/logo.png")} style={styles.logo} />
-
-          <View style={styles.loginForm}>
-            <Text style={styles.title}>Welcome Back!</Text>
-            <Text style={styles.subtitle}>
-              Log in to your existing account of SUPERWIN
-            </Text>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Image source={require("../assets/back.png")} style={styles.icon}></Image>
+          </TouchableOpacity>
+          <View style={styles.scrollViewContent}>
+            <Text style={styles.title}>Welcome !!</Text>
+            <Text style={styles.subtitle}>Please Enter your Phone number</Text>
             <View style={styles.inputContainer}>
-              <Image
-                source={require("../assets/mail.png")}
-                style={styles.icon}
-              ></Image>
+              <Image source={require("../assets/phone.png")} style={styles.icon}></Image>
               <TextInput
+                placeholder="91 xxxxxxxxxx"
+                placeholderTextColor="#aaa"
+                onChangeText={setPhoneNumber}
+                keyboardType="phone-pad"
+                value={phoneNumber}
                 style={styles.input}
-                placeholder="Email"
-                placeholderTextColor="#fff"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-            <View style={styles.inputContainer}>
-              <Image
-                source={require("../assets/Lock.png")}
-                style={styles.icon}
-              ></Image>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Password"
-                placeholderTextColor="#fff"
-                secureTextEntry={true}
-                value={password}
-                onChangeText={setPassword}
               />
             </View>
             <TouchableOpacity
-              onPress={() => navigation.navigate('forgetScreen')}
+              style={[styles.loginButton, loading ? styles.disabledButton : null]}
+              onPress={handleSendOtp}
+              disabled={loading}
             >
-              <Text style={styles.forgotPassword}>Forgot Password?</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.loginButton,
-                isLoading ? styles.disabledButton : null,
-              ]}
-              onPress={handleLogin}
-              disabled={isLoading}
-            >
-              <LinearGradient
-                colors={["#A903D2", "#410095"]}
-                style={styles.gradient}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.buttonText}>LOG IN</Text>
-                )}
+              <LinearGradient colors={["#A903D2", "#410095"]} style={styles.gradient}>
+                {loading ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Text style={styles.buttonText}>Send OTP</Text>}
               </LinearGradient>
             </TouchableOpacity>
           </View>
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate("onboarding")}>
-              <Text style={styles.buttonText}>Sign Up Here</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </ImageBackground>
+        </ImageBackground>
+      </ScrollView>
     </View>
   );
 }
-
-// Styles remain unchanged
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
-    width: "100%",
+    justifyContent: "center",
   },
   backgroundImage: {
     flex: 1,
     justifyContent: "center",
     resizeMode: "contain",
+    width: "100%",
   },
   scrollViewContent: {
     flex: 1,
     justifyContent: "center",
+    padding: 20,
     alignItems: "center",
-  },
-  logo: {
-    width: 150, // Set a fixed width for the logo
-    height: 120, // Set a fixed height for the logo
-    resizeMode: "contain", // Ensures the image scales correctly within the bounds
+    width: "100%",
   },
   backButton: {
     position: "absolute",
     top: 50,
     left: 20,
   },
-  loginForm: {
-    marginTop: 20,
-    width: "100%",
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    color: "#fff",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 20,
+  icon: {
+    width: 24,
+    height: 24,
   },
   inputContainer: {
     flexDirection: "row",
@@ -241,24 +120,11 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     marginBottom: 10,
   },
-  icon: {
-    width: 20,
-    height: 20,
-  },
-  icon_back:{
-    width: 30,
-    height: 30,
-  },
   input: {
     flex: 1,
     height: 60,
     color: "#fff",
     marginLeft: 16,
-  },
-  forgotPassword: {
-    color: "#A903D2",
-    textAlign: "right",
-    marginBottom: 20,
   },
   loginButton: {
     height: 60,
@@ -267,6 +133,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     overflow: "hidden",
     marginBottom: 20,
+    width: "100%",
   },
   gradient: {
     width: "100%",
@@ -279,45 +146,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  orContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 10,
-  },
-  line: {
-    height: 1,
-    flex: 1,
-    backgroundColor: "#3B3B3B",
-  },
-  orText: {
-    marginHorizontal: 10,
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
     color: "#fff",
+    marginBottom: 10,
   },
-  socialButton: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-  },
-  socialIcon: {
-    width: 70,
-    height: 70,
-  },
-  socialText: {
-    color: "#fff",
+  subtitle: {
     fontSize: 16,
-  },
-  footer: {
-    padding: 30,
-    width: "100%",
-    gap: 20,
-    alignItems: "center",
-  },
-  footerText: {
-    color: "white",
-  },
-  signInText: {
-    color: "#A903D2",
+    color: "#ddd",
+    marginBottom: 30,
   },
 });

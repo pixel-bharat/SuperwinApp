@@ -45,14 +45,14 @@ export default function Start({ navigation }) {
                 <Text style={styles.buttonText}>LETS GO!</Text>
               </TouchableOpacity>
             </LinearGradient>
-            <View style={styles.footer}>
+            {/* <View style={styles.footer}>
               <Text style={styles.footerText}>Don't have an account?</Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate("onboarding")}
               >
                 <Text style={styles.signInText}>Sign Up Here</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
           </View>
           <StatusBar style="auto" />
         </ScrollView>
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flexGrow: 1,
-    justifyContent: 'flex-end', // Push content to the bottom
+    justifyContent: 'center', // Push content to the bottom
     alignItems: 'center', // Center content horizontally
   },
   backgroundStyle: {
