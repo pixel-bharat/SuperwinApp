@@ -197,6 +197,17 @@ const styles = StyleSheet.create({
   },
   otp_input: {
     flexDirection: "row",
+    width: "100%",
+    justifyContent: "center",
+    margin: 40,
+    alignItems: "flex-end", // Align items to the bottom
+  },
+  input: {
+    flex: 1,
+    height: 80,
+    borderRadius: 10,
+    backgroundColor: "#FFFFFF1A",
+    marginHorizontal: 10,
     justifyContent: "center",
   },
   otpContainer: {
