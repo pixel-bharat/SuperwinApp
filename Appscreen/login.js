@@ -51,9 +51,7 @@ export default function LoginPage() {
           resizeMode="cover"
           style={styles.backgroundImage}
         >
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Image source={require("../assets/back.png")} style={styles.icon}></Image>
-          </TouchableOpacity>
+         
           <View style={styles.scrollViewContent}>
             <Text style={styles.title}>Welcome !!</Text>
             <Text style={styles.subtitle}>Please Enter your Phone number</Text>
@@ -61,7 +59,7 @@ export default function LoginPage() {
               <Image source={require("../assets/phone.png")} style={styles.icon}></Image>
               <TextInput
                 placeholder="91 xxxxxxxxxx"
-                placeholderTextColor="#aaa"
+                placeholderTextColor="#aaa4"
                 onChangeText={setPhoneNumber}
                 keyboardType="phone-pad"
                 value={phoneNumber}

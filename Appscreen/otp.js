@@ -112,18 +112,11 @@ export default function OtpScreen() {
             ></Image>
           </TouchableOpacity>
           <View style={styles.scrollViewContent}>
-            <Text style={styles.title}>Phone number : </Text>
-            <Text style={styles.title}>
-              {phoneNumber}{" "}
-              <Image
-                onPress={() => navigation.goBack()}
-                source={require("../assets/Edit.png")}
-                style={styles.icon}
-              ></Image>
-            </Text>
+            <Text style={styles.title}>Check your Massage box</Text>
+            <Text style={styles.sub_title}>we have sent you a OTP code by phone</Text>
+            <Text style={styles.title}>+{phoneNumber}</Text>
             <Text style={styles.title}>Enter OTP</Text>
-           
-
+          
             <View style={styles.otp_input}>
               {otp.map((value, index) => (
                 <View key={index} style={styles.otpContainer}>
@@ -190,10 +183,12 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 50,
     left: 20,
+    width: 40,
+    height: 40,
   },
   icon: {
-    width: 24,
-    height: 24,
+    width: 32,
+    height: 32,
   },
   otp_input: {
     flexDirection: "row",
@@ -249,7 +244,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#fff",
+    color: "#fff6",
+    marginBottom: 10,
+  },
+  sub_title:{
+    fontSize: 16,
+    color: "#fff3",
     marginBottom: 10,
   },
 });

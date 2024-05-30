@@ -12,7 +12,7 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import jwtDecode from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -24,32 +24,13 @@ export default function Homepage() {
   const isFocused = useIsFocused();
   const [userData, setUserData] = useState(null);
 
-  
-
   useEffect(() => {
     if (isFocused) {
       fetchWalletDetails();
     }
   }, [isFocused]);
 
-  const displayUserData = async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      if (token) {
-        const decoded = jwtDecode(token);
-        console.log("Decoded JWT:", decoded);
-        return decoded;
-      } else {
-        console.log("No token found");
-        Alert.alert("Login Failed", "Token not found");
-      }
-    } catch (error) {
-      console.error("Error retrieving or decoding token:", error);
-      Alert.alert("Login Failed", error.message);
-    }
-    return null;
-  };
-
+  
   const fetchWalletDetails = async () => {
     const token = await AsyncStorage.getItem("userToken");
     if (!token) {
@@ -67,6 +48,7 @@ export default function Homepage() {
       Alert.alert("Error", "Failed to fetch wallet details");
     }
   };
+
   
 
   return (
@@ -97,19 +79,16 @@ export default function Homepage() {
                 </TouchableOpacity>
 
                 <TouchableOpacity>
-                  <Image style={styles} source={require("../assets/addmoney.png")}></Image>
+                  <Image
+                  style={{width:32, height:32}}
+                    source={require("../assets/addmoney.png")}
+                  ></Image>
                 </TouchableOpacity>
               </View>
             </View>
           </View>
           <View style={styles.container}>
-            <View style={styles.slidertop}>
-              <View style={styles.container}>
-                <Text>User Token: {userData ? JSON.stringify(userData) : "No token found"}</Text>
-                {/* Your other UI components */}
-              </View>
-            </View>
-
+          
             <Image
               source={require("../assets/Line.png")}
               style={{ marginTop: 16, alignSelf: "center" }}
@@ -147,7 +126,6 @@ export default function Homepage() {
             </View>
           </View>
         </ScrollView>
-        
       </SafeAreaView>
     </View>
   );

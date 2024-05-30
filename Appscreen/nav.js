@@ -8,7 +8,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import Homesrc from "./home";
 import Profilepage from "./profileScreen";
 import Wallet from "./welletScreen";
-import GamesScreen from "./gamesScreen";
+import RoomScreen from "./roomScreen";
 import NotificationScreen from "./notification";
 
 const Tab = createBottomTabNavigator();
@@ -112,8 +112,8 @@ export default function Nav() {
         options={{ headerShown: false }}
       />
       <Tab.Screen
-        name="gamesScreen"
-        component={GamesScreen}
+        name="RoomScreen"
+        component={RoomScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen

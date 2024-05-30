@@ -25,6 +25,11 @@ mongoose
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
+
+// Debug logs to check Twilio credentials (Remove these in production)
+console.log("Twilio Account SID:", accountSid);
+console.log("Twilio Auth Token:", authToken);
+
 const client = twilio(accountSid, authToken);
 
 // Define User schema and model

@@ -44,15 +44,7 @@ export default function ProfileSetupPage() {
     }
   }, [route.params]);
 
-  const saveUserData = async (phoneNumber, uid) => {
-    try {
-      await AsyncStorage.setItem("phoneNumber", phoneNumber);
-      await AsyncStorage.setItem("userId", uid);
-      console.log("User data saved to AsyncStorage:", phoneNumber, uid);
-    } catch (error) {
-      console.error("Error saving user data to AsyncStorage:", error);
-    }
-  };
+
 
   const loadUserData = async () => {
     try {

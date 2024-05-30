@@ -2,7 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
-  Image,Alert,
+  Image,
+  Alert,
   ScrollView,
   ImageBackground,
   SafeAreaView,
@@ -13,7 +14,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
-import { jwtDecode } from "jwt-decode"; // Correct import
+import jwtDecode from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen() {
@@ -71,7 +72,6 @@ export default function ProfileScreen() {
       Alert.alert("Logout Failed", error.message);
     }
   };
-  
 
   return (
     <View style={styles.mainView}>
@@ -172,42 +172,28 @@ export default function ProfileScreen() {
               </View>
             </ImageBackground>
           </View>
-
-          {/* <View style={styles.gap20}></View>
-          <Text style={styles.accountText}>Your Account History</Text>
-          <View style={styles.gap20}></View>
-          <View style={styles.accountcard}>
-            <View style={styles.firstView}>
-              <TouchableOpacity style={styles.firstcard}>
-                <Image source={require("../assets/magic-trick.png")}></Image>
-                <Text style={styles.magictext}>Game History</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.secondcard}
-                onPress={() => navigation.navigate("Transactions")}
-              >
-                <Image source={require("../assets/copy.png")}></Image>
-                <Text style={styles.magictext}>Transaction</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.gap20}></View>
-            <View style={styles.firstView}>
-              <TouchableOpacity
-                style={styles.firstcard}
-                onPress={() => navigation.navigate("addMoney")}
-              >
-                <Image source={require("../assets/moneybag.png")}></Image>
-                <Text style={styles.magictext}>Deposit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.secondcard}
-                onPress={() => navigation.navigate("spendMoney")}
-              >
-                <Image source={require("../assets/money.png")}></Image>
-                <Text style={styles.magictext}>Withdraw</Text>
-              </TouchableOpacity>
-            </View>
+          <View style={styles.menu_card}>
+            <TouchableOpacity style={styles.menu}>
+              <Image
+                style={styles.menu_icon}
+                source={require("../assets/locker.png")}
+              ></Image>
+              <Text style={styles.menu_text}>Bank Details setup</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menu}>
+              <Image
+                style={styles.menu_icon}
+                source={require("../assets/setting.png")}
+              ></Image>
+              <Text style={styles.menu_text}>Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menu}>
+              <Image
+                style={styles.menu_icon}
+                source={require("../assets/support.png")}
+              ></Image>
+              <Text style={styles.menu_text}>Support</Text>
+            </TouchableOpacity>
           </View>
           <Image
             source={require("../assets/Line.png")}
@@ -216,7 +202,7 @@ export default function ProfileScreen() {
               justifyContent: "center",
               alignSelf: "center",
             }}
-          ></Image> */}
+          ></Image>
           <View style={styles.logoutBtn}>
             <TouchableOpacity onPress={logoutUser}>
               <LinearGradient
@@ -286,7 +272,7 @@ const styles = StyleSheet.create({
 
   backgroundImage: {
     width: "100%",
-    height:220,
+    height: 220,
     position: "absolute",
     borderRadius: 10, // Match the parent's borderRadius
   },
@@ -301,14 +287,38 @@ const styles = StyleSheet.create({
   memberView: {
     flexDirection: "row",
     alignItems: "center", // Align items in a row
-    paddingVertical:10,
-    gap:6,
+    paddingVertical: 10,
+    gap: 6,
+  },
+  menu_card: {
+    flexDirection: "column",
+    paddingVertical: 12,
+  },
+  menu: {
+    flexDirection: "row",
+    justifyContent: "flex-center",
+    alignItems: "center",
+    gap: 12,
+    padding: 20,
+    borderRadius: 20,
+    backgroundColor: "#0002",
+    borderColor: "#545458",
+    borderWidth: 1,
+    marginVertical: 4,
+  },
+  menu_icon: {
+    width: 32,
+    height: 32,
+  },
+  menu_text: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFF",
+    paddingLeft: 6,
   },
 
- 
-
   uidContainer: {
-    flexDirection:"row",
+    flexDirection: "row",
     gap: 0,
   },
   uidText: {
@@ -418,7 +428,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "400",
     color: "#FFF",
-    paddingTop:10,
+    paddingTop: 10,
   },
 
   profileView: {
@@ -441,7 +451,6 @@ const styles = StyleSheet.create({
     paddingLeft: 6,
   },
 
-  
   moneycardbackgroung: {
     backgroundColor: "#00000099",
     borderColor: "#545458",
@@ -451,8 +460,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginHorizontal: 10,
   },
-
-  
 
   linearGradient: {
     marginTop: 20,

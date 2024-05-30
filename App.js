@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Alert, BackHandler } from "react-native";
-import { Easing } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -11,7 +10,7 @@ import Homepage from "./Appscreen/home";
 import Onboarding from "./Appscreen/onboarding";
 import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
-import GamesScreen from "./Appscreen/gamesScreen";
+import RoomScreen from "./Appscreen/roomScreen";
 import OtpScreen from "./Appscreen/otp";
 import ProfileSetup from "./Appscreen/profilesetup";
 import Transactions from "./Appscreen/Transactions";
@@ -26,7 +25,8 @@ function AppNavigator() {
 
   useEffect(() => {
     const checkAuthentication = () => {
-      const isAuthenticated = true; // Assume the user is already authenticated
+      // Simulate an authentication check
+      const isAuthenticated = true; // Update this with actual authentication logic
       setIsAuthenticated(isAuthenticated);
     };
 
@@ -52,10 +52,6 @@ function AppNavigator() {
     return () => backHandler.remove();
   }, []);
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-  };
-
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName={isAuthenticated ? "nav" : "Start"}>
@@ -69,7 +65,7 @@ function AppNavigator() {
         <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
         <Stack.Screen name="welletScreen" component={WalletScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Transactions" component={Transactions} options={{ headerShown: false }} />
-        <Stack.Screen name="gamesScreen" component={GamesScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="RoomScreen" component={RoomScreen} options={{ headerShown: false }} />
         <Stack.Screen name="addMoney" component={addMoney} options={{ headerShown: false }} />
         <Stack.Screen name="spendMoney" component={spendMoney} options={{ headerShown: false }} />
         <Stack.Screen name="forgetScreen" component={ForgetScreen} options={{ headerShown: false }} />
@@ -77,5 +73,6 @@ function AppNavigator() {
     </NavigationContainer>
   );
 }
-
+// Register the main component
+//AppRegistry.registerComponent('main', () => AppNavigator);
 export default AppNavigator;
