@@ -474,15 +474,26 @@ app.post("/create-room", async (req, res) => {
       uid,
     });
 
-    // Save the room to the database
-    await newRoom.save();
 
-    // Send the response
+    await newRoom.save();
+ 
     res.json({ message: "Room created successfully", room: newRoom });
   } catch (error) {
     console.error("Error creating room:", error);
     res.status(500).json({ message: "Failed to create room" });
   }
+});
+
+
+app.post('/join-room', (req, res) => {
+  // Extract the room ID from the request body
+  const { roomID } = req.body;
+
+  // Perform actions to join the room
+  // This could include database operations, validation, etc.
+
+  // For example, you might send a success response back
+  res.status(200).json({ message: 'Successfully joined the room', roomID });
 });
 
 // Fetch Recent Rooms Endpoint

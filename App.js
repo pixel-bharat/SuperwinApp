@@ -18,6 +18,10 @@ import addMoney from "./Appscreen/addMoney";
 import spendMoney from "./Appscreen/spendMoney";
 import ForgetScreen from "./Appscreen/forgetScreen";
 import Room from "./Appscreen/room";
+import JoinRoomScreen from "./Appscreen/JoinScreen";
+
+
+
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
@@ -55,21 +59,86 @@ function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName={isAuthenticated ? "nav" : "Start"}>
-        <Stack.Screen name="Start" component={Start} options={{ headerShown: false }} />
-        <Stack.Screen name="nav" component={Nav} options={{ headerShown: false }} />
-        <Stack.Screen name="Login" component={LoginPage} options={{ headerShown: false }} />
-        <Stack.Screen name="home" component={Homepage} options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding" component={Onboarding} options={{ headerShown: false }} />
-        <Stack.Screen name="OtpScreen" component={OtpScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="ProfileSetup" component={ProfileSetup} options={{ headerShown: false }} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="welletScreen" component={WalletScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Transactions" component={Transactions} options={{ headerShown: false }} />
-        <Stack.Screen name="RoomScreen" component={RoomScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="addMoney" component={addMoney} options={{ headerShown: false }} />
-        <Stack.Screen name="spendMoney" component={spendMoney} options={{ headerShown: false }} />
-        <Stack.Screen name="forgetScreen" component={ForgetScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Room" component={Room} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="Start"
+          component={Start}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="nav"
+          component={Nav}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Login"
+          component={LoginPage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="home"
+          component={Homepage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="onboarding"
+          component={Onboarding}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="OtpScreen"
+          component={OtpScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ProfileSetup"
+          component={ProfileSetup}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ProfileScreen"
+          component={ProfileScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="welletScreen"
+          component={WalletScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Transactions"
+          component={Transactions}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="RoomScreen"
+          component={RoomScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="addMoney"
+          component={addMoney}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="spendMoney"
+          component={spendMoney}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="forgetScreen"
+          component={ForgetScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Room"
+          component={Room}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="JoinRoom"
+          component={JoinRoomScreen}
+          options={{ headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

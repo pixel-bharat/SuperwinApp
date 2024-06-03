@@ -11,12 +11,16 @@ import {
   Switch,
   Alert,
   ScrollView,
+  Linking, // Import Linking module
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
+import { Feather } from "@expo/vector-icons"; // Import Feather icon set
 import jwtDecode from "jwt-decode";
+
+import { Share } from "react-native";
 
 export default function RoomScreen() {
   const navigation = useNavigation();
@@ -124,7 +128,7 @@ export default function RoomScreen() {
 
       const data = await response.json();
       console.log("Room created successfully:", data);
-      navigation.navigate("ROOM", { roomID: data.roomID });
+      navigation.navigate("Room", { roomID: data.roomID });
 
       // Update the roomID state with the generated room ID
       setRoomID(data.room.roomID);
@@ -181,6 +185,20 @@ export default function RoomScreen() {
     </View>
   );
 
+  // Function to share the room
+  const shareRoom = () => {
+    if (roomID) {
+      const deepLink = `yourapp://room/${roomID}`;
+      Share.share({
+        message: `Join my room! ${deepLink}`,
+      })
+        .then((result) => console.log(result))
+        .catch((error) => console.error(error));
+    } else {
+      alert("Please generate a Room ID first.");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
@@ -198,7 +216,6 @@ export default function RoomScreen() {
               {userData ? userData.uid : "Loading..."}
             </Text>
           </View>
-
           <View style={styles.inputWrapper}>
             <Image
               source={require("../assets/PersonFill.png")}
@@ -217,6 +234,9 @@ export default function RoomScreen() {
               style={styles.backButton}
             >
               <Text style={styles.label}>Room ID</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={shareRoom} style={styles.shareButton}>
+              <Feather name="share" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
           <Text style={styles.label}>Room Name</Text>
@@ -274,8 +294,10 @@ export default function RoomScreen() {
             <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
           </LinearGradient>
         </TouchableOpacity>
-        <Text style={styles.orText}>or</Text>
-        <TouchableOpacity onPress={joinRoom} style={styles.joinRoomButton}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("JoinRoom")}
+          style={styles.joinRoomButton}
+        >
           <LinearGradient
             colors={["#7B1FA2", "#8E24AA"]}
             style={styles.gradient}
@@ -433,5 +455,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  shareButton: {
+    marginLeft: 10,
   },
 });
