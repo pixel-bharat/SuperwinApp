@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,32 +9,161 @@ import {
   SafeAreaView,
   FlatList,
   Switch,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
+  Alert,
+  ScrollView,
+} from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation, useIsFocused } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { Picker } from "@react-native-picker/picker";
+import jwtDecode from "jwt-decode";
 
 export default function RoomScreen() {
   const navigation = useNavigation();
-  const [roomID, setRoomID] = useState('');
-  const [roomName, setRoomName] = useState('');
-  const [roomType, setRoomType] = useState('up to 4 member (INR-10,000)');
+  const isFocused = useIsFocused();
+  const [userData, setUserData] = useState(null);
+  const [roomName, setRoomName] = useState("");
+  const [roomID, setRoomID] = useState("");
+  const [description, setDescription] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [recentRooms, setRecentRooms] = useState([
-    { id: '1', name: 'Room Name', roomID: 'weu347eu4', members: '10/12' },
-    { id: '2', name: 'Room Name', roomID: 'weu347eu4', members: '10/12' },
-  ]);
+  const [recentRooms, setRecentRooms] = useState([]);
+  const [roomType, setRoomType] = useState("");
+  const [token, setToken] = useState("");
+  const roomTypes = [
+    { label: "4 Members - 10,000 INR", value: "4_members_10000_inr" },
+    { label: "8 Members - 20,000 INR", value: "8_members_20000_inr" },
+    { label: "12 Members - 30,000 INR", value: "12_members_30000_inr" },
+    { label: "16 Members - 40,000 INR", value: "16_members_40000_inr" },
+  ];
 
-  const createRoom = () => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        if (token) {
+          setToken(token);
+          const response = await fetch(
+            "http://192.168.1.17:3000/api/userdata",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+
+          const data = await response.json();
+          setUserData(data);
+        } else {
+          Alert.alert("Login Failed", "Token not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving user data:", error);
+        Alert.alert("Error", error.message);
+      }
+    };
+
+    if (isFocused) {
+      fetchData();
+    }
+  }, [isFocused]);
+
+  const generateUniqueRoomID = () => {
+    const characters = "0123456789";
+    const groups = [];
+    const groupSize = 3; // Number of characters in each group
+    const delimiter = "-"; // Delimiter to separate groups
+
+    // Generate random groups of characters
+    for (let i = 0; i < groupSize * 3; i += groupSize) {
+      const group = characters
+        .slice(i, i + groupSize)
+        .split("")
+        .sort(() => 0.5 - Math.random()) // Shuffle the characters
+        .join("");
+      groups.push(group);
+    }
+
+    const formattedRoomID = `RID-${groups.join(delimiter)}`;
+    console.log("Generated Room ID:", formattedRoomID); // Log the room ID to console
+    setRoomID(formattedRoomID); // Set the generated room ID in the state
+  };
+
+  useEffect(() => {
+    generateUniqueRoomID();
+  }, []);
+
+  const createRoom = async () => {
     if (!termsAccepted) {
-      alert('You must agree to the terms and conditions to create a room.');
+      alert("You must agree to the terms and conditions to create a room.");
       return;
     }
-    // Handle room creation logic here
+
+    try {
+      const response = await fetch("http://192.168.1.17:3000/create-room", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          uid: userData ? userData.uid : null,
+          roomID: roomID,
+          roomName: roomName,
+          roomType: roomType,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create room");
+      }
+
+      const data = await response.json();
+      console.log("Room created successfully:", data);
+      navigation.navigate("ROOM", { roomID: data.roomID });
+
+      // Update the roomID state with the generated room ID
+      setRoomID(data.room.roomID);
+
+      // fetchRecentRooms();
+    } catch (error) {
+      console.error("Error creating room:", error);
+      Alert.alert("Error", error.message || "Failed to create room");
+    }
   };
 
-  const joinRoom = () => {
-    // Handle join room logic here
+  // Function to fetch the generated room ID
+
+  const joinRoom = async (item) => {
+    try {
+      const response = await fetch(
+        `http://192.168.1.17:3000/join-room/${item.roomID}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Joined Room:", data.room);
+      } else {
+        Alert.alert("Error", data.message || "Failed to join room");
+      }
+    } catch (error) {
+      console.error("Error joining room:", error);
+      Alert.alert("Error", "Failed to join room");
+    }
   };
+
+  // Generate Unique Room ID
 
   const renderItem = ({ item }) => (
     <View style={styles.roomCard}>
@@ -43,7 +172,10 @@ export default function RoomScreen() {
         <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
         <Text style={styles.roomDetails}>Members: {item.members}</Text>
       </View>
-      <TouchableOpacity style={styles.joinButton}>
+      <TouchableOpacity
+        style={styles.joinButton}
+        onPress={() => joinRoom(item)}
+      >
         <Text style={styles.joinButtonText}>Join</Text>
       </TouchableOpacity>
     </View>
@@ -51,70 +183,114 @@ export default function RoomScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
-      <Text style={styles.header}>Room</Text>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>UID (this is your UID, you cannot change this)</Text>
-        <View style={styles.inputWrapper}>
-          <Image source={require('../assets/PersonFill.png')} style={styles.icon} />
-          <Text style={styles.inputText}>45938630</Text>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <Text style={styles.header}>Room</Text>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>
+            UID (this is your UID, you cannot change this)
+          </Text>
+          <View style={styles.inputWrapper}>
+            <Image
+              source={require("../assets/PersonFill.png")}
+              style={styles.icon}
+            />
+            <Text style={styles.inputText}>
+              {userData ? userData.uid : "Loading..."}
+            </Text>
+          </View>
+
+          <View style={styles.inputWrapper}>
+            <Image
+              source={require("../assets/PersonFill.png")}
+              style={styles.icon}
+            />
+            <TextInput
+              style={[styles.input, styles.disabledInput]}
+              placeholder="Room ID"
+              placeholderTextColor="#888"
+              value={roomID}
+              onChangeText={setRoomID} // Ensure the input value can be modified (optional)
+              editable={false} // Ensure the input is not editable
+            />
+            <TouchableOpacity
+              onPress={generateUniqueRoomID}
+              style={styles.backButton}
+            >
+              <Text style={styles.label}>Room ID</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.label}>Room Name</Text>
+          <View style={styles.inputWrapper}>
+            <Image
+              source={require("../assets/PersonFill.png")}
+              style={styles.icon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Room Name"
+              placeholderTextColor="#888"
+              value={roomName}
+              onChangeText={setRoomName}
+            />
+          </View>
+          <Text style={styles.label}>Room Type</Text>
+          <View style={styles.inputWrapper}>
+            <Image
+              source={require("../assets/PersonFill.png")}
+              style={styles.icon}
+            />
+            <Picker
+              selectedValue={roomType}
+              style={styles.picker}
+              onValueChange={(itemValue) => setRoomType(itemValue)}
+            >
+              {roomTypes.map((type) => (
+                <Picker.Item
+                  key={type.value}
+                  label={type.label}
+                  value={type.value}
+                />
+              ))}
+            </Picker>
+          </View>
+
+          <View style={styles.termsContainer}>
+            <Switch
+              value={termsAccepted}
+              onValueChange={setTermsAccepted}
+              trackColor={{ false: "#767577", true: "#81b0ff" }}
+              thumbColor={termsAccepted ? "#f5dd4b" : "#f4f3f4"}
+            />
+            <Text style={styles.termsText}>
+              I agree to the Terms & Conditions
+            </Text>
+          </View>
         </View>
-        <Text style={styles.label}>Room ID</Text>
-        <View style={styles.inputWrapper}>
-          <Image source={require('../assets/PersonFill.png')} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Room ID"
-            value={roomID}
-            onChangeText={setRoomID}
-          />
-        </View>
-        <Text style={styles.label}>Room Name</Text>
-        <View style={styles.inputWrapper}>
-          <Image source={require('../assets/PersonFill.png')} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Room Name"
-            value={roomName}
-            onChangeText={setRoomName}
-          />
-        </View>
-        <Text style={styles.label}>Room Type</Text>
-        <View style={styles.inputWrapper}>
-          <Image source={require('../assets/PersonFill.png')} style={styles.icon} />
-          <Text style={styles.inputText}>{roomType}</Text>
-        </View>
-        <View style={styles.termsContainer}>
-          <Switch value={termsAccepted} onValueChange={setTermsAccepted} />
-          <Text style={styles.termsText}>I agree to the Terms & Conditions</Text>
-        </View>
-      </View>
-      <TouchableOpacity onPress={createRoom} style={styles.createRoomButton}>
-        <LinearGradient
-          colors={['#FF9800', '#F44336']}
-          style={styles.gradient}
-        >
-          <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      <Text style={styles.orText}>or</Text>
-      <TouchableOpacity onPress={joinRoom} style={styles.joinRoomButton}>
-        <LinearGradient
-          colors={['#7B1FA2', '#8E24AA']}
-          style={styles.gradient}
-        >
-          <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      <Text style={styles.recentRoomsHeader}>Recent Rooms</Text>
-      <FlatList
-        data={recentRooms}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.recentRoomsList}
-      />
+        <TouchableOpacity onPress={createRoom} style={styles.createRoomButton}>
+          <LinearGradient
+            colors={["#FF9800", "#F44336"]}
+            style={styles.gradient}
+          >
+            <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+        <Text style={styles.orText}>or</Text>
+        <TouchableOpacity onPress={joinRoom} style={styles.joinRoomButton}>
+          <LinearGradient
+            colors={["#7B1FA2", "#8E24AA"]}
+            style={styles.gradient}
+          >
+            <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+        <Text style={styles.recentRoomsHeader}>Recent Rooms</Text>
+        <FlatList
+          data={recentRooms}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.recentRoomsList}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -122,34 +298,36 @@ export default function RoomScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     paddingHorizontal: 16,
   },
   backButton: {
     marginTop: 20,
+    marginBottom: 10,
   },
   backButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 24,
   },
   header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginVertical: 20,
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 20,
   },
   inputContainer: {
     marginVertical: 20,
   },
   label: {
-    color: '#fff',
+    color: "#fff",
     marginBottom: 8,
+    fontSize: 16,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#333',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#333",
     borderRadius: 10,
     padding: 10,
     marginBottom: 16,
@@ -161,20 +339,27 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    color: '#fff',
+    color: "#fff",
+    fontSize: 16,
   },
   inputText: {
-    color: '#fff',
+    color: "#fff",
     flex: 1,
   },
+  picker: {
+    flex: 1,
+    color: "#fff",
+    backgroundColor: "#333",
+  },
   termsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 20,
   },
   termsText: {
-    color: '#fff',
+    color: "#fff",
     marginLeft: 10,
+    fontSize: 16,
   },
   createRoomButton: {
     marginVertical: 10,
@@ -185,53 +370,68 @@ const styles = StyleSheet.create({
   gradient: {
     paddingVertical: 15,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   createRoomButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   joinRoomButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   orText: {
-    color: '#fff',
-    textAlign: 'center',
+    color: "#fff",
+    textAlign: "center",
     marginVertical: 10,
+    fontSize: 16,
   },
   recentRoomsHeader: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     marginVertical: 10,
+    fontSize: 18,
   },
   recentRoomsList: {
     paddingBottom: 100,
   },
   roomCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#222',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#222",
     borderRadius: 10,
     padding: 16,
     marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   roomName: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
   },
   roomDetails: {
-    color: '#ccc',
+    color: "#ccc",
   },
   joinButton: {
-    backgroundColor: '#8E24AA',
+    backgroundColor: "#8E24AA",
     borderRadius: 10,
     padding: 10,
   },
   joinButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
