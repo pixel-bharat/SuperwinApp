@@ -12,14 +12,14 @@ import {
   Alert,
   ScrollView,
   Linking, // Import Linking module
+  FlatListComponent
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Picker } from "@react-native-picker/picker";
 import { Feather } from "@expo/vector-icons"; // Import Feather icon set
-import jwtDecode from "jwt-decode";
-
+import BASE_URL from "../backend/config/config"
 import { Share } from "react-native";
 
 export default function RoomScreen() {
@@ -47,7 +47,7 @@ export default function RoomScreen() {
         if (token) {
           setToken(token);
           const response = await fetch(
-            "http://192.168.1.17:3000/api/userdata",
+            `${BASE_URL}api/userdata`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -107,7 +107,7 @@ export default function RoomScreen() {
     }
 
     try {
-      const response = await fetch("http://192.168.1.17:3000/create-room", {
+      const response = await fetch( `${BASE_URL}create-room`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -200,8 +200,10 @@ export default function RoomScreen() {
   };
 
   return (
+    <ScrollView>
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      
+      <View contentContainerStyle={styles.scrollViewContent}>
         <Text style={styles.header}>Room</Text>
         <View style={styles.inputContainer}>
           <Text style={styles.label}>
@@ -312,8 +314,10 @@ export default function RoomScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.recentRoomsList}
         />
-      </ScrollView>
+      </View>
+
     </SafeAreaView>
+    </ScrollView>
   );
 }
 
