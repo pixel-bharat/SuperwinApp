@@ -2,179 +2,45 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   SafeAreaView,
   FlatList,
-  Switch,
-  Alert,
   ScrollView,
-  Linking, // Import Linking module
-  FlatListComponent
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { Picker } from "@react-native-picker/picker";
-import { Feather } from "@expo/vector-icons"; // Import Feather icon set
-import BASE_URL from "../backend/config/config"
-import { Share } from "react-native";
-
+import BASE_URL from "../backend/config/config";
 export default function RoomScreen() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const [userData, setUserData] = useState(null);
-  const [roomName, setRoomName] = useState("");
-  const [roomID, setRoomID] = useState("");
-  const [description, setDescription] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
   const [recentRooms, setRecentRooms] = useState([]);
-  const [roomType, setRoomType] = useState("");
-  const [token, setToken] = useState("");
-  const roomTypes = [
-    { label: "4 Members - 10,000 INR", value: "4_members_10000_inr" },
-    { label: "8 Members - 20,000 INR", value: "8_members_20000_inr" },
-    { label: "12 Members - 30,000 INR", value: "12_members_30000_inr" },
-    { label: "16 Members - 40,000 INR", value: "16_members_40000_inr" },
-  ];
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = await AsyncStorage.getItem("userToken");
-        if (token) {
-          setToken(token);
-          const response = await fetch(
-            `${BASE_URL}api/userdata`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          if (!response.ok) {
-            throw new Error("Failed to fetch user data");
-          }
-
-          const data = await response.json();
-          setUserData(data);
-        } else {
-          Alert.alert("Login Failed", "Token not found");
-        }
-      } catch (error) {
-        console.error("Error retrieving user data:", error);
-        Alert.alert("Error", error.message);
-      }
-    };
-
-    if (isFocused) {
-      fetchData();
-    }
+    // Fetch recent rooms data from the backend
+    fetchRecentRooms();
   }, [isFocused]);
 
-  const generateUniqueRoomID = () => {
-    const characters = "0123456789";
-    const groups = [];
-    const groupSize = 3; // Number of characters in each group
-    const delimiter = "-"; // Delimiter to separate groups
-
-    // Generate random groups of characters
-    for (let i = 0; i < groupSize * 3; i += groupSize) {
-      const group = characters
-        .slice(i, i + groupSize)
-        .split("")
-        .sort(() => 0.5 - Math.random()) // Shuffle the characters
-        .join("");
-      groups.push(group);
-    }
-
-    const formattedRoomID = `RID-${groups.join(delimiter)}`;
-    console.log("Generated Room ID:", formattedRoomID); // Log the room ID to console
-    setRoomID(formattedRoomID); // Set the generated room ID in the state
-  };
-
-  useEffect(() => {
-    generateUniqueRoomID();
-  }, []);
-
-  const createRoom = async () => {
-    if (!termsAccepted) {
-      alert("You must agree to the terms and conditions to create a room.");
-      return;
-    }
-
+  const fetchRecentRooms = async () => {
     try {
-      const response = await fetch( `${BASE_URL}create-room`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          uid: userData ? userData.uid : null,
-          roomID: roomID,
-          roomName: roomName,
-          roomType: roomType,
-        }),
-      });
-
+      const response = await fetch(`${BASE_URL}recent-rooms`);
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create room");
+        throw new Error("Failed to fetch recent rooms");
       }
-
       const data = await response.json();
-      console.log("Room created successfully:", data);
-      navigation.navigate("Room", { roomID: data.roomID });
-
-      // Update the roomID state with the generated room ID
-      setRoomID(data.room.roomID);
-
-      // fetchRecentRooms();
+      setRecentRooms(data);
     } catch (error) {
-      console.error("Error creating room:", error);
-      Alert.alert("Error", error.message || "Failed to create room");
+      console.error("Error fetching recent rooms:", error);
     }
   };
-
-  // Function to fetch the generated room ID
-
-  const joinRoom = async (item) => {
-    try {
-      const response = await fetch(
-        `http://192.168.1.17:3000/join-room/${item.roomID}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (response.ok) {
-        console.log("Joined Room:", data.room);
-      } else {
-        Alert.alert("Error", data.message || "Failed to join room");
-      }
-    } catch (error) {
-      console.error("Error joining room:", error);
-      Alert.alert("Error", "Failed to join room");
-    }
-  };
-
-  // Generate Unique Room ID
 
   const renderItem = ({ item }) => (
     <View style={styles.roomCard}>
       <View>
-        <Text style={styles.roomName}>{item.name}</Text>
+        <Text style={styles.roomName}>{item.roomName}</Text>
         <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
         <Text style={styles.roomDetails}>Members: {item.members}</Text>
+        <Text style={styles.roomDetails}>Role: {item.role}</Text> {/* Display role here */}
       </View>
       <TouchableOpacity
         style={styles.joinButton}
@@ -184,139 +50,49 @@ export default function RoomScreen() {
       </TouchableOpacity>
     </View>
   );
-
-  // Function to share the room
-  const shareRoom = () => {
-    if (roomID) {
-      const deepLink = `yourapp://room/${roomID}`;
-      Share.share({
-        message: `Join my room! ${deepLink}`,
-      })
-        .then((result) => console.log(result))
-        .catch((error) => console.error(error));
-    } else {
-      alert("Please generate a Room ID first.");
-    }
+  
+  const joinRoom = (room) => {
+    // Implement join room functionality
+    console.log("Joining room:", room);
   };
 
   return (
     <ScrollView>
-    <SafeAreaView style={styles.container}>
-      
-      <View contentContainerStyle={styles.scrollViewContent}>
-        <Text style={styles.header}>Room</Text>
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>
-            UID (this is your UID, you cannot change this)
-          </Text>
-          <View style={styles.inputWrapper}>
-            <Image
-              source={require("../assets/PersonFill.png")}
-              style={styles.icon}
-            />
-            <Text style={styles.inputText}>
-              {userData ? userData.uid : "Loading..."}
-            </Text>
-          </View>
-          <View style={styles.inputWrapper}>
-            <Image
-              source={require("../assets/PersonFill.png")}
-              style={styles.icon}
-            />
-            <TextInput
-              style={[styles.input, styles.disabledInput]}
-              placeholder="Room ID"
-              placeholderTextColor="#888"
-              value={roomID}
-              onChangeText={setRoomID} // Ensure the input value can be modified (optional)
-              editable={false} // Ensure the input is not editable
-            />
-            <TouchableOpacity
-              onPress={generateUniqueRoomID}
-              style={styles.backButton}
+      <SafeAreaView style={styles.container}>
+        <View contentContainerStyle={styles.scrollViewContent}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("CreateRoom")}
+            style={styles.createRoomButton}
+          >
+            <LinearGradient
+              colors={["#FF9800", "#F44336"]}
+              style={styles.gradient}
             >
-              <Text style={styles.label}>Room ID</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={shareRoom} style={styles.shareButton}>
-              <Feather name="share" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.label}>Room Name</Text>
-          <View style={styles.inputWrapper}>
-            <Image
-              source={require("../assets/PersonFill.png")}
-              style={styles.icon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Enter Room Name"
-              placeholderTextColor="#888"
-              value={roomName}
-              onChangeText={setRoomName}
-            />
-          </View>
-          <Text style={styles.label}>Room Type</Text>
-          <View style={styles.inputWrapper}>
-            <Image
-              source={require("../assets/PersonFill.png")}
-              style={styles.icon}
-            />
-            <Picker
-              selectedValue={roomType}
-              style={styles.picker}
-              onValueChange={(itemValue) => setRoomType(itemValue)}
+              <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("JoinRoom")}
+            style={styles.joinRoomButton}
+          >
+            <LinearGradient
+              colors={["#7B1FA2", "#8E24AA"]}
+              style={styles.gradient}
             >
-              {roomTypes.map((type) => (
-                <Picker.Item
-                  key={type.value}
-                  label={type.label}
-                  value={type.value}
-                />
-              ))}
-            </Picker>
-          </View>
+              <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <Text style={styles.recentRoomsHeader}>Recent Rooms</Text>
+          <FlatList
+            data={recentRooms}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
 
-          <View style={styles.termsContainer}>
-            <Switch
-              value={termsAccepted}
-              onValueChange={setTermsAccepted}
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={termsAccepted ? "#f5dd4b" : "#f4f3f4"}
-            />
-            <Text style={styles.termsText}>
-              I agree to the Terms & Conditions
-            </Text>
-          </View>
+
+            contentContainerStyle={styles.recentRoomsList}
+          />
         </View>
-        <TouchableOpacity onPress={createRoom} style={styles.createRoomButton}>
-          <LinearGradient
-            colors={["#FF9800", "#F44336"]}
-            style={styles.gradient}
-          >
-            <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => navigation.navigate("JoinRoom")}
-          style={styles.joinRoomButton}
-        >
-          <LinearGradient
-            colors={["#7B1FA2", "#8E24AA"]}
-            style={styles.gradient}
-          >
-            <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-        <Text style={styles.recentRoomsHeader}>Recent Rooms</Text>
-        <FlatList
-          data={recentRooms}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.recentRoomsList}
-        />
-      </View>
-
-    </SafeAreaView>
+      </SafeAreaView>
     </ScrollView>
   );
 }

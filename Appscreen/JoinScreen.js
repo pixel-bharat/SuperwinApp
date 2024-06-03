@@ -23,7 +23,7 @@ export default function JoinRoomScreen() {
         if (token) {
           setToken(token);
           const response = await fetch(
-            "http://192.168.1.17:3000/api/userdata",
+            `${BASE_URL}api/userdata`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -55,7 +55,7 @@ export default function JoinRoomScreen() {
         throw new Error('Please agree to the Terms & Conditions');
       }
   
-      const response = await fetch("http://192.168.1.17:3000/join-room", {
+      const response = await fetch(`${BASE_URL}join-room`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,6 +73,8 @@ export default function JoinRoomScreen() {
       // Handle success response here, if needed
       const responseData = await response.json();
       console.log('Joined room successfully:', responseData);
+      navigation.navigate('RoomUser');
+
     } catch (error) {
       console.error("Error joining room:", error);
     }

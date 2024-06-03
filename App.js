@@ -19,8 +19,8 @@ import spendMoney from "./Appscreen/spendMoney";
 import ForgetScreen from "./Appscreen/forgetScreen";
 import Room from "./Appscreen/room";
 import JoinRoomScreen from "./Appscreen/JoinScreen";
-
-
+import CreateRoom from "./Appscreen/createRoom";
+import RoomUser from "./Appscreen/roomUser";
 
 const Stack = createNativeStackNavigator();
 
@@ -137,6 +137,16 @@ function AppNavigator() {
         <Stack.Screen
           name="JoinRoom"
           component={JoinRoomScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="RoomUser"
+          component={RoomUser}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="CreateRoom"
+          component={CreateRoom}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
