@@ -61,10 +61,14 @@ export default function JoinRoomScreen() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`, // Assuming you need to send the token
         },
-        body: JSON.stringify({ roomID }),
+        body: JSON.stringify({
+          roomID,
+          roomType,
+          members: [Number(roomType.split('_')[1])], // Get the number of members from the roomType
+        }),
       });
   
-      // Check if the request was successful
+      // Check if the request was successful                        
       if (!response.ok) {
         const errorMessage = await response.text();
         throw new Error(`Failed to join room: ${errorMessage}`);
@@ -74,7 +78,7 @@ export default function JoinRoomScreen() {
       const responseData = await response.json();
       console.log('Joined room successfully:', responseData);
       navigation.navigate('RoomUser');
-
+  
     } catch (error) {
       console.error("Error joining room:", error);
     }

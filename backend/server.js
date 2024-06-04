@@ -448,18 +448,28 @@ const roomSchema = new mongoose.Schema({
   roomID: { type: String, required: true, unique: true },
   roomType: { type: String, required: true },
   roomName: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  members: { type: [String], required: true }, // Members as an array of strings
+  roles: { type: [String], required: true }, // Roles as an array of strings
 });
 
-const Room = mongoose.model("Room", roomSchema);
+const Room = mongoose.model('Room', roomSchema);
+
+
 
 // Create Room Endpoint
 // Create Room Endpoint
 // Route to create a room
 app.post("/create-room", async (req, res) => {
-  const { roomID, roomName, roomType, uid } = req.body;
+  const { roomID, roomName, roomType, uid ,members,roles} = req.body;
 
   try {
     // Check if the roomID already exists
+
+    const roles = [`${uid}:admin`];
+    const members = [uid];
+
+
     const existingRoom = await Room.findOne({ roomID });
     if (existingRoom) {
       return res.status(400).json({ message: "Room ID already exists" });
@@ -467,11 +477,12 @@ app.post("/create-room", async (req, res) => {
 
     // Create a new room
     const newRoom = new Room({
-      roomID,
-      roomName,
-      roomType,
       uid,
-      role: "admin" // Assigning the role of "admin" to the user who creates the room
+      roomID,
+      roomType,
+      roomName,
+      members,
+      roles,// Assigning the role of "admin" to the user who creates the room
     });
 
     await newRoom.save();
@@ -484,23 +495,23 @@ app.post("/create-room", async (req, res) => {
 });
 
 app.post('/join-room', async (req, res) => {
-  // Extract the room ID from the request body
-  const { roomID } = req.body;
-
   try {
-    // Find the room by ID
-    const room = await Room.findOne({ roomID });
-
-    // If the room doesn't exist, return an error
-    if (!room) {
-      return res.status(404).json({ message: "Room not found" });
+    const { roomID, roomType, members } = req.body;
+    const existingRoom = await Room.findOne({ roomID });
+    if (!existingRoom) {
+      return res.status(400).json({ message: "Room ID not found" });
     }
 
-    // Update the role of the user who joins the room to "user"
-    room.role = "user";
-    await room.save();
+    // Assign the selected member number as a member of the room
+    for (let i = 0; i < members[0]; i++) {
+      existingRoom.members.push(new mongoose.Types.ObjectId());
+    }
 
-    res.status(200).json({ message: 'Successfully joined the room', roomID });
+    // Update the role of the user who joined the room
+    existingRoom.roles.push(`${uid}:member`);
+
+    await existingRoom.save();
+    res.json({ message: "Joined room successfully" });
   } catch (error) {
     console.error("Error joining room:", error);
     res.status(500).json({ message: "Failed to join room" });
@@ -509,18 +520,18 @@ app.post('/join-room', async (req, res) => {
 
 
 // Fetch Recent Rooms Endpoint
-app.get("/recent-rooms", async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 10; // Default limit is 10
+app.get('/recent-rooms', async (req, res) => {
+  const limit = parseInt(req.query.limit, 10) || 2; // Default limit is 5
 
   try {
-    // Fetch recent rooms from the database
     const recentRooms = await Room.find().sort({ createdAt: -1 }).limit(limit);
     res.json(recentRooms);
   } catch (error) {
-    console.error("Error fetching recent rooms:", error);
-    res.status(500).json({ message: "Server error" });
+    console.error('Error fetching recent rooms:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

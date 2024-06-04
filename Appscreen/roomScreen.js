@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,14 +7,25 @@ import {
   SafeAreaView,
   FlatList,
   ScrollView,
+  RefreshControl,
 } from "react-native";
-import { useNavigation, useIsFocused } from "@react-navigation/native";
+import { useNavigation, useIsFocused, useRoute } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import BASE_URL from "../backend/config/config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function RoomScreen() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
+  const route = useRoute();
   const [recentRooms, setRecentRooms] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    const { refresh } = route.params || {};
+    if (refresh) {
+      fetchRecentRooms();
+    }
+  }, [route.params]);
 
   useEffect(() => {
     // Fetch recent rooms data from the backend
@@ -23,7 +34,12 @@ export default function RoomScreen() {
 
   const fetchRecentRooms = async () => {
     try {
-      const response = await fetch(`${BASE_URL}recent-rooms`);
+      const token = await AsyncStorage.getItem("userToken");
+      const response = await fetch(`${BASE_URL}recent-rooms`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch recent rooms");
       }
@@ -33,31 +49,71 @@ export default function RoomScreen() {
       console.error("Error fetching recent rooms:", error);
     }
   };
-
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchRecentRooms().then(() => setRefreshing(false));
+  }, []);
   const renderItem = ({ item }) => (
     <View style={styles.roomCard}>
       <View>
         <Text style={styles.roomName}>{item.roomName}</Text>
         <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
-        <Text style={styles.roomDetails}>Members: {item.members}</Text>
-        <Text style={styles.roomDetails}>Role: {item.role}</Text> {/* Display role here */}
+        <Text style={styles.roomDetails}>
+          Members: {item.members.join(", ")}
+        </Text>
+        <Text style={styles.roomDetails}>Roles: {item.roles.join(", ")}</Text>
       </View>
       <TouchableOpacity
         style={styles.joinButton}
         onPress={() => joinRoom(item)}
+        
       >
         <Text style={styles.joinButtonText}>Join</Text>
       </TouchableOpacity>
     </View>
   );
+
+  const joinRoom = async () => {
+    try {
+      if (!isChecked) {
+        throw new Error('Please agree to the Terms & Conditions');
+      }
   
-  const joinRoom = (room) => {
-    // Implement join room functionality
-    console.log("Joining room:", room);
+      const response = await fetch(`${BASE_URL}join-room`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, // Assuming you need to send the token
+        },
+        body: JSON.stringify({
+          roomID,
+          roomType,
+          members: [Number(roomType.split('_')[1])], // Get the number of members from the roomType
+        }),
+      });
+  
+      // Check if the request was successful                        
+      if (!response.ok) {
+        const errorMessage = await response.text();
+        throw new Error(`Failed to join room: ${errorMessage}`);
+      }
+  
+      // Handle success response here, if needed
+      const responseData = await response.json();
+      console.log('Joined room successfully:', responseData);
+      navigation.navigate('RoomUser');
+  
+    } catch (error) {
+      console.error("Error joining room:", error);
+    }
   };
 
   return (
-    <ScrollView>
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <SafeAreaView style={styles.container}>
         <View contentContainerStyle={styles.scrollViewContent}>
           <TouchableOpacity
@@ -87,8 +143,6 @@ export default function RoomScreen() {
             data={recentRooms}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
-
-
             contentContainerStyle={styles.recentRoomsList}
           />
         </View>

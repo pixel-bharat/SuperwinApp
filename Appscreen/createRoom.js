@@ -112,6 +112,8 @@ export default function RoomScreen() {
     }
 
     try {
+      const members = parseInt(roomType.split("_")[0]);
+
       const response = await fetch(`${BASE_URL}create-room`, {
         method: "POST",
         headers: {
@@ -123,6 +125,7 @@ export default function RoomScreen() {
           roomID: roomID,
           roomName: roomName,
           roomType: roomType,
+          members: members,
         }),
       });
 
