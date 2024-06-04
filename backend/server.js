@@ -467,7 +467,7 @@ app.post("/create-room", async (req, res) => {
     // Check if the roomID already exists
 
     const roles = [`${uid}:admin`];
-    const members = [uid];
+    const members = [`${roomType}`];
 
 
     const existingRoom = await Room.findOne({ roomID });
@@ -496,16 +496,14 @@ app.post("/create-room", async (req, res) => {
 
 app.post('/join-room', async (req, res) => {
   try {
-    const { roomID, roomType, members } = req.body;
+    const { uid, roomID } = req.body;
     const existingRoom = await Room.findOne({ roomID });
     if (!existingRoom) {
       return res.status(400).json({ message: "Room ID not found" });
     }
 
-    // Assign the selected member number as a member of the room
-    for (let i = 0; i < members[0]; i++) {
-      existingRoom.members.push(new mongoose.Types.ObjectId());
-    }
+    // Assign the user to the room
+    existingRoom.members.push(`${uid}`);
 
     // Update the role of the user who joined the room
     existingRoom.roles.push(`${uid}:member`);

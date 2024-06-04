@@ -16,6 +16,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function RoomScreen() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
+  const [isChecked, setIsChecked] = useState(false);
   const route = useRoute();
   const [recentRooms, setRecentRooms] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -73,7 +74,7 @@ export default function RoomScreen() {
     </View>
   );
 
-  const joinRoom = async () => {
+   const joinRoom = async () => {
     try {
       if (!isChecked) {
         throw new Error('Please agree to the Terms & Conditions');

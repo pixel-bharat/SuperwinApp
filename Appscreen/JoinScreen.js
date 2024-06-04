@@ -12,6 +12,7 @@ export default function JoinRoomScreen() {
   const isFocused = useIsFocused();
   const navigation = useNavigation();
   const [token, setToken] = useState("");
+  const[roomType,setRoomType]=useState("")
   const toggleCheckbox = () => {
     setChecked(!isChecked);
   };
@@ -61,11 +62,7 @@ export default function JoinRoomScreen() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`, // Assuming you need to send the token
         },
-        body: JSON.stringify({
-          roomID,
-          roomType,
-          members: [Number(roomType.split('_')[1])], // Get the number of members from the roomType
-        }),
+        body: JSON.stringify({ roomID }),
       });
   
       // Check if the request was successful                        
@@ -78,7 +75,7 @@ export default function JoinRoomScreen() {
       const responseData = await response.json();
       console.log('Joined room successfully:', responseData);
       navigation.navigate('RoomUser');
-  
+
     } catch (error) {
       console.error("Error joining room:", error);
     }
