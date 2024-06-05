@@ -74,40 +74,36 @@ export default function RoomScreen() {
     </View>
   );
 
-   const joinRoom = async () => {
+  const joinRoom = async (item) => {
+    if (!termsAccepted) {
+      alert("You must agree to the terms and conditions to join a room.");
+      return;
+    }
+  
     try {
-      if (!isChecked) {
-        throw new Error('Please agree to the Terms & Conditions');
+      const response = await fetch(
+        `${BASE_URL}join-room/${item.roomID}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Joined Room:", data.room);
+      } else {
+        Alert.alert("Error", data.message || "Failed to join room");
       }
-  
-      const response = await fetch(`${BASE_URL}join-room`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`, // Assuming you need to send the token
-        },
-        body: JSON.stringify({
-          roomID,
-          roomType,
-          members: [Number(roomType.split('_')[1])], // Get the number of members from the roomType
-        }),
-      });
-  
-      // Check if the request was successful                        
-      if (!response.ok) {
-        const errorMessage = await response.text();
-        throw new Error(`Failed to join room: ${errorMessage}`);
-      }
-  
-      // Handle success response here, if needed
-      const responseData = await response.json();
-      console.log('Joined room successfully:', responseData);
-      navigation.navigate('RoomUser');
-  
     } catch (error) {
       console.error("Error joining room:", error);
+      Alert.alert("Error", "Failed to join room");
     }
   };
+  
 
   return (
     <ScrollView
