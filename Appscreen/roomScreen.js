@@ -40,7 +40,8 @@ export default function RoomScreen() {
         <Text style={styles.roomName}>{item.roomName}</Text>
         <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
         <Text style={styles.roomDetails}>Members: {item.members}</Text>
-        <Text style={styles.roomDetails}>Role: {item.role}</Text> {/* Display role here */}
+        <Text style={styles.roomDetails}>Role: {item.role}</Text>
+        {/* Display role here */}
       </View>
       <TouchableOpacity
         style={styles.joinButton}
@@ -50,7 +51,7 @@ export default function RoomScreen() {
       </TouchableOpacity>
     </View>
   );
-  
+
   const joinRoom = (room) => {
     // Implement join room functionality
     console.log("Joining room:", room);
@@ -87,8 +88,6 @@ export default function RoomScreen() {
             data={recentRooms}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
-
-
             contentContainerStyle={styles.recentRoomsList}
           />
         </View>

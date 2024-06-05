@@ -1,13 +1,20 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Icon from 'react-native-vector-icons/Ionicons';
+import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  FlatList,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import Icon from "react-native-vector-icons/Ionicons";
 
 const games = [
-  { id: '1', name: 'Aviator', image: require('../assets/scrabble.png') },
-  { id: '2', name: 'Spin for Cash', image: require('../assets/scrabble.png') },
-  { id: '3', name: 'Scrabble', image: require('../assets/scrabble.png') },
-  { id: '4', name: 'Warzone', image: require('../assets/scrabble.png') },
+  { id: "1", name: "Aviator", image: require("../assets/scrabble.png") },
+  { id: "2", name: "Spin for Cash", image: require("../assets/scrabble.png") },
+  { id: "3", name: "Scrabble", image: require("../assets/scrabble.png") },
+  { id: "4", name: "Warzone", image: require("../assets/scrabble.png") },
 ];
 
 const Room = () => {
@@ -55,11 +62,10 @@ const Room = () => {
       <FlatList
         data={games}
         renderItem={renderItem}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         numColumns={2}
         style={styles.gamesList}
       />
-  
     </View>
   );
 };
@@ -67,61 +73,61 @@ const Room = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     paddingHorizontal: 20,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginVertical: 10,
   },
   headerTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 20,
     marginLeft: 10,
   },
   balanceContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 20,
   },
   balanceTitle: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
   },
   balanceAmount: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 32,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   mainWalletBalance: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
   },
   mainWalletAmount: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   actionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     marginVertical: 20,
   },
   actionButton: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   actionText: {
-    color: '#fff',
+    color: "#fff",
     marginTop: 5,
   },
   membersContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginVertical: 10,
   },
   membersText: {
-    color: '#fff',
+    color: "#fff",
     marginLeft: 10,
   },
   gamesList: {
@@ -129,24 +135,24 @@ const styles = StyleSheet.create({
   },
   gameItem: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     margin: 10,
   },
   gameImage: {
     width: 100,
     height: 100,
-    resizeMode: 'contain',
+    resizeMode: "contain",
   },
   gameName: {
-    color: '#fff',
+    color: "#fff",
     marginTop: 10,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    justifyContent: "space-around",
     paddingVertical: 20,
     borderTopWidth: 1,
-    borderTopColor: '#fff',
+    borderTopColor: "#fff",
   },
 });
 
