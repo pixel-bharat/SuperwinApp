@@ -8,93 +8,108 @@ import {
   FlatList,
   ScrollView,
   RefreshControl,
+  Alert,
 } from "react-native";
-import { useNavigation, useIsFocused, useRoute } from "@react-navigation/native";
+import {
+  useNavigation,
+  useIsFocused,
+  useRoute,
+} from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import BASE_URL from "../backend/config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import BASE_URL from "../backend/config/config";
+
 export default function RoomScreen() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
-  const [isChecked, setIsChecked] = useState(false);
   const route = useRoute();
   const [recentRooms, setRecentRooms] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [token, setToken] = useState("");
+  const [uid, setUid] = useState("");
 
   useEffect(() => {
-    const { refresh } = route.params || {};
-    if (refresh) {
+    const fetchData = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("userToken");
+        const storedUid = await AsyncStorage.getItem("userUID");
+
+        if (storedToken && storedUid) {
+          setToken(storedToken);
+          setUid(storedUid);
+        } else {
+          console.log("Token or UID not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving token or UID:", error);
+      }
+    };
+
+    if (isFocused) {
+      fetchData();
       fetchRecentRooms();
     }
-  }, [route.params]);
-
-  useEffect(() => {
-    // Fetch recent rooms data from the backend
-    fetchRecentRooms();
   }, [isFocused]);
 
   const fetchRecentRooms = async () => {
     try {
-      const token = await AsyncStorage.getItem("userToken");
-      const response = await fetch(`${BASE_URL}recent-rooms`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch recent rooms");
+      const storedToken = await AsyncStorage.getItem("userToken");
+      const storedUid = await AsyncStorage.getItem("userUID");
+
+      if (storedToken) {
+        const response = await fetch(`${BASE_URL}recent-rooms`, {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch recent rooms");
+        }
+
+        const data = await response.json();
+        setRecentRooms(data);
+      } else {
+        console.log("Token not found");
       }
-      const data = await response.json();
-      setRecentRooms(data);
     } catch (error) {
       console.error("Error fetching recent rooms:", error);
+      Alert.alert("Error", "Failed to fetch recent rooms");
     }
   };
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchRecentRooms().then(() => setRefreshing(false));
   }, []);
-  const renderItem = ({ item }) => (
-    <View style={styles.roomCard}>
-      <View>
-        <Text style={styles.roomName}>{item.roomName}</Text>
-        <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
-        <Text style={styles.roomDetails}>
-          Members: {item.members.join(", ")}
-        </Text>
-        <Text style={styles.roomDetails}>Roles: {item.roles.join(", ")}</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.joinButton}
-        onPress={() => joinRoom(item)}
-        
-      >
-        <Text style={styles.joinButtonText}>Join</Text>
-      </TouchableOpacity>
-    </View>
-  );
 
   const joinRoom = async (item) => {
-    if (!termsAccepted) {
-      alert("You must agree to the terms and conditions to join a room.");
-      return;
-    }
-  
     try {
-      const response = await fetch(
-        `${BASE_URL}join-room/${item.roomID}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-  
+      const storedToken = await AsyncStorage.getItem("userToken");
+
+      const response = await fetch(`${BASE_URL}join-room`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${storedToken}`,
+        },
+        body: JSON.stringify({ roomID: item.roomID }),
+      });
+
       const data = await response.json();
       if (response.ok) {
-        console.log("Joined Room:", data.room);
+        console.log("Joined Room:", data.existingRoom);
+        navigation.navigate("RoomUser");
+
+        // Update recent rooms with joined room data
+        setRecentRooms((prevRooms) =>
+          prevRooms.map((room) =>
+            room.roomID === item.roomID ? data.existingRoom : room
+          )
+        );
+
+        // Fetch recent rooms again to ensure data is up-to-date
+        fetchRecentRooms();
       } else {
         Alert.alert("Error", data.message || "Failed to join room");
       }
@@ -103,7 +118,24 @@ export default function RoomScreen() {
       Alert.alert("Error", "Failed to join room");
     }
   };
-  
+
+  const renderItem = ({ item }) => (
+    <View style={styles.roomCard}>
+      <View>
+        <Text style={styles.roomName}>{item.roomName}</Text>
+        <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
+        <Text style={styles.roomDetails}>Members: {item.members[0]}</Text>
+        {/* Show only the members count */}
+        <Text style={styles.roomDetails}>Roles: {item.roles.join(", ")}</Text>
+      </View>
+      <TouchableOpacity
+        style={styles.joinButton}
+        onPress={() => joinRoom(item)}
+      >
+        <Text style={styles.joinButtonText}>Join</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <ScrollView
@@ -154,66 +186,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     paddingHorizontal: 16,
   },
-  backButton: {
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  backButtonText: {
-    color: "#fff",
-    fontSize: 24,
-  },
-  header: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  inputContainer: {
-    marginVertical: 20,
-  },
-  label: {
-    color: "#fff",
-    marginBottom: 8,
-    fontSize: 16,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#333",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 16,
-  },
-  icon: {
-    width: 24,
-    height: 24,
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    color: "#fff",
-    fontSize: 16,
-  },
-  inputText: {
-    color: "#fff",
-    flex: 1,
-  },
-  picker: {
-    flex: 1,
-    color: "#fff",
-    backgroundColor: "#333",
-  },
-  termsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  termsText: {
-    color: "#fff",
-    marginLeft: 10,
-    fontSize: 16,
-  },
   createRoomButton: {
     marginVertical: 10,
   },
@@ -238,12 +210,6 @@ const styles = StyleSheet.create({
   joinRoomButtonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
-  },
-  orText: {
-    color: "#fff",
-    textAlign: "center",
-    marginVertical: 10,
     fontSize: 16,
   },
   recentRoomsHeader: {
@@ -286,8 +252,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
-  },
-  shareButton: {
-    marginLeft: 10,
   },
 });

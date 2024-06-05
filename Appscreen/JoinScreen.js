@@ -5,9 +5,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  
 } from "react-native";
-import { Alert, Button } from 'react-native';
+import { Alert, Button } from "react-native";
 import { Ionicons } from "@expo/vector-icons"; // Import Ionicons from Expo for the checkmark icon
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -27,6 +26,7 @@ export default function JoinRoomScreen() {
   };
 
   useEffect(() => {
+    console.log(roomID);
     const fetchData = async () => {
       try {
         const token = await AsyncStorage.getItem("userToken");
@@ -55,22 +55,24 @@ export default function JoinRoomScreen() {
       fetchData();
     }
   }, [isFocused]);
+
   const joinRoom = async (item) => {
+
     try {
+      const token = await AsyncStorage.getItem("userToken");
       const response = await fetch(`${BASE_URL}join-room`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ roomID }),
+        body: JSON.stringify({ roomID: roomID }),
       });
 
       const data = await response.json();
       if (response.ok) {
         console.log("Joined Room:", data.room);
-        navigation.navigate('RoomUser');
-
+        navigation.navigate("RoomUser");
 
         // Update recent rooms with joined room data
         setRecentRooms((prevRooms) =>

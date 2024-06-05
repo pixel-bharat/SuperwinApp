@@ -444,7 +444,7 @@ app.get("/api/userdata", authenticateToken, async (req, res) => {
 // User Data Endpoint
 
 const roomSchema = new mongoose.Schema({
-  uid:{type:String,required:true,unique:true},
+  uid: { type: String, required: true, unique: true },
   roomID: { type: String, required: true, unique: true },
   roomType: { type: String, required: true },
   roomName: { type: String, required: true },
@@ -494,37 +494,46 @@ app.post("/create-room", async (req, res) => {
 const joinedUserSchema = new mongoose.Schema({
   uid: String,
   rid: mongoose.Schema.Types.ObjectId, // Assuming rid is the ObjectId of the room
-  joinedAt: { type: Date, default: Date.now }
+  joinedAt: { type: Date, default: Date.now },
 });
 
-const JoinedUser = mongoose.model('JoinedUser', joinedUserSchema);
+const JoinedUser = mongoose.model("JoinedUser", joinedUserSchema);
 
-app.post("/join-room", async (req, res) => {
+app.post("/join-room", authenticateToken, async (req, res) => {
   try {
-    const { uid, roomID } = req.body;
+    const { roomID } = req.body;
+    const uid = req.user.userId;
+    console.log(roomID);
+    console.log(uid);
     const existingRoom = await Room.findOne({ roomID });
-
+    
     if (!existingRoom) {
       return res.status(400).json({ message: "Room ID not found" });
     }
+  
 
-    // Assign the user to the room
-    existingRoom.members.push(uid);
-
-    // Update the role of the user who joined the room
+    let [currentMembers, totalMembers] =  existingRoom .members[0].split("/").map(Number);
+    if ( existingRoom.members.includes(uid)) {
+      return res.status(400).json({ message: "User is already a member of the room" });
+    }
+    currentMembers += 1;
+   existingRoom.members[0] = `${currentMembers}/${totalMembers}`;
+  
     existingRoom.roles.push(`${uid}:member`);
+ 
 
     await existingRoom.save();
 
-    // Create a new JoinedUser document
-    const joinedUser = new JoinedUser({
-      uid: uid,
-      rid: existingRoom._id // Assuming _id is the unique identifier for rooms
-    });
+    await User.updateOne(
+      { uid },
+      {
+        $addToSet: { rooms: roomID }
+      }
+    );
 
-    await joinedUser.save();
 
-    res.json({ message: "Joined room successfully", room: existingRoom }); // Send the room object along with the message
+   
+    res.json({ message: "Joined room successfully", existingRoom }); // Send the room object along with the message
   } catch (error) {
     console.error("Error joining room:", error);
     res.status(500).json({ message: "Failed to join room" });
@@ -533,17 +542,19 @@ app.post("/join-room", async (req, res) => {
 
 // Fetch Recent Rooms Endpoint
 app.get("/recent-rooms", authenticateToken, async (req, res) => {
-  const limit = parseInt(req.query.limit, 10) || 2; // Default limit is 5
+  // const limit = parseInt(req.query.limit, 10) || 2; // Default limit is 5
 
-    try {
+  try {
     const user = await User.findOne({ uniqueId: req.user.userId });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // Fetch rooms created by the user
-    const recentRooms = await Room.find({ uid: user.uniqueId }).sort({ createdAt: -1 });
-    
+    const recentRooms = await Room.find({ uid: user.uniqueId }).sort({
+      createdAt: -1,
+    });
+
     res.json(recentRooms);
   } catch (error) {
     console.error("Error fetching recent rooms:", error);
@@ -553,7 +564,7 @@ app.get("/recent-rooms", authenticateToken, async (req, res) => {
 // app.get("/recent-rooms/:uid", async (req, res) => {
 //   try {
 //     const { uid } = req.params;
-    
+
 //     // Find recent rooms belonging to the user with the provided UID
 //     const recentRooms = await Room.find({ uid }).sort({ createdAt: -1 }).limit(1);
 
@@ -563,7 +574,6 @@ app.get("/recent-rooms", authenticateToken, async (req, res) => {
 //     res.status(500).json({ message: "Failed to fetch recent rooms" });
 //   }
 // });
-
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
