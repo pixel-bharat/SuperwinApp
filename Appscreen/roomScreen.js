@@ -35,6 +35,7 @@ export default function RoomScreen() {
         const storedUid = await AsyncStorage.getItem("userUID");
 
         if (storedToken && storedUid) {
+          console.log("Token and UID found", storedToken, storedUid);
           setToken(storedToken);
           setUid(storedUid);
         } else {
@@ -57,6 +58,7 @@ export default function RoomScreen() {
       const storedUid = await AsyncStorage.getItem("userUID");
 
       if (storedToken) {
+        console.log("Fetching recent rooms with token", storedToken); // Debugging line
         const response = await fetch(`${BASE_URL}recent-rooms`, {
           headers: {
             Authorization: `Bearer ${storedToken}`,

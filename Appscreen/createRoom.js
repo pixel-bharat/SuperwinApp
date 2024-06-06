@@ -122,7 +122,7 @@ const createRoom = async () => {
     let newRoomID;
 
     do {
-      generateUniqueRoomID(); // Generate a new room ID
+    //  generateUniqueRoomID(); // Generate a new room ID
       newRoomID = roomID;
 
       // Check if the room ID already exists
@@ -140,10 +140,14 @@ const createRoom = async () => {
           members: members,
         }),
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         // Retry the process if room ID already exists
+        if (errorData.message === "Room ID already exists") {
+          console.log("Room ID already exists, retrying...");
+        } else {
+          throw new Error(errorData.message || "Failed to create room");
+        }
       } else {
         data = await response.json();
       }
@@ -151,13 +155,11 @@ const createRoom = async () => {
 
     console.log("Room created successfully:", data);
     navigation.navigate("Room", { roomID: data.roomID });
-    setRoomID(data.room.roomID);
   } catch (error) {
     console.error("Error creating room:", error);
-    Alert.alert("Error", error.message || "Failed to create room");
+    Alert.alert("Error Creating Room", error.message || "Failed to create room");
   }
 };
-
   // Function to fetch the generated room ID
 
  
