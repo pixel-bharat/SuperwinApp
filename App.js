@@ -24,6 +24,8 @@ import RoomUser from "./Appscreen/roomUser";
 import BankDetailsScreen from "./Appscreen/bankDetailsScreen";
 import AddBankDetails from "./Appscreen/addBankDetails";
 import SupportScreen from "./Appscreen/supportScreen";
+import SettingScreen from "./Appscreen/settingScreen";
+
 
 const Stack = createNativeStackNavigator();
 
@@ -62,8 +64,8 @@ function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator
-      // initialRouteName="supportScreen"
-      initialRouteName={isAuthenticated ? "nav" : "Start"}
+        // initialRouteName="settingScreen"
+        initialRouteName={isAuthenticated ? "nav" : "Start"}
       >
         <Stack.Screen
           name="Start"
@@ -165,11 +167,17 @@ function AppNavigator() {
           component={AddBankDetails}
           options={{ headerShown: false }}
         />
-            <Stack.Screen
+        <Stack.Screen
           name="supportScreen"
           component={SupportScreen}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="settingScreen"
+          component={SettingScreen}
+          options={{ headerShown: false }}
+        />
+       
       </Stack.Navigator>
     </NavigationContainer>
   );

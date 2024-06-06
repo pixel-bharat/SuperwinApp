@@ -11,6 +11,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { BackgroundImage } from "react-native-elements/dist/config";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
@@ -44,8 +45,6 @@ export default function ProfileSetupPage() {
     }
   }, [route.params]);
 
-
-
   const loadUserData = async () => {
     try {
       const phoneNumber = await AsyncStorage.getItem("phoneNumber");
@@ -68,19 +67,19 @@ export default function ProfileSetupPage() {
   const saveProfile = async () => {
     setNameError("");
     setAvatarError("");
-  
+
     // if (!userData.memberName) {
     //   setNameError("Name is required.");
     // }
-  
+
     // if (!userData.avatar) {
     //   setAvatarError("Avatar selection is required.");
     // }
-  
+
     // if (!userData.memberName || !userData.avatar) {
     //   return;
     // }
-  
+
     setIsLoading(true);
     try {
       const response = await axios.post(`${BASE_URL}avatar`, userData, {
@@ -88,9 +87,9 @@ export default function ProfileSetupPage() {
           "Content-Type": "application/json",
         },
       });
-  
+
       await AsyncStorage.setItem("userToken", response.data.token);
-  
+
       Alert.alert("Profile saved successfully!");
       navigation.navigate("nav");
     } catch (error) {
@@ -101,11 +100,17 @@ export default function ProfileSetupPage() {
         console.error("Error response data:", error.response.data);
         console.error("Error response status:", error.response.status);
         console.error("Error response headers:", error.response.headers);
-        Alert.alert("Error", `Error saving profile: ${error.response.data.message}`);
+        Alert.alert(
+          "Error",
+          `Error saving profile: ${error.response.data.message}`
+        );
       } else if (error.request) {
         // The request was made but no response was received
         console.error("Error request:", error.request);
-        Alert.alert("Error", "No response from server. Please try again later.");
+        Alert.alert(
+          "Error",
+          "No response from server. Please try again later."
+        );
       } else {
         // Something happened in setting up the request that triggered an Error
         console.error("Error message:", error.message);
@@ -115,7 +120,6 @@ export default function ProfileSetupPage() {
       setIsLoading(false);
     }
   };
-  
 
   const avatars = {
     avatar1: require("../assets/avatar/avatar_1.png"),
@@ -146,34 +150,41 @@ export default function ProfileSetupPage() {
 
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <ImageBackground
+      <BackgroundImage
+        source={require("../assets/bankbackground.png")}
+        style={styles.backgroundImage}
+      ></BackgroundImage>
+
+      <ScrollView style={styles.in_cont}>
+        {/* <ImageBackground
           source={require("../assets/dashboardbg.png")}
           resizeMode="cover"
           style={styles.backgroundImage}
-        >
+        > */}
+        <View>
           <View style={styles.scrollViewContent}>
-            <Text style={styles.title}>Setup Your Profile</Text>
             <View style={styles.inputContainer}>
+              <View style={styles.headingCnt}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                  <Image
+                    source={require("../assets/back.png")}
+                    style={styles.backButton}
+                  />
+                </TouchableOpacity>
+
+                <Text style={styles.mainHeading}>Setup your Profile</Text>
+              </View>
               <Text style={styles.label}>Phone Number:</Text>
-              <TextInput
-                placeholder="Phone Number"
-                placeholderTextColor="#aaa"
-                value={userData.phoneNumber}
-                style={styles.input_disabled}
-                disabled
-              />
+              <View style={styles.input_disabled}>
+                <Text style={styles.centerText}>Phone Number</Text>
+              </View>
             </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.label}>UID:</Text>
-              <TextInput
-                placeholder="Enter your name"
-                placeholderTextColor="#aaa"
-                value={userData.uid}
-                style={styles.input_disabled}
-                disabled
-              />
+              <View style={styles.input_disabled}>
+                <Text style={styles.centerText}>Uid</Text>
+              </View>
             </View>
             <View style={styles.inputContainer}>
               <Text style={styles.label}>Name:</Text>
@@ -248,7 +259,8 @@ export default function ProfileSetupPage() {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        </ImageBackground>
+          {/* </ImageBackground> */}
+        </View>
       </ScrollView>
     </View>
   );
@@ -258,20 +270,42 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
-    justifyContent: "center",
+    // justifyContent: "center",
   },
   backgroundImage: {
-    flex: 1,
-    justifyContent: "center",
-    resizeMode: "contain",
+    position: "absolute",
+    height: "50%",
     width: "100%",
+    resizeMode: "contain",
   },
+  // backgroundImage: {
+  //   flex: 1,
+  //   justifyContent: "center",
+  //   resizeMode: "contain",
+  //   width: "100%",
+  // },
+  in_cont: {},
   scrollViewContent: {
     flex: 1,
     justifyContent: "center",
     padding: 20,
     alignItems: "center",
     width: "100%",
+  },
+  headingCnt: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 33,
+  },
+  mainHeading: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "600",
+    paddingHorizontal: "20%",
+  },
+  backButton: {
+    height: 24,
+    width: 24,
   },
   title: {
     fontSize: 24,
@@ -294,7 +328,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     fontSize: 16,
-    height:60
+    height: 60,
   },
   input_disabled: {
     backgroundColor: "#fff2",
@@ -302,7 +336,11 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     fontSize: 16,
-    height:60
+    height: 60,
+    justifyContent: "center",
+  },
+  centerText: {
+    color: "rgba(158, 158, 158, 1)",
   },
   errorText: {
     color: "red",
@@ -326,7 +364,7 @@ const styles = StyleSheet.create({
   selectedAvatar: {
     borderColor: "#A903D2", // Border color for selected avatar
     borderWidth: 4, // Add border width to make the border visible
-},
+  },
   saveButton: {
     height: 60,
     justifyContent: "center",

@@ -184,7 +184,7 @@ export default function ProfileScreen() {
               <Text style={styles.menu_text}>Bank Details setup</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menu}
-           
+             onPress={() => navigation.navigate("settingScreen")}
             >
               <Image
                 style={styles.menu_icon}

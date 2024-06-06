@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   headingCnt: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 16,
+marginBottom:16,
   },
   mainHeading: {
     color: "white",
