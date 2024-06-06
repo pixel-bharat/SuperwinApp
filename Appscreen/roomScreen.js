@@ -18,6 +18,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backend/config/config";
+
 export default function RoomScreen() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
@@ -27,11 +28,13 @@ export default function RoomScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [token, setToken] = useState("");
   const [uid, setUid] = useState("");
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const storedToken = await AsyncStorage.getItem("userToken");
         const storedUid = await AsyncStorage.getItem("userUID");
+
         if (storedToken && storedUid) {
           console.log("Token and UID found", storedToken, storedUid);
           setToken(storedToken);
@@ -43,16 +46,19 @@ export default function RoomScreen() {
         console.error("Error retrieving token or UID:", error);
       }
     };
+
     if (isFocused) {
       fetchData();
       fetchRecentRooms();
       fetchMemberRooms();
     }
   }, [isFocused]);
+
   const fetchRecentRooms = async () => {
     try {
       const storedToken = await AsyncStorage.getItem("userToken");
       const storedUid = await AsyncStorage.getItem("userUID");
+
       if (storedToken) {
         console.log("Fetching recent rooms with token", storedToken); // Debugging line
         const response = await fetch(`${BASE_URL}admin-rooms`, {
@@ -60,11 +66,15 @@ export default function RoomScreen() {
             Authorization: `Bearer ${storedToken}`,
           },
         });
+
         if (!response.ok) {
           throw new Error("Failed to fetch recent rooms");
         }
-        const data = await response.json();
-        setRecentRooms(data);
+
+        const responseData = await response.json();
+        console.log("Recent rooms fetched", responseData);
+        setRecentRooms(responseData); // Assuming the rooms data is in the 'data' property of the response
+      //  setMessage(responseData.message); // Assuming the message is included in the response
       } else {
         console.log("Token not found");
       }
@@ -73,22 +83,26 @@ export default function RoomScreen() {
       Alert.alert("Error", "Failed to fetch recent rooms");
     }
   };
+
   const fetchMemberRooms = async () => {
     try {
       const storedToken = await AsyncStorage.getItem("userToken");
-      const storedUid = await AsyncStorage.getItem("userUID");
+  
       if (storedToken) {
-        console.log("Fetching recent rooms with token", storedToken); // Debugging line
+        console.log("Fetching recent rooms with token", storedToken);
         const response = await fetch(`${BASE_URL}member-rooms`, {
           headers: {
             Authorization: `Bearer ${storedToken}`,
           },
         });
+  
         if (!response.ok) {
           throw new Error("Failed to fetch recent rooms");
         }
-        const data = await response.json();
-        setmemberRooms(data);
+  
+        const responseData = await response.json();
+        setmemberRooms(responseData); // Assuming the rooms data is in the 'data' property of the response
+       // setMessage(responseData.message); // Assuming the message is included in the response
       } else {
         console.log("Token not found");
       }
@@ -99,11 +113,16 @@ export default function RoomScreen() {
   };
   const onRefresh = useCallback(() => {
     setRefreshing(true);
-    fetchRecentRooms().then(() => setRefreshing(false));
+    fetchMemberRooms().then(() => setRefreshing(false));
   }, []);
+  
+
+
+
   const joinRoom = async (item) => {
     try {
       const storedToken = await AsyncStorage.getItem("userToken");
+
       const response = await fetch(`${BASE_URL}join-room`, {
         method: "POST",
         headers: {
@@ -112,16 +131,19 @@ export default function RoomScreen() {
         },
         body: JSON.stringify({ roomID: item.roomID }),
       });
+
       const data = await response.json();
       if (response.ok) {
         console.log("Joined Room:", data.existingRoom);
         navigation.navigate("RoomUser");
+
         // Update recent rooms with joined room data
         setRecentRooms((prevRooms) =>
           prevRooms.map((room) =>
             room.roomID === item.roomID ? data.existingRoom : room
           )
         );
+
         // Fetch recent rooms again to ensure data is up-to-date
         fetchRecentRooms();
       } else {
@@ -132,23 +154,31 @@ export default function RoomScreen() {
       Alert.alert("Error", "Failed to join room");
     }
   };
-  const renderItem = ({ item }) => (
-    <View style={styles.roomCard}>
-      <View>
-        <Text style={styles.roomName}>{item.roomName}</Text>
-        <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
-        <Text style={styles.roomDetails}>Count: {item.membercount}</Text>
-        {/* Show only the members count */}
-        <Text style={styles.roomDetails}>Members: {item.members.join(", ")}</Text>
-      </View>
-      <TouchableOpacity
-        style={styles.joinButton}
-        onPress={() => joinRoom(item)}
-      >
-        <Text style={styles.joinButtonText}>Join</Text>
-      </TouchableOpacity>
+
+const renderItem = ({ item }) => (
+  <View style={styles.roomCard}>
+    <View>
+      <Text style={styles.roomName}>{item.roomName}</Text>
+      <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
+      <Text style={styles.roomDetails}>Count: {item.membercount}</Text>
+      <Text style={styles.roomDetails}>Role: {item.role}</Text>
+      {/* <Text style={styles.roomDetails}>Members: {item.members.join(", ")}</Text> */}
     </View>
-  );
+    <TouchableOpacity
+      style={styles.joinButton}
+      onPress={() => {
+        if (item.navigate) {
+          navigation.navigate(item.navigate, { roomID: item.roomID }); // Pass roomID as a parameter
+        } else {
+          console.warn("Navigate property is not set for this item");
+        }
+      }}
+    >
+      <Text style={styles.joinButtonText}>Join</Text>
+    </TouchableOpacity>
+  </View>
+);
+
   return (
     <ScrollView
       refreshControl={
@@ -191,13 +221,14 @@ export default function RoomScreen() {
             data={memberRooms}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.recentRoomsList}
+            contentContainerStyle={styles.joinedRoomsList}
           />
         </View>
       </SafeAreaView>
     </ScrollView>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -237,6 +268,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   recentRoomsList: {
+    paddingBottom: 20,
+  },
+  joinedRoomsList: {
     paddingBottom: 100,
   },
   roomCard: {
@@ -272,21 +306,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

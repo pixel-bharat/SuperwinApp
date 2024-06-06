@@ -122,7 +122,7 @@ const createRoom = async () => {
     let newRoomID;
 
     do {
-    //  generateUniqueRoomID(); // Generate a new room ID
+      generateUniqueRoomID(); // Generate a new room ID
       newRoomID = roomID;
 
       // Check if the room ID already exists
@@ -154,7 +154,7 @@ const createRoom = async () => {
     } while (!response.ok); // Retry until a unique room ID is generated
 
     console.log("Room created successfully:", data);
-    navigation.navigate("Room", { roomID: data.roomID });
+    navigation.navigate("adminroom", { roomID: data.room.roomID });
   } catch (error) {
     console.error("Error creating room:", error);
     Alert.alert("Error Creating Room", error.message || "Failed to create room");

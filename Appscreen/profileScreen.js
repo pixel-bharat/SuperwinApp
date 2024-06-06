@@ -173,21 +173,30 @@ export default function ProfileScreen() {
             </ImageBackground>
           </View>
           <View style={styles.menu_card}>
-            <TouchableOpacity style={styles.menu}>
+            <TouchableOpacity
+              style={styles.menu}
+              onPress={() => navigation.navigate("bankDetailsScreen")}
+            >
               <Image
                 style={styles.menu_icon}
                 source={require("../assets/locker.png")}
               ></Image>
               <Text style={styles.menu_text}>Bank Details setup</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menu}>
+            <TouchableOpacity
+              style={styles.menu}
+              onPress={() => navigation.navigate("settingScreen")}
+            >
               <Image
                 style={styles.menu_icon}
                 source={require("../assets/setting.png")}
               ></Image>
               <Text style={styles.menu_text}>Settings</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menu}>
+            <TouchableOpacity
+              style={styles.menu}
+              onPress={() => navigation.navigate("supportScreen")}
+            >
               <Image
                 style={styles.menu_icon}
                 source={require("../assets/support.png")}

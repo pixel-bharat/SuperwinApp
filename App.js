@@ -20,6 +20,11 @@ import ForgetScreen from "./Appscreen/forgetScreen";
 import Room from "./Appscreen/room";
 import JoinRoomScreen from "./Appscreen/JoinScreen";
 import CreateRoom from "./Appscreen/createRoom";
+
+import BankDetailsScreen from "./Appscreen/bankDetailsScreen";
+import AddBankDetails from "./Appscreen/addBankDetails";
+import SupportScreen from "./Appscreen/supportScreen";
+import SettingScreen from "./Appscreen/settingScreen";
 import RoomUser from "./Appscreen/roomUser";
 
 const Stack = createNativeStackNavigator();
@@ -58,7 +63,7 @@ function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={isAuthenticated ? "nav" : "Start"}>
+        <Stack.Navigator initialRouteName={isAuthenticated ? "nav" : "Start"}>
         <Stack.Screen
           name="Start"
           component={Start}
@@ -130,7 +135,7 @@ function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
-          name="Room"
+          name="adminroom"
           component={Room}
           options={{ headerShown: false }}
         />
@@ -149,6 +154,27 @@ function AppNavigator() {
           component={CreateRoom}
           options={{ headerShown: false }}
         />
+        <Stack.Screen
+          name="bankDetailsScreen"
+          component={BankDetailsScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="addBankDetails"
+          component={AddBankDetails}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="supportScreen"
+          component={SupportScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="settingScreen"
+          component={SettingScreen}
+          options={{ headerShown: false }}
+        />
+       
       </Stack.Navigator>
     </NavigationContainer>
   );

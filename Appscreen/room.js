@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 const games = [
@@ -12,6 +12,8 @@ const games = [
 
 const Room = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { roomID } = route.params; // Access the roomID
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.gameItem}>
@@ -29,6 +31,7 @@ const Room = () => {
         <Text style={styles.headerTitle}>Room</Text>
       </View>
       <View style={styles.balanceContainer}>
+      <Text style={styles.mainWalletBalance}>Room ID: {roomID}</Text>
         <Text style={styles.balanceTitle}>Available Room Balance</Text>
         <Text style={styles.balanceAmount}>50,684.89</Text>
         <Text style={styles.mainWalletBalance}>Main Wallet Balance</Text>
