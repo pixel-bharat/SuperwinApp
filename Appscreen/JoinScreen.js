@@ -71,22 +71,25 @@ export default function JoinRoomScreen() {
 
       const data = await response.json();
       if (response.ok) {
-        console.log("Joined Room:", data.room);
-        navigation.navigate("RoomUser");
-
-        // Update recent rooms with joined room data
-        setRecentRooms((prevRooms) =>
-          prevRooms.map((room) =>
-            room.roomID === item.roomID
-              ? {
-                  ...room,
-                  members: room.members
-                    ? [...room.members, userData.uid]
-                    : [userData.uid],
-                }
-              : room
-          )
-        );
+        const room = data.existingRoom; // Access the existingRoom property
+        if (room && room.length > 0) {
+          console.log("Joined Room:", room);
+          navigation.navigate("RoomUser");
+      
+          // Assuming userData.uid is available and room has a roomID property
+          setRecentRooms((prevRooms) =>
+            prevRooms.map((r) =>
+              r.roomID === room[0].roomID
+                ? {
+                    ...r,
+                    members: r.members
+                      ? [...r.members, userData.uid]
+                      : [userData.uid],
+                  }
+                : r
+            )
+          );
+        } 
       } else {
         Alert.alert("Error", data.message || "Failed to join room");
       }

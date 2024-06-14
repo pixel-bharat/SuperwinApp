@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, TextInput } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import io from 'socket.io-client';
+import  { useState, useEffect } from "react";
+import BASE_URL from "../backend/config/config";
 
 const games = [
   { id: '1', name: 'Aviator', image: require('../assets/scrabble.png') },
@@ -13,7 +16,49 @@ const games = [
 const Room = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { roomID } = route.params; // Access the roomID
+  const { roomID, userID } = route.params; // Access the roomID and userID
+  const [isActive, setIsActive] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+
+  const socket = io(BASE_URL, {
+    transports: ['websocket'],
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+  }); // Adjust the URL as per your server
+  useEffect(() => {
+    console.log(`Connecting to socket at ${BASE_URL}`);
+
+    socket.on('connect', () => {
+      console.log('Connected to socket');
+      socket.emit('joinRoom', { roomID, userID }, (response) => {
+        console.log('joinRoom response:', response);
+      });
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from socket');
+    });
+
+    socket.on('roomActivated', () => {
+      console.log('Room activated');
+      setIsActive(true);
+    });
+
+    socket.on('newMessage', (message) => {
+      console.log('New message received:', message);
+      setMessages(prevMessages => [...prevMessages, message]);
+    });
+
+    return () => {
+      console.log('Disconnecting socket');
+      socket.disconnect();
+    };
+  }, []);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.gameItem}>
@@ -21,6 +66,20 @@ const Room = () => {
       <Text style={styles.gameName}>{item.name}</Text>
     </TouchableOpacity>
   );
+
+  const activateRoom = () => {
+    console.log('Activating room with ID:', roomID);
+    socket.emit('activateRoom', { roomID }, (response) => {
+      console.log('activateRoom response:', response);
+    });
+  };
+
+  const sendMessage = () => {
+    if (newMessage.trim()) {
+      socket.emit('sendMessage', { roomID, userID, message: newMessage });
+      setNewMessage('');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -31,7 +90,7 @@ const Room = () => {
         <Text style={styles.headerTitle}>Room</Text>
       </View>
       <View style={styles.balanceContainer}>
-      <Text style={styles.mainWalletBalance}>Room ID: {roomID}</Text>
+        <Text style={styles.mainWalletBalance}>Room ID: {roomID}</Text>
         <Text style={styles.balanceTitle}>Available Room Balance</Text>
         <Text style={styles.balanceAmount}>50,684.89</Text>
         <Text style={styles.mainWalletBalance}>Main Wallet Balance</Text>
@@ -62,10 +121,33 @@ const Room = () => {
         numColumns={2}
         style={styles.gamesList}
       />
-  
+      <TouchableOpacity onPress={activateRoom} style={styles.activateButton}>
+        <Text style={styles.activateButtonText}>Activate Room</Text>
+      </TouchableOpacity>
+      <View style={styles.chatContainer}>
+        <FlatList
+          data={messages}
+          renderItem={({ item }) => (
+            <View style={styles.message}>
+              <Text>{item.sender}: {item.message}</Text>
+            </View>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+        />
+        <TextInput
+          value={newMessage}
+          onChangeText={setNewMessage}
+          placeholder="Type a message"
+          style={styles.messageInput}
+        />
+        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+          <Text style={styles.sendButtonText}>Send</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -150,6 +232,44 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     borderTopWidth: 1,
     borderTopColor: '#fff',
+  },
+  activateButton: {
+    padding: 15,
+    backgroundColor: '#28a745',
+    borderRadius: 10,
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  activateButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  chatContainer: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  message: {
+    padding: 10,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+    marginVertical: 5,
+  },
+  messageInput: {
+    padding: 10,
+    backgroundColor: '#1E1E1E',
+    borderRadius: 10,
+    color: '#fff',
+    marginVertical: 10,
+  },
+  sendButton: {
+    padding: 15,
+    backgroundColor: '#007bff',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  sendButtonText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 
