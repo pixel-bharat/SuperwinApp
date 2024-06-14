@@ -6,15 +6,25 @@ const twilio = require("twilio");
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
-
+const socketIo = require('socket.io');
 require("dotenv").config();
 const cors = require("cors");
-
+const http = require('http');
 const app = express();
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cors());
 
+const server = http.createServer(app);
+
+const io = socketIo(server, {
+  cors: {
+    origin: '*', // Allow all origins for testing purposes
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Authorization'],
+    credentials: true
+  }
+}); 
 // MongoDB connection
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -445,13 +455,16 @@ app.get("/api/userdata", authenticateToken, async (req, res) => {
 
 const roomSchema = new mongoose.Schema({
   roomID: { type: String, required: true, unique: true },
-  uid: { type: String, required: true},
+  uid: { type: String, required: true },
   roomType: { type: String, required: true },
   roomName: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  membercount: { type: String, required: true }, // Members as an array of strings
-  members: { type: [String], required: true }, // Roles as an array of strings
+  membercount: { type: String, required: true },
+  members: { type: [String], required: true },
+  isActive: { type: Boolean, default: false },
+  messages: [{ sender: String, message: String, timestamp: { type: Date, default: Date.now } }]
 });
+
 const Room = mongoose.model("Room", roomSchema);
 // Create Room Endpoint
 // Create Room Endpoint
@@ -511,6 +524,7 @@ app.post("/join-room", authenticateToken, async (req, res) => {
         .status(400)
         .json({ message: "User is already a member of the room" });
     }
+
     let [currentMembers, totalMembers] = existingRoom.membercount
       .split("/")
       .map(Number);
@@ -522,7 +536,7 @@ app.post("/join-room", authenticateToken, async (req, res) => {
       { uniqueId: uid },
       {
         $addToSet: { rooms: roomID },
-      }
+      }                                                                                           
     );
     res.json({ message: "Joined room successfully", existingRoom });
   } catch (error) {
@@ -689,9 +703,47 @@ app.post('/api/saveBankDetails', (req, res) => {
 
 
 
-
-
-
+  io.on('connection', (socket) => {
+    console.log('New client connected');
+  
+    socket.on('joinRoom', async ({ roomID, userID }) => {
+      console.log(`User ${userID} joining room ${roomID}`);
+      const room = await Room.findOne({ roomID });
+      if (room) {
+        socket.join(roomID);
+        socket.to(roomID).emit('userJoined', { userID });
+        console.log(`User ${userID} joined room ${roomID}`);
+      } else {
+        console.log(`Room ${roomID} not found`);
+      }
+    });
+  
+    socket.on('activateRoom', async ({ roomID }) => {
+      console.log(`Activating room ${roomID}`);
+      await Room.findOneAndUpdate({ roomID }, { isActive: true });
+      io.to(roomID).emit('roomActivated');
+      console.log(`Room ${roomID} activated`);
+    });
+  
+    socket.on('sendMessage', async ({ roomID, userID, message }) => {
+      console.log(`User ${userID} sending message to room ${roomID}: ${message}`);
+      const room = await Room.findOne({ roomID });
+      if (room && room.isActive) {
+        const chatMessage = { sender: userID, message, timestamp: new Date() };
+        room.messages.push(chatMessage);
+        await room.save();
+        io.to(roomID).emit('newMessage', chatMessage);
+        console.log(`Message sent to room ${roomID}: ${message}`);
+      } else {
+        console.log(`Room ${roomID} not active or not found`);
+      }
+    });
+  
+    socket.on('disconnect', () => {
+      console.log('Client disconnected');
+    });
+  });
+  
 
 
 
