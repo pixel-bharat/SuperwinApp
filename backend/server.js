@@ -7,15 +7,23 @@ const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
 
+const session = require("express-session");
+const http = require("http");
+const socketIo = require("socket.io");
+
 require("dotenv").config();
 const cors = require("cors");
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
+
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cors());
 
-// MongoDB connection
+
+
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("Connected to MongoDB"))
@@ -26,14 +34,8 @@ mongoose
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-
-// Debug logs to check Twilio credentials (Remove these in production)
-console.log("Twilio Account SID:", accountSid);
-console.log("Twilio Auth Token:", authToken);
-
 const client = twilio(accountSid, authToken);
 
-// Define User schema and model
 const userSchema = new mongoose.Schema({
   phoneNumber: { type: String, required: true, unique: true },
   name: String,
@@ -42,6 +44,7 @@ const userSchema = new mongoose.Schema({
   isAvatarSet: { type: Boolean, default: false },
   uniqueId: String,
   walletBalance: { type: Number, default: 0 },
+  isActive: { type: Boolean, default: false },
 });
 const User = mongoose.model("User", userSchema);
 
@@ -49,7 +52,8 @@ const generateUniqueId = () => {
   return "uuidv4" + Math.floor(Math.random() * 100000);
 };
 
-const userSessions = {}; // Global or appropriate scoped session storage
+const userSessions = {};
+
 
 app.post("/send-otp", async (req, res) => {
   const { phoneNumber } = req.body;
@@ -81,7 +85,6 @@ app.post("/send-otp", async (req, res) => {
       );
     }
 
-    // Store OTP, phone number, and unique ID in local session using cleanedPhoneNumber as the key
     userSessions[cleanedPhoneNumber] = {
       otp,
       phoneNumber: cleanedPhoneNumber,
@@ -141,24 +144,27 @@ app.post("/verify-otp", async (req, res) => {
       user = new User({
         phoneNumber: cleanedPhoneNumber,
         uniqueId: sessionData.uid,
+        isActive: true, // Set isActive to true upon first login
       });
       await user.save();
       console.log(
         `New user registered. Phone number: ${cleanedPhoneNumber}, UID: ${sessionData.uid}`
       );
     } else {
+      // Update isActive to true when existing user logs in
+      await User.updateOne(
+        { phoneNumber: cleanedPhoneNumber },
+        { isActive: true }
+      );
       console.log(
         `Existing user verified. Phone number: ${user.phoneNumber}, UID: ${user.uniqueId}`
       );
     }
 
-    // OTP verification successful, cleanup session data
     delete userSessions[cleanedPhoneNumber];
 
-    // Check if profile setup is required
     const profileSetupRequired = !(user.isNameSet && user.isAvatarSet);
 
-    // Generate JWT token
     const token = jwt.sign(
       {
         userId: user.uniqueId,
@@ -190,6 +196,32 @@ app.post("/verify-otp", async (req, res) => {
       error
     );
     res.status(500).send("Error verifying OTP");
+  }
+});
+
+app.post("/logout", async (req, res) => {
+  const { phoneNumber } = req.body;
+  if (!phoneNumber) {
+    return res.status(400).send("Phone number is required");
+  }
+
+  const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
+  console.log(`Logging out user with phone number: ${cleanedPhoneNumber}`);
+
+  try {
+    // Find the user and update isActive to false
+    await User.updateOne(
+      { phoneNumber: cleanedPhoneNumber },
+      { isActive: false }
+    );
+    console.log(`User with phone number ${cleanedPhoneNumber} logged out`);
+    res.status(200).send("Logged out successfully");
+  } catch (error) {
+    console.error(
+      `Error logging out user with phone number ${cleanedPhoneNumber}: `,
+      error
+    );
+    res.status(500).send("Error logging out");
   }
 });
 
@@ -267,23 +299,17 @@ app.post("/avatar", async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: "Profile update successful",
-      profile: {
-        phoneNumber: user.phoneNumber,
-        name: user.name,
-        avatar: user.avatar,
-        uid: user.uniqueId,
-        profileSetupRequired,
-      },
+      message: "Profile updated successfully",
+      uid: user.uniqueId,
       token,
+      profileSetupRequired,
     });
   } catch (error) {
     console.error("Error updating profile:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ message: "Error updating profile" });
   }
 });
 
-//
 //
 //Token Verification Middleware  here
 const authenticateToken = (req, res, next) => {
@@ -445,7 +471,7 @@ app.get("/api/userdata", authenticateToken, async (req, res) => {
 
 const roomSchema = new mongoose.Schema({
   roomID: { type: String, required: true, unique: true },
-  uid: { type: String, required: true},
+  uid: { type: String, required: true },
   roomType: { type: String, required: true },
   roomName: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
@@ -542,7 +568,7 @@ app.get("/admin-rooms", authenticateToken, async (req, res) => {
       createdAt: -1,
     });
     // Adding message and role to each room item
-    recentRooms = recentRooms.map(room => ({
+    recentRooms = recentRooms.map((room) => ({
       ...room.toObject(), // Convert Mongoose document to plain JavaScript object
       role: "Admin",
       navigate: "adminroom",
@@ -565,7 +591,7 @@ app.get("/member-rooms", authenticateToken, async (req, res) => {
       members: user.uniqueId,
     }).sort({ createdAt: -1 });
     // Adding message and role to each room item
-    recentRooms = recentRooms.map(room => ({
+    recentRooms = recentRooms.map((room) => ({
       ...room.toObject(), // Convert Mongoose document to plain JavaScript object
       role: "Member",
       navigate: "RoomUser",
@@ -590,7 +616,6 @@ app.get("/member-rooms", authenticateToken, async (req, res) => {
 //   }
 // });
 
-
 const bankDetailsSchema = new mongoose.Schema({
   type: String,
   upiId: String,
@@ -607,31 +632,31 @@ const bankDetailsSchema = new mongoose.Schema({
 const BankDetails = mongoose.model("BankDetails", bankDetailsSchema);
 
 const validDetails = {
-  upiIds: ['codersbizzare@okaxis'], // List of valid UPI IDs
+  upiIds: ["codersbizzare@okaxis"], // List of valid UPI IDs
   validAccount: {
-    accountNumber: 'valid_account_number',
-    bankName: 'valid_bank_name',
-    ifscCode: 'valid_ifsc_code'
+    accountNumber: "valid_account_number",
+    bankName: "valid_bank_name",
+    ifscCode: "valid_ifsc_code",
   },
   validCreditCard: {
-    cardNumber: 'valid_card_number',
-    cardHolderName: 'valid_card_holder_name',
-    expiryDate: 'valid_expiry_date',
-    cvv: 'valid_cvv'
-  }
+    cardNumber: "valid_card_number",
+    cardHolderName: "valid_card_holder_name",
+    expiryDate: "valid_expiry_date",
+    cvv: "valid_cvv",
+  },
 };
 
-app.post('/api/verify/upi', (req, res) => {
+app.post("/api/verify/upi", (req, res) => {
   const { upiId } = req.body;
   // Simulate UPI ID verification
   if (validDetails.upiIds.includes(upiId)) {
-    res.status(200).json({ message: 'UPI ID verified successfully' });
+    res.status(200).json({ message: "UPI ID verified successfully" });
   } else {
-    res.status(400).json({ error: 'Invalid UPI ID' });
+    res.status(400).json({ error: "Invalid UPI ID" });
   }
 });
 
-app.post('/api/verify/account', (req, res) => {
+app.post("/api/verify/account", (req, res) => {
   const { accountNumber, bankName, ifscCode } = req.body;
   // Simulate account details verification
   if (
@@ -639,13 +664,13 @@ app.post('/api/verify/account', (req, res) => {
     bankName === validDetails.validAccount.bankName &&
     ifscCode === validDetails.validAccount.ifscCode
   ) {
-    res.status(200).json({ message: 'Account details verified successfully' });
+    res.status(200).json({ message: "Account details verified successfully" });
   } else {
-    res.status(400).json({ error: 'Invalid account details' });
+    res.status(400).json({ error: "Invalid account details" });
   }
 });
 
-app.post('/api/verify/creditcard', (req, res) => {
+app.post("/api/verify/creditcard", (req, res) => {
   const { cardNumber, cardHolderName, expiryDate, cvv } = req.body;
   // Simulate credit card details verification
   if (
@@ -654,16 +679,25 @@ app.post('/api/verify/creditcard', (req, res) => {
     expiryDate === validDetails.validCreditCard.expiryDate &&
     cvv === validDetails.validCreditCard.cvv
   ) {
-    res.status(200).json({ message: 'Credit card details verified successfully' });
+    res
+      .status(200)
+      .json({ message: "Credit card details verified successfully" });
   } else {
-    res.status(400).json({ error: 'Invalid credit card details' });
+    res.status(400).json({ error: "Invalid credit card details" });
   }
 });
 
-app.post('/api/saveBankDetails', (req, res) => {
+app.post("/api/saveBankDetails", (req, res) => {
   const {
-    type, upiId, accountNumber, bankName, ifscCode,
-    cardNumber, cardHolderName, expiryDate, cvv
+    type,
+    upiId,
+    accountNumber,
+    bankName,
+    ifscCode,
+    cardNumber,
+    cardHolderName,
+    expiryDate,
+    cvv,
   } = req.body;
 
   // Simulate saving bank details to the database
@@ -681,32 +715,10 @@ app.post('/api/saveBankDetails', (req, res) => {
 
   // Here you can save the details to the database or perform other operations as required
 
-  res.status(200).json({ message: 'Bank details saved successfully' });
+  res.status(200).json({ message: "Bank details saved successfully" });
 });
 
-  // Here you can save the details to your database
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Here you can save the details to your database
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

@@ -16,7 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import jwtDecode from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import BASE_URL from "../backend/config/config";
 export default function ProfileScreen() {
   const navigation = useNavigation();
 
@@ -64,14 +64,39 @@ export default function ProfileScreen() {
 
   const logoutUser = async () => {
     try {
-      await AsyncStorage.removeItem("userToken");
-      console.log("User logged out successfully");
-      navigation.navigate("Login"); // Ensure this route name is correct
+      const token = await AsyncStorage.getItem("userToken");
+      if (!token) {
+        console.log("No token found");
+        Alert.alert("Logout Failed", "User not authenticated");
+        return;
+      }
+  
+      const decoded = jwtDecode(token);
+      const phoneNumber = decoded.phoneNumber;
+  
+      const response = await fetch(`${BASE_URL}logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phoneNumber }),
+      });
+  
+      if (response.ok) {
+        await AsyncStorage.removeItem("userToken");
+        console.log("User logged out successfully");
+        navigation.navigate("Login"); // Ensure this route name matches your login screen
+      } else {
+        const errorText = await response.text();
+        console.error("Failed to log out:", errorText);
+        Alert.alert("Logout Failed", errorText);
+      }
     } catch (error) {
       console.error("Failed to log out:", error);
       Alert.alert("Logout Failed", error.message);
     }
   };
+  
 
   return (
     <View style={styles.mainView}>

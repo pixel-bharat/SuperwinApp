@@ -26,40 +26,23 @@ import AddBankDetails from "./Appscreen/addBankDetails";
 import SupportScreen from "./Appscreen/supportScreen";
 import SettingScreen from "./Appscreen/settingScreen";
 import RoomUser from "./Appscreen/roomUser";
-
+import io from 'socket.io-client';
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const checkAuthentication = () => {
-      // Simulate an authentication check
-      const isAuthenticated = true; // Update this with actual authentication logic
-      setIsAuthenticated(isAuthenticated);
+    if (isAuthenticated) {
+      socket.emit('userLoggedIn');
+    }
+
+    return () => {
+      if (isAuthenticated) {
+        socket.emit('userLoggedOut');
+      }
     };
-
-    checkAuthentication();
-
-    const backAction = () => {
-      Alert.alert("Exit App", "Are you sure you want to exit?", [
-        {
-          text: "Cancel",
-          onPress: () => null,
-          style: "cancel",
-        },
-        { text: "YES", onPress: () => BackHandler.exitApp() },
-      ]);
-      return true;
-    };
-
-    const backHandler = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
-
-    return () => backHandler.remove();
-  }, []);
+  }, [isAuthenticated]);
 
   return (
     <NavigationContainer>
