@@ -21,12 +21,11 @@ import BASE_URL from "../backend/config/config";
 import { Share } from "react-native";
 
 export default function RoomScreen() {
-  const navigation = useNavigation();
+   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const [userData, setUserData] = useState(null);
   const [roomName, setRoomName] = useState("");
   const [roomID, setRoomID] = useState("");
-  const [description, setDescription] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [recentRooms, setRecentRooms] = useState([]);
   const [roomType, setRoomType] = useState("");
@@ -100,19 +99,34 @@ export default function RoomScreen() {
   }, []);
 
  
-  const createRoom = async () => {
-    if (!termsAccepted) {
-      alert("You must agree to the terms and conditions to create a room.");
-      return;
-    }
+ // Modify the createRoom function to handle room ID uniqueness
+   // Update the createRoom function to handle the format of members
+const createRoom = async () => {
+  if (!termsAccepted) {
+    alert("You must agree to the terms and conditions to create a room.");
+    return;
+  }
 
-    if (!roomType) {
-      alert("Please select a room type.");
-      return;
-    }
+  if (!roomType) {
+    alert("Please select a room type.");
+    return;
+  }
 
-    try {
-      const response = await fetch(`${BASE_URL}create-room`, {
+  try {
+    const roomTypeParts = roomType.split("_");
+    const totalMembers = parseInt(roomTypeParts[0]); // Extract the total number of members
+    const members = [`${1}/${totalMembers}`]; // Format the members as "1/totalMembers"
+
+    let response;
+    let data;
+    let newRoomID;
+
+    do {
+      generateUniqueRoomID(); // Generate a new room ID
+      newRoomID = roomID;
+
+      // Check if the room ID already exists
+      response = await fetch(`${BASE_URL}create-room`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -120,34 +134,39 @@ export default function RoomScreen() {
         },
         body: JSON.stringify({
           uid: userData ? userData.uid : null,
-          roomID: roomID,
+          roomID: newRoomID,
           roomName: roomName,
           roomType: roomType,
+          members: members,
         }),
       });
-
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create room");
+        // Retry the process if room ID already exists
+        if (errorData.message === "Room ID already exists") {
+          console.log("Room ID already exists, retrying...");
+        } else {
+          throw new Error(errorData.message || "Failed to create room");
+        }
+      } else {
+        data = await response.json();
       }
+    } while (!response.ok); // Retry until a unique room ID is generated
 
-      const data = await response.json();
-      console.log("Room created successfully:", data);
-      navigation.navigate("Room", { roomID: data.roomID });
-
-      setRoomID(data.room.roomID);
-    } catch (error) {
-      console.error("Error creating room:", error);
-      Alert.alert("Error", error.message || "Failed to create room");
-    }
-  };
-
+    console.log("Room created successfully:", data);
+    navigation.navigate("adminroom", { roomID: data.room.roomID });
+  } catch (error) {
+    console.error("Error creating room:", error);
+    Alert.alert("Error Creating Room", error.message || "Failed to create room");
+  }
+};
   // Function to fetch the generated room ID
 
+ 
   const joinRoom = async (item) => {
     try {
       const response = await fetch(
-       `${BASE_URL}join-room/${item.roomID}`,
+        `${BASE_URL}join-room/${item.roomID}`,
         {
           method: "POST",
           headers: {
@@ -160,6 +179,15 @@ export default function RoomScreen() {
       const data = await response.json();
       if (response.ok) {
         console.log("Joined Room:", data.room);
+
+        // Update recent rooms with joined room data
+        setRecentRooms((prevRooms) =>
+          prevRooms.map((room) =>
+            room.roomID === item.roomID
+              ? { ...room, members: [...room.members, userData.uid] }
+              : room
+          )
+        );
       } else {
         Alert.alert("Error", data.message || "Failed to join room");
       }
@@ -171,17 +199,15 @@ export default function RoomScreen() {
 
   // Generate Unique Room ID
 
+
   const renderItem = ({ item }) => (
     <View style={styles.roomCard}>
       <View>
         <Text style={styles.roomName}>{item.name}</Text>
         <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
-        <Text style={styles.roomDetails}>Members: {item.members}</Text>
+        <Text style={styles.roomDetails}>Members: {item.members.length}/{item.capacity}</Text>
       </View>
-      <TouchableOpacity
-        style={styles.joinButton}
-        onPress={() => joinRoom(item)}
-      >
+      <TouchableOpacity style={styles.joinButton} onPress={() => joinRoom(item)}>
         <Text style={styles.joinButtonText}>Join</Text>
       </TouchableOpacity>
     </View>

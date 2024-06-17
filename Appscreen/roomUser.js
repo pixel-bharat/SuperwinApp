@@ -1,7 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, FlatList, TextInput } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import io from '../node_modules/socket.io-client';
+import { useState, useEffect } from "react";
+import BASE_URL from "../backend/config/config";
 
 const games = [
   { id: '1', name: 'Aviator', image: require('../assets/scrabble.png') },
@@ -9,9 +12,31 @@ const games = [
   { id: '3', name: 'Scrabble', image: require('../assets/scrabble.png') },
   { id: '4', name: 'Warzone', image: require('../assets/scrabble.png') },
 ];
-
 const RoomUser = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { roomID, userID } = route.params; // Access the roomID and userID
+  const [isActive, setIsActive] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+
+  const socket = io(BASE_URL); // Adjust the URL as per your server
+
+  useEffect(() => {
+    socket.emit('joinRoom', { roomID, userID });
+
+    socket.on('roomActivated', () => {
+      setIsActive(true);
+    });
+
+    socket.on('newMessage', (message) => {
+      setMessages(prevMessages => [...prevMessages, message]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.gameItem}>
@@ -19,6 +44,13 @@ const RoomUser = () => {
       <Text style={styles.gameName}>{item.name}</Text>
     </TouchableOpacity>
   );
+
+  const sendMessage = () => {
+    if (newMessage.trim()) {
+      socket.emit('sendMessage', { roomID, userID, message: newMessage });
+      setNewMessage('');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -28,8 +60,8 @@ const RoomUser = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Room</Text>
       </View>
-     
-      
+      <Text style={styles.mainWalletBalance}>Room ID: {roomID}</Text>
+      <Text style={styles.mainWalletBalance}>Status: {isActive ? 'Active' : 'Inactive'}</Text>
       <TouchableOpacity style={styles.membersContainer}>
         <Icon name="mic-off" size={20} color="#fff" />
         <Text style={styles.membersText}>Members (3/4)</Text>
@@ -41,7 +73,26 @@ const RoomUser = () => {
         numColumns={2}
         style={styles.gamesList}
       />
-  
+      <View style={styles.chatContainer}>
+        <FlatList
+          data={messages}
+          renderItem={({ item }) => (
+            <View style={styles.message}>
+              <Text>{item.sender}: {item.message}</Text>
+            </View>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+        />
+        <TextInput
+          value={newMessage}
+          onChangeText={setNewMessage}
+          placeholder="Type a message"
+          style={styles.messageInput}
+        />
+        <TouchableOpacity onPress={sendMessage} style={styles.sendButton}>
+          <Text style={styles.sendButtonText}>Send</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

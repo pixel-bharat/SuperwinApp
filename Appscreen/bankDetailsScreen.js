@@ -35,7 +35,6 @@ export default function BankDetailsScreen() {
             </TouchableOpacity>
 
             <Text style={styles.mainHeading}>Bank Details</Text>
-        
           </View>
           <View style={styles.bankDetailsCnt}>
             <TouchableOpacity onPress={toggleAccountDetails}>
@@ -122,7 +121,7 @@ const styles = StyleSheet.create({
   headingCnt: {
     flexDirection: "row",
     alignItems: "center",
-marginBottom:16,
+    marginBottom: 16,
   },
   mainHeading: {
     color: "white",

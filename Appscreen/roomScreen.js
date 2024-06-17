@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,58 +7,184 @@ import {
   SafeAreaView,
   FlatList,
   ScrollView,
+  RefreshControl,
+  Alert,
 } from "react-native";
-import { useNavigation, useIsFocused } from "@react-navigation/native";
+import {
+  useNavigation,
+  useIsFocused,
+  useRoute,
+} from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backend/config/config";
+
 export default function RoomScreen() {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
+  const route = useRoute();
   const [recentRooms, setRecentRooms] = useState([]);
+  const [memberRooms, setmemberRooms] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [token, setToken] = useState("");
+  const [uid, setUid] = useState("");
 
   useEffect(() => {
-    // Fetch recent rooms data from the backend
-    fetchRecentRooms();
+    const fetchData = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("userToken");
+        const storedUid = await AsyncStorage.getItem("userUID");
+
+        if (storedToken && storedUid) {
+          console.log("Token and UID found", storedToken, storedUid);
+          setToken(storedToken);
+          setUid(storedUid);
+        } else {
+          console.log("Token or UID not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving token or UID:", error);
+      }
+    };
+
+    if (isFocused) {
+      fetchData();
+      fetchRecentRooms();
+      fetchMemberRooms();
+    }
   }, [isFocused]);
 
   const fetchRecentRooms = async () => {
     try {
-      const response = await fetch(`${BASE_URL}recent-rooms`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch recent rooms");
+      const storedToken = await AsyncStorage.getItem("userToken");
+      const storedUid = await AsyncStorage.getItem("userUID");
+
+      if (storedToken) {
+        console.log("Fetching recent rooms with token", storedToken); // Debugging line
+        const response = await fetch(`${BASE_URL}admin-rooms`, {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch recent rooms");
+        }
+
+        const responseData = await response.json();
+        console.log("Recent rooms fetched", responseData);
+        setRecentRooms(responseData); // Assuming the rooms data is in the 'data' property of the response
+      //  setMessage(responseData.message); // Assuming the message is included in the response
+      } else {
+        console.log("Token not found");
       }
-      const data = await response.json();
-      setRecentRooms(data);
     } catch (error) {
       console.error("Error fetching recent rooms:", error);
+      Alert.alert("Error", "Failed to fetch recent rooms");
     }
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.roomCard}>
-      <View>
-        <Text style={styles.roomName}>{item.roomName}</Text>
-        <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
-        <Text style={styles.roomDetails}>Members: {item.members}</Text>
-        <Text style={styles.roomDetails}>Role: {item.role}</Text>
-        {/* Display role here */}
-      </View>
-      <TouchableOpacity
-        style={styles.joinButton}
-        onPress={() => joinRoom(item)}
-      >
-        <Text style={styles.joinButtonText}>Join</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const fetchMemberRooms = async () => {
+    try {
+      const storedToken = await AsyncStorage.getItem("userToken");
+  
+      if (storedToken) {
+        console.log("Fetching recent rooms with token", storedToken);
+        const response = await fetch(`${BASE_URL}member-rooms`, {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch recent rooms");
+        }
+  
+        const responseData = await response.json();
+        setmemberRooms(responseData); // Assuming the rooms data is in the 'data' property of the response
+       // setMessage(responseData.message); // Assuming the message is included in the response
+      } else {
+        console.log("Token not found");
+      }
+    } catch (error) {
+      console.error("Error fetching recent rooms:", error);
+      Alert.alert("Error", "Failed to fetch recent rooms");
+    }
+  };
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchMemberRooms().then(() => setRefreshing(false));
+  }, []);
+  
 
-  const joinRoom = (room) => {
-    // Implement join room functionality
-    console.log("Joining room:", room);
+
+
+  const joinRoom = async (item) => {
+    try {
+      const storedToken = await AsyncStorage.getItem("userToken");
+
+      const response = await fetch(`${BASE_URL}join-room`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${storedToken}`,
+        },
+        body: JSON.stringify({ roomID: item.roomID }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Joined Room:", data.existingRoom);
+        navigation.navigate("RoomUser");
+
+        // Update recent rooms with joined room data
+        setRecentRooms((prevRooms) =>
+          prevRooms.map((room) =>
+            room.roomID === item.roomID ? data.existingRoom : room
+          )
+        );
+
+        // Fetch recent rooms again to ensure data is up-to-date
+        fetchRecentRooms();
+      } else {
+        Alert.alert("Error", data.message || "Failed to join room");
+      }
+    } catch (error) {
+      console.error("Error joining room:", error);
+      Alert.alert("Error", "Failed to join room");
+    }
   };
 
+const renderItem = ({ item }) => (
+  <View style={styles.roomCard}>
+    <View>
+      <Text style={styles.roomName}>{item.roomName}</Text>
+      <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
+      <Text style={styles.roomDetails}>Count: {item.membercount}</Text>
+      <Text style={styles.roomDetails}>Role: {item.role}</Text>
+      {/* <Text style={styles.roomDetails}>Members: {item.members.join(", ")}</Text> */}
+    </View>
+    <TouchableOpacity
+      style={styles.joinButton}
+      onPress={() => {
+        if (item.navigate) {
+          navigation.navigate(item.navigate, { roomID: item.roomID }); // Pass roomID as a parameter
+        } else {
+          console.warn("Navigate property is not set for this item");
+        }
+      }}
+    >
+      <Text style={styles.joinButtonText}>Join</Text>
+    </TouchableOpacity>
+  </View>
+);
+
   return (
-    <ScrollView>
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
       <SafeAreaView style={styles.container}>
         <View contentContainerStyle={styles.scrollViewContent}>
           <TouchableOpacity
@@ -83,12 +209,19 @@ export default function RoomScreen() {
               <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
             </LinearGradient>
           </TouchableOpacity>
-          <Text style={styles.recentRoomsHeader}>Recent Rooms</Text>
+          <Text style={styles.recentRoomsHeader}>Your Created Rooms</Text>
           <FlatList
             data={recentRooms}
             renderItem={renderItem}
             keyExtractor={(item, index) => index.toString()}
             contentContainerStyle={styles.recentRoomsList}
+          />
+          <Text style={styles.recentRoomsHeader}>Your Joined Rooms</Text>
+          <FlatList
+            data={memberRooms}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={styles.joinedRoomsList}
           />
         </View>
       </SafeAreaView>
@@ -101,66 +234,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
     paddingHorizontal: 16,
-  },
-  backButton: {
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  backButtonText: {
-    color: "#fff",
-    fontSize: 24,
-  },
-  header: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#fff",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  inputContainer: {
-    marginVertical: 20,
-  },
-  label: {
-    color: "#fff",
-    marginBottom: 8,
-    fontSize: 16,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#333",
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 16,
-  },
-  icon: {
-    width: 24,
-    height: 24,
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    color: "#fff",
-    fontSize: 16,
-  },
-  inputText: {
-    color: "#fff",
-    flex: 1,
-  },
-  picker: {
-    flex: 1,
-    color: "#fff",
-    backgroundColor: "#333",
-  },
-  termsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  termsText: {
-    color: "#fff",
-    marginLeft: 10,
-    fontSize: 16,
   },
   createRoomButton: {
     marginVertical: 10,
@@ -188,12 +261,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 16,
   },
-  orText: {
-    color: "#fff",
-    textAlign: "center",
-    marginVertical: 10,
-    fontSize: 16,
-  },
   recentRoomsHeader: {
     color: "#fff",
     fontWeight: "bold",
@@ -201,6 +268,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   recentRoomsList: {
+    paddingBottom: 20,
+  },
+  joinedRoomsList: {
     paddingBottom: 100,
   },
   roomCard: {
@@ -234,8 +304,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
-  },
-  shareButton: {
-    marginLeft: 10,
   },
 });

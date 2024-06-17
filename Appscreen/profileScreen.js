@@ -183,8 +183,9 @@ export default function ProfileScreen() {
               ></Image>
               <Text style={styles.menu_text}>Bank Details setup</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menu}
-             onPress={() => navigation.navigate("settingScreen")}
+            <TouchableOpacity
+              style={styles.menu}
+              onPress={() => navigation.navigate("settingScreen")}
             >
               <Image
                 style={styles.menu_icon}
@@ -192,7 +193,8 @@ export default function ProfileScreen() {
               ></Image>
               <Text style={styles.menu_text}>Settings</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menu}
+            <TouchableOpacity
+              style={styles.menu}
               onPress={() => navigation.navigate("supportScreen")}
             >
               <Image

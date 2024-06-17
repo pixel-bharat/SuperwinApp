@@ -11,31 +11,128 @@ import {
 } from "react-native";
 import { BackgroundImage } from "react-native-elements/dist/config";
 import { useNavigation } from "@react-navigation/native";
-
+import BASE_URL from "../backend/config/config";
 export default function AddBankDetails() {
   const navigation = useNavigation();
   const [showAccountDetails, setShowAccountDetails] = useState(false);
   const [selectedType, setSelectedType] = useState("UPI");
   const [upiIdText, setUpiIdText] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [ifscCode, setIfscCode] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardHolderName, setCardHolderName] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [cvv, setCvv] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
   const accountOptions = ["UPI", "Account", "Credit Card"];
 
-  const handleUpiIdChange = (text) => {
-    setUpiIdText(text);
-  };
+  const handleUpiIdChange = (text) => setUpiIdText(text);
+  const handleAccountNumberChange = (text) => setAccountNumber(text);
+  const handleBankNameChange = (text) => setBankName(text);
+  const handleIfscCodeChange = (text) => setIfscCode(text);
+  const handleCardNumberChange = (text) => setCardNumber(text);
+  const handleCardHolderNameChange = (text) => setCardHolderName(text);
+  const handleExpiryDateChange = (text) => setExpiryDate(text);
+  const handleCvvChange = (text) => setCvv(text);
 
   const handleAccountSelection = (item) => {
     setSelectedType(item);
     setShowAccountDetails(false);
   };
 
+  const verifyDetails = async () => {
+    let url = "";
+    let payload = {};
+
+    if (selectedType === "UPI") {
+      url =`${BASE_URL}api/verify/upi`;
+      payload = { upiId: upiIdText };
+    } else if (selectedType === "Account") {
+      url =`${BASE_URL}api/verify/account`;
+      payload = {
+        accountNumber,
+        bankName,
+        ifscCode,
+      };
+    } else if (selectedType === "Credit Card") {
+      url = `${BASE_URL}api/verify/creditcard`;
+      payload = {
+        cardNumber,
+        cardHolderName,
+        expiryDate,
+        cvv,
+      };
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);
+        setIsVerified(true);
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Failed to verify details");
+    }
+  };
+
+  const verifyAndSave = async () => {
+    if (!isVerified) {
+      alert("Please verify the details before saving.");
+      return;
+    }
+
+    const payload = {
+      type: selectedType,
+      upiId: upiIdText,
+      accountNumber: accountNumber,
+      bankName: bankName,
+      ifscCode: ifscCode,
+      cardNumber: cardNumber,
+      cardHolderName: cardHolderName,
+      expiryDate: expiryDate,
+      cvv: cvv,
+    };
+
+    try {
+        const response = await fetch(`${BASE_URL}api/saveBankDetails`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);
+      } else {
+        alert(result.error);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Failed to save bank details");
+    }
+  };
+
   return (
     <View style={styles.container}>
-        <BackgroundImage
-          source={require("../assets/bankbackground.png")}
-          style={styles.backgroundImage}
-        ></BackgroundImage>
+      <BackgroundImage
+        source={require("../assets/bankbackground.png")}
+        style={styles.backgroundImage}
+      ></BackgroundImage>
       <ScrollView style={styles.in_cont}>
-      
         <View>
           <View style={styles.headingCnt}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -44,9 +141,7 @@ export default function AddBankDetails() {
                 style={styles.backButton}
               />
             </TouchableOpacity>
-
             <Text style={styles.mainHeading}>Bank Details</Text>
-        
           </View>
 
           <View style={styles.inputContainer}>
@@ -62,7 +157,6 @@ export default function AddBankDetails() {
                 editable={false}
                 placeholderTextColor={"rgba(158, 158, 158, 1)"}
               />
-
               <Image source={require("../assets/downArrow.png")} />
             </TouchableOpacity>
             {showAccountDetails && (
@@ -109,6 +203,8 @@ export default function AddBankDetails() {
                   <TextInput
                     style={styles.inputField}
                     placeholder="Account Number"
+                    value={accountNumber}
+                    onChangeText={handleAccountNumberChange}
                     placeholderTextColor={"rgba(158, 158, 158, 1)"}
                   />
                 </View>
@@ -122,6 +218,8 @@ export default function AddBankDetails() {
                   <TextInput
                     style={styles.inputField}
                     placeholder="Bank Name"
+                    value={bankName}
+                    onChangeText={handleBankNameChange}
                     placeholderTextColor={"rgba(158, 158, 158, 1)"}
                   />
                 </View>
@@ -135,6 +233,8 @@ export default function AddBankDetails() {
                   <TextInput
                     style={styles.inputField}
                     placeholder="IFSC Code"
+                    value={ifscCode}
+                    onChangeText={handleIfscCodeChange}
                     placeholderTextColor={"rgba(158, 158, 158, 1)"}
                   />
                 </View>
@@ -152,6 +252,8 @@ export default function AddBankDetails() {
                   <TextInput
                     style={styles.inputField}
                     placeholder="Credit Card Number"
+                    value={cardNumber}
+                    onChangeText={handleCardNumberChange}
                     placeholderTextColor={"rgba(158, 158, 158, 1)"}
                   />
                 </View>
@@ -165,6 +267,8 @@ export default function AddBankDetails() {
                   <TextInput
                     style={styles.inputField}
                     placeholder="Card Holder Name"
+                    value={cardHolderName}
+                    onChangeText={handleCardHolderNameChange}
                     placeholderTextColor={"rgba(158, 158, 158, 1)"}
                   />
                 </View>
@@ -178,6 +282,8 @@ export default function AddBankDetails() {
                   <TextInput
                     style={styles.inputField}
                     placeholder="Expiry Date (MM/YY)"
+                    value={expiryDate}
+                    onChangeText={handleExpiryDateChange}
                     placeholderTextColor={"rgba(158, 158, 158, 1)"}
                   />
                 </View>
@@ -191,14 +297,18 @@ export default function AddBankDetails() {
                   <TextInput
                     style={styles.inputField}
                     placeholder="CVV"
+                    value={cvv}
+                    onChangeText={handleCvvChange}
                     placeholderTextColor={"rgba(158, 158, 158, 1)"}
                   />
                 </View>
               </>
             )}
           </View>
-          <Text style={styles.verifyText}>Verify ID</Text>
-          <TouchableOpacity style={styles.button}>
+          <TouchableOpacity style={styles.button} onPress={verifyDetails}>
+            <Text style={styles.buttonText}>Verify ID</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={verifyAndSave}>
             <Text style={styles.buttonText}>SAVE</Text>
           </TouchableOpacity>
         </View>
@@ -237,7 +347,6 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
   },
-
   serachButton: {
     height: 24,
     width: 24,
@@ -304,6 +413,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 16,
     alignItems: "center",
+    marginVertical: 10, // Added margin for spacing between buttons
   },
   buttonText: {
     color: "#fff",

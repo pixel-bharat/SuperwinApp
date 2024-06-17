@@ -4,6 +4,9 @@
 // export const JWT_SECRET = ' 51b380220db94166d4c6056f9ebd36e14d2ff71bfbdc4a29dba7c299c0ed6ad7';
 
 // src/config.js
+//const BASE_URL = 'http://192.168.1.7:3000/';
+
 const BASE_URL = 'https://superwinback-2.onrender.com/';
+
 
 export default BASE_URL;
