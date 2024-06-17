@@ -1,25 +1,36 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
-const otpGenerator = require('otp-generator');
-const twilio = require('twilio');
-const { v4: uuidv4 } = require('uuid');
-const jwt = require('jsonwebtoken');
-const validator = require('validator');
-require('dotenv').config();
-const cors = require('cors');
-
+const express = require("express");
+const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
+const otpGenerator = require("otp-generator");
+const twilio = require("twilio");
+const { v4: uuidv4 } = require("uuid");
+const jwt = require("jsonwebtoken");
+const validator = require("validator");
+const socketIo = require('socket.io');
+require("dotenv").config();
+const cors = require("cors");
+const http = require('http');
 const app = express();
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cors());
 
+const server = http.createServer(app);
+
+const io = socketIo(server, {
+  cors: {
+    origin: '*', // Allow all origins for testing purposes
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Authorization'],
+    credentials: true
+  }
+}); 
 // MongoDB connection
 mongoose
   .connect(process.env.MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB'))
+  .then(() => console.log("Connected to MongoDB"))
   .catch((err) => {
-    console.error('MongoDB connection error:', err);
+    console.error("MongoDB connection error:", err);
     process.exit(1);
   });
 
@@ -42,21 +53,21 @@ const userSchema = new mongoose.Schema({
   uniqueId: String,
   walletBalance: { type: Number, default: 0 },
 });
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 const generateUniqueId = () => {
-  return 'uuidv4' + Math.floor(Math.random() * 100000);
+  return "uuidv4" + Math.floor(Math.random() * 100000);
 };
 
 const userSessions = {}; // Global or appropriate scoped session storage
 
-app.post('/send-otp', async (req, res) => {
+app.post("/send-otp", async (req, res) => {
   const { phoneNumber } = req.body;
   if (!phoneNumber) {
-    return res.status(400).send('Phone number is required');
+    return res.status(400).send("Phone number is required");
   }
 
-  const cleanedPhoneNumber = phoneNumber.replace(/\D/g, '');
+  const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
   const otp = otpGenerator.generate(4, {
     digits: true,
     upperCase: false,
@@ -75,7 +86,9 @@ app.post('/send-otp', async (req, res) => {
       user.uniqueId = uid;
       console.log(`Generated UID for ${cleanedPhoneNumber}: ${uid}`);
     } else {
-      console.log(`User found. Phone number: ${user.phoneNumber}, UID: ${user.uniqueId}`);
+      console.log(
+        `User found. Phone number: ${user.phoneNumber}, UID: ${user.uniqueId}`
+      );
     }
 
     // Store OTP, phone number, and unique ID in local session using cleanedPhoneNumber as the key
@@ -84,7 +97,10 @@ app.post('/send-otp', async (req, res) => {
       phoneNumber: cleanedPhoneNumber,
       uid: user.uniqueId,
     };
-    console.log(`Stored session data for ${cleanedPhoneNumber}: `, userSessions[cleanedPhoneNumber]);
+    console.log(
+      `Stored session data for ${cleanedPhoneNumber}: `,
+      userSessions[cleanedPhoneNumber]
+    );
 
     await client.messages.create({
       body: `Your OTP code is ${otp}`,
@@ -93,34 +109,40 @@ app.post('/send-otp', async (req, res) => {
     });
 
     console.log(`OTP sent to ${phoneNumber}: ${otp}`);
-    res.status(200).send('OTP sent successfully');
+    res.status(200).send("OTP sent successfully");
   } catch (error) {
     console.error(`Error sending OTP to ${phoneNumber}: `, error);
-    res.status(500).send('Error sending OTP');
+    res.status(500).send("Error sending OTP");
   }
 });
 
-app.post('/verify-otp', async (req, res) => {
+app.post("/verify-otp", async (req, res) => {
   const { phoneNumber, otp } = req.body;
   if (!phoneNumber || !otp) {
-    return res.status(400).send('Phone number and OTP are required');
+    return res.status(400).send("Phone number and OTP are required");
   }
 
-  const cleanedPhoneNumber = phoneNumber.replace(/\D/g, '');
-  console.log(`Verifying OTP for phone number: ${cleanedPhoneNumber}, OTP: ${otp}`);
+  const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
+  console.log(
+    `Verifying OTP for phone number: ${cleanedPhoneNumber}, OTP: ${otp}`
+  );
 
   try {
     const sessionData = userSessions[cleanedPhoneNumber];
     console.log(`Session data for ${cleanedPhoneNumber}: `, sessionData);
 
     if (!sessionData) {
-      console.log(`No session data found for phone number: ${cleanedPhoneNumber}`);
-      return res.status(400).send('Invalid phone number or OTP');
+      console.log(
+        `No session data found for phone number: ${cleanedPhoneNumber}`
+      );
+      return res.status(400).send("Invalid phone number or OTP");
     }
 
     if (sessionData.otp !== otp) {
-      console.log(`Invalid OTP for phone number: ${cleanedPhoneNumber}. Expected: ${sessionData.otp}, Received: ${otp}`);
-      return res.status(400).send('Invalid OTP');
+      console.log(
+        `Invalid OTP for phone number: ${cleanedPhoneNumber}. Expected: ${sessionData.otp}, Received: ${otp}`
+      );
+      return res.status(400).send("Invalid OTP");
     }
 
     let user = await User.findOne({ phoneNumber: cleanedPhoneNumber });
@@ -131,9 +153,13 @@ app.post('/verify-otp', async (req, res) => {
         uniqueId: sessionData.uid,
       });
       await user.save();
-      console.log(`New user registered. Phone number: ${cleanedPhoneNumber}, UID: ${sessionData.uid}`);
+      console.log(
+        `New user registered. Phone number: ${cleanedPhoneNumber}, UID: ${sessionData.uid}`
+      );
     } else {
-      console.log(`Existing user verified. Phone number: ${user.phoneNumber}, UID: ${user.uniqueId}`);
+      console.log(
+        `Existing user verified. Phone number: ${user.phoneNumber}, UID: ${user.uniqueId}`
+      );
     }
 
     // OTP verification successful, cleanup session data
@@ -153,12 +179,14 @@ app.post('/verify-otp', async (req, res) => {
         profileSetupRequired,
       },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: "1h" }
     );
 
-    console.log(`OTP verified successfully for phone number: ${cleanedPhoneNumber}`);
+    console.log(
+      `OTP verified successfully for phone number: ${cleanedPhoneNumber}`
+    );
     res.status(200).send({
-      message: 'OTP verified successfully',
+      message: "OTP verified successfully",
       uid: user.uniqueId,
       token,
       profileSetupRequired,
@@ -167,25 +195,28 @@ app.post('/verify-otp', async (req, res) => {
       walletBalance: user.walletBalance,
     });
   } catch (error) {
-    console.error(`Error verifying OTP for phone number: ${cleanedPhoneNumber}: `, error);
-    res.status(500).send('Error verifying OTP');
+    console.error(
+      `Error verifying OTP for phone number: ${cleanedPhoneNumber}: `,
+      error
+    );
+    res.status(500).send("Error verifying OTP");
   }
 });
 
 // POST endpoint to update user profile avatar and name
 function validateAvatar(avatar) {
   const allowedAvatars = [
-    'avatar_1',
-    'avatar_2',
-    'avatar_3',
-    'avatar_4',
-    'avatar_5',
-    'upload_avatar',
+    "avatar_1",
+    "avatar_2",
+    "avatar_3",
+    "avatar_4",
+    "avatar_5",
+    "upload_avatar",
   ];
 
   if (
     validator.isURL(avatar, {
-      protocols: ['http', 'https'],
+      protocols: ["http", "https"],
       require_protocol: true,
     })
   ) {
@@ -196,20 +227,24 @@ function validateAvatar(avatar) {
     return true;
   }
 
-  throw new Error('Invalid avatar provided. Must be a valid URL or a recognized filename.');
+  throw new Error(
+    "Invalid avatar provided. Must be a valid URL or a recognized filename."
+  );
 }
 
-app.post('/avatar', async (req, res) => {
+app.post("/avatar", async (req, res) => {
   const { uid, memberName, avatar, phoneNumber } = req.body;
 
   if (!uid || !phoneNumber) {
-    return res.status(400).json({ message: 'User ID and phone number are required' });
+    return res
+      .status(400)
+      .json({ message: "User ID and phone number are required" });
   }
 
   try {
     const user = await User.findOne({ uniqueId: uid });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     if (memberName && memberName.trim()) {
@@ -219,7 +254,7 @@ app.post('/avatar', async (req, res) => {
 
     if (avatar) {
       if (!validateAvatar(avatar)) {
-        return res.status(400).json({ message: 'Invalid avatar reference' });
+        return res.status(400).json({ message: "Invalid avatar reference" });
       }
       user.avatar = avatar;
       user.isAvatarSet = true;
@@ -236,13 +271,13 @@ app.post('/avatar', async (req, res) => {
         profileSetupRequired,
       },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: "1h" }
     );
 
     await user.save();
 
     res.status(200).json({
-      message: 'Profile update successful',
+      message: "Profile update successful",
       profile: {
         phoneNumber: user.phoneNumber,
         name: user.name,
@@ -253,14 +288,10 @@ app.post('/avatar', async (req, res) => {
       token,
     });
   } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
-
-
-
-
 
 //
 //
@@ -300,104 +331,101 @@ const Transaction = mongoose.model("Transaction", transactionSchema);
 //
 //// Middleware to verify token
 
-app.post('/api/add_money', authenticateToken, async (req, res) => {
+app.post("/api/add_money", authenticateToken, async (req, res) => {
   const { amount } = req.body;
   const numericAmount = parseFloat(amount);
-  console.log('Add money request for amount:', numericAmount);
+  console.log("Add money request for amount:", numericAmount);
   if (isNaN(numericAmount) || numericAmount <= 0) {
-    console.log('Invalid amount:', numericAmount);
-    return res.status(400).json({ message: 'Invalid amount' });
+    console.log("Invalid amount:", numericAmount);
+    return res.status(400).json({ message: "Invalid amount" });
   }
   try {
     const user = await User.findOne({ uniqueId: req.user.userId });
     if (!user) {
-      console.log('User not found with uniqueId:', req.user.userId);
-      return res.status(404).json({ message: 'User not found' });
+      console.log("User not found with uniqueId:", req.user.userId);
+      return res.status(404).json({ message: "User not found" });
     }
     user.walletBalance += numericAmount;
     await user.save();
-    console.log('Wallet balance updated for user:', req.user.userId);
+    console.log("Wallet balance updated for user:", req.user.userId);
 
     const transaction = new Transaction({
       uniqueId: user.uniqueId,
       userId: user._id,
       amount: numericAmount,
-      transactionType: 'credit',
-      description: 'Add money to wallet',
+      transactionType: "credit",
+      description: "Add money to wallet",
     });
     await transaction.save();
-    console.log('Transaction saved for user:', req.user.userId);
+    console.log("Transaction saved for user:", req.user.userId);
 
     res.json({
-      message: 'Money added successfully',
+      message: "Money added successfully",
       walletBalance: user.walletBalance,
     });
   } catch (error) {
-    console.error('Error adding money:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Error adding money:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
-
 
 //
 //
 //Spend money API here
-app.post('/api/spend', authenticateToken, async (req, res) => {
+app.post("/api/spend", authenticateToken, async (req, res) => {
   const { amount } = req.body;
-  console.log('Spend money request:', amount);
+  console.log("Spend money request:", amount);
   try {
     const user = await User.findOne({ uniqueId: req.user.userId });
     if (!user) {
-      console.log('User not found with uniqueId:', req.user.userId);
-      return res.status(404).json({ message: 'User not found' });
+      console.log("User not found with uniqueId:", req.user.userId);
+      return res.status(404).json({ message: "User not found" });
     }
     if (user.walletBalance < amount) {
-      console.log('Insufficient balance for user:', req.user.userId);
-      return res.status(400).json({ message: 'Insufficient balance' });
+      console.log("Insufficient balance for user:", req.user.userId);
+      return res.status(400).json({ message: "Insufficient balance" });
     }
     user.walletBalance -= amount;
     await user.save();
-    console.log('Balance updated after spending for user:', req.user.userId);
+    console.log("Balance updated after spending for user:", req.user.userId);
 
     const transaction = new Transaction({
       uniqueId: user.uniqueId,
       userId: user._id,
       amount,
-      transactionType: 'debit',
-      description: 'Spent from wallet',
+      transactionType: "debit",
+      description: "Spent from wallet",
     });
     await transaction.save();
-    console.log('Debit transaction recorded for user:', req.user.userId);
+    console.log("Debit transaction recorded for user:", req.user.userId);
 
     res.json({
-      message: 'Amount spent successfully',
+      message: "Amount spent successfully",
       newBalance: user.walletBalance,
     });
   } catch (error) {
-    console.error('Spend money error:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Spend money error:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
-
 
 //
 //
 //Transaction History Endpoint
 
-app.get('/api/transactions', authenticateToken, async (req, res) => {
+app.get("/api/transactions", authenticateToken, async (req, res) => {
   try {
-    console.log('Fetching transactions for user:', req.user.userId);
+    console.log("Fetching transactions for user:", req.user.userId);
     const transactions = await Transaction.find({
       uniqueId: req.user.userId,
     }).sort({ transactionDate: -1 });
-    console.log('Transactions retrieved:', transactions.length);
+    console.log("Transactions retrieved:", transactions.length);
     res.json(transactions);
   } catch (error) {
-    console.error('Error fetching transactions:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Error fetching transactions:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
-
 
 // User Data Endpoint
 app.get("/api/userdata", authenticateToken, async (req, res) => {
@@ -424,6 +452,306 @@ app.get("/api/userdata", authenticateToken, async (req, res) => {
   }
 });
 // User Data Endpoint
+
+const roomSchema = new mongoose.Schema({
+  roomID: { type: String, required: true, unique: true },
+  uid: { type: String, required: true },
+  roomType: { type: String, required: true },
+  roomName: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
+  membercount: { type: String, required: true },
+  members: { type: [String], required: true },
+  isActive: { type: Boolean, default: false },
+  messages: [{ sender: String, message: String, timestamp: { type: Date, default: Date.now } }]
+});
+
+const Room = mongoose.model("Room", roomSchema);
+// Create Room Endpoint
+// Create Room Endpoint
+// Route to create a room
+app.post("/create-room", async (req, res) => {
+  const { roomID, roomName, roomType, uid, roles } = req.body;
+  try {
+    // Check if the roomID already exists
+    const existingRoom = await Room.findOne({ roomID });
+    if (existingRoom) {
+      return res.status(400).json({ message: "Room ID already exists" });
+    }
+    // Extract the total number of members from roomType and format members as "1/totalMembers"
+    const totalMembers = parseInt(roomType.split("_")[0]);
+    const membercount = `${1}/${totalMembers}`;
+    // Create a new room
+    const newRoom = new Room({
+      uid,
+      roomID,
+      roomType,
+      roomName,
+      membercount,
+      // roles: [`${uid}`], // Assigning the role of "admin" to the user who creates the room
+    });
+    await newRoom.save();
+    res.json({ message: "Room created successfully", room: newRoom });
+  } catch (error) {
+    console.error("Error creating room:", error);
+    res.status(500).json({ message: "Failed to create room" });
+  }
+});
+const joinedUserSchema = new mongoose.Schema({
+  uid: String,
+  rid: mongoose.Schema.Types.ObjectId, // Assuming rid is the ObjectId of the room
+  joinedAt: { type: Date, default: Date.now },
+});
+const JoinedUser = mongoose.model("JoinedUser", joinedUserSchema);
+app.post("/join-room", authenticateToken, async (req, res) => {
+  try {
+    const { roomID } = req.body;
+    const uid = req.user.userId;
+    console.log(roomID);
+    console.log(uid);
+    const existingRoom = await Room.findOne({ roomID });
+    if (!existingRoom) {
+      return res.status(400).json({ message: "Room ID not found" });
+    }
+    // Check if the user is the admin of the room
+    if (existingRoom.uid === uid) {
+      return res
+        .status(400)
+        .json({ message: "You are already the admin of the room" });
+    }
+    // Check if the user is already a member of the room
+    if (existingRoom.members.includes(uid)) {
+      return res
+        .status(400)
+        .json({ message: "User is already a member of the room" });
+    }
+
+    let [currentMembers, totalMembers] = existingRoom.membercount
+      .split("/")
+      .map(Number);
+    currentMembers += 1;
+    existingRoom.membercount = `${currentMembers}/${totalMembers}`;
+    existingRoom.members.push(uid);
+    await existingRoom.save();
+    await User.updateOne(
+      { uniqueId: uid },
+      {
+        $addToSet: { rooms: roomID },
+      }                                                                                           
+    );
+    res.json({ message: "Joined room successfully", existingRoom });
+  } catch (error) {
+    console.error("Error joining room:", error);
+    res.status(500).json({ message: "Failed to join room" });
+  }
+});
+// Fetch Recent Rooms Endpoint
+app.get("/admin-rooms", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findOne({ uniqueId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    // Fetch rooms created by the user
+    let recentRooms = await Room.find({ uid: user.uniqueId }).sort({
+      createdAt: -1,
+    });
+    // Adding message and role to each room item
+    recentRooms = recentRooms.map(room => ({
+      ...room.toObject(), // Convert Mongoose document to plain JavaScript object
+      role: "Admin",
+      navigate: "adminroom",
+    }));
+    res.json(recentRooms);
+  } catch (error) {
+    console.error("Error fetching recent rooms:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+// Fetch Recent Rooms Endpoint
+app.get("/member-rooms", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findOne({ uniqueId: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    // Fetch rooms where the user is in the roles array
+    let recentRooms = await Room.find({
+      members: user.uniqueId,
+    }).sort({ createdAt: -1 });
+    // Adding message and role to each room item
+    recentRooms = recentRooms.map(room => ({
+      ...room.toObject(), // Convert Mongoose document to plain JavaScript object
+      role: "Member",
+      navigate: "RoomUser",
+    }));
+    console.log(recentRooms);
+    // Sending the modified recentRooms data
+    res.json(recentRooms);
+  } catch (error) {
+    console.error("Error fetching recent rooms:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+// app.get("/recent-rooms/:uid", async (req, res) => {
+//   try {
+//     const { uid } = req.params;
+//     // Find recent rooms belonging to the user with the provided UID
+//     const recentRooms = await Room.find({ uid }).sort({ createdAt: -1 }).limit(1);
+//     res.json(recentRooms);
+//   } catch (error) {
+//     console.error("Error fetching recent rooms:", error);
+//     res.status(500).json({ message: "Failed to fetch recent rooms" });
+//   }
+// });
+
+
+const bankDetailsSchema = new mongoose.Schema({
+  type: String,
+  upiId: String,
+  accountNumber: String,
+  bankName: String,
+  ifscCode: String,
+  creditCardNumber: String,
+  cardHolderName: String,
+  expiryDate: String,
+  cvv: String,
+});
+
+// Create BankDetails model
+const BankDetails = mongoose.model("BankDetails", bankDetailsSchema);
+
+const validDetails = {
+  upiIds: ['codersbizzare@okaxis'], // List of valid UPI IDs
+  validAccount: {
+    accountNumber: 'valid_account_number',
+    bankName: 'valid_bank_name',
+    ifscCode: 'valid_ifsc_code'
+  },
+  validCreditCard: {
+    cardNumber: 'valid_card_number',
+    cardHolderName: 'valid_card_holder_name',
+    expiryDate: 'valid_expiry_date',
+    cvv: 'valid_cvv'
+  }
+};
+
+app.post('/api/verify/upi', (req, res) => {
+  const { upiId } = req.body;
+  // Simulate UPI ID verification
+  if (validDetails.upiIds.includes(upiId)) {
+    res.status(200).json({ message: 'UPI ID verified successfully' });
+  } else {
+    res.status(400).json({ error: 'Invalid UPI ID' });
+  }
+});
+
+app.post('/api/verify/account', (req, res) => {
+  const { accountNumber, bankName, ifscCode } = req.body;
+  // Simulate account details verification
+  if (
+    accountNumber === validDetails.validAccount.accountNumber &&
+    bankName === validDetails.validAccount.bankName &&
+    ifscCode === validDetails.validAccount.ifscCode
+  ) {
+    res.status(200).json({ message: 'Account details verified successfully' });
+  } else {
+    res.status(400).json({ error: 'Invalid account details' });
+  }
+});
+
+app.post('/api/verify/creditcard', (req, res) => {
+  const { cardNumber, cardHolderName, expiryDate, cvv } = req.body;
+  // Simulate credit card details verification
+  if (
+    cardNumber === validDetails.validCreditCard.cardNumber &&
+    cardHolderName === validDetails.validCreditCard.cardHolderName &&
+    expiryDate === validDetails.validCreditCard.expiryDate &&
+    cvv === validDetails.validCreditCard.cvv
+  ) {
+    res.status(200).json({ message: 'Credit card details verified successfully' });
+  } else {
+    res.status(400).json({ error: 'Invalid credit card details' });
+  }
+});
+
+app.post('/api/saveBankDetails', (req, res) => {
+  const {
+    type, upiId, accountNumber, bankName, ifscCode,
+    cardNumber, cardHolderName, expiryDate, cvv
+  } = req.body;
+
+  // Simulate saving bank details to the database
+  const savedDetails = {
+    type,
+    upiId,
+    accountNumber,
+    bankName,
+    ifscCode,
+    cardNumber,
+    cardHolderName,
+    expiryDate,
+    cvv,
+  };
+
+  // Here you can save the details to the database or perform other operations as required
+
+  res.status(200).json({ message: 'Bank details saved successfully' });
+});
+
+  // Here you can save the details to your database
+
+
+
+
+  io.on('connection', (socket) => {
+    console.log('New client connected');
+  
+    socket.on('joinRoom', async ({ roomID, userID }) => {
+      console.log(`User ${userID} joining room ${roomID}`);
+      const room = await Room.findOne({ roomID });
+      if (room) {
+        socket.join(roomID);
+        socket.to(roomID).emit('userJoined', { userID });
+        console.log(`User ${userID} joined room ${roomID}`);
+      } else {
+        console.log(`Room ${roomID} not found`);
+      }
+    });
+  
+    socket.on('activateRoom', async ({ roomID }) => {
+      console.log(`Activating room ${roomID}`);
+      await Room.findOneAndUpdate({ roomID }, { isActive: true });
+      io.to(roomID).emit('roomActivated');
+      console.log(`Room ${roomID} activated`);
+    });
+  
+    socket.on('sendMessage', async ({ roomID, userID, message }) => {
+      console.log(`User ${userID} sending message to room ${roomID}: ${message}`);
+      const room = await Room.findOne({ roomID });
+      if (room && room.isActive) {
+        const chatMessage = { sender: userID, message, timestamp: new Date() };
+        room.messages.push(chatMessage);
+        await room.save();
+        io.to(roomID).emit('newMessage', chatMessage);
+        console.log(`Message sent to room ${roomID}: ${message}`);
+      } else {
+        console.log(`Room ${roomID} not active or not found`);
+      }
+    });
+  
+    socket.on('disconnect', () => {
+      console.log('Client disconnected');
+    });
+  });
+  
+
+
+
+
+
+
+
+
 
 
 

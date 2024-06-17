@@ -1,180 +1,239 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
-  Image,
   SafeAreaView,
   FlatList,
-  Switch,
-} from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
+  ScrollView,
+  RefreshControl,
+  Alert,
+} from "react-native";
+import {
+  useNavigation,
+  useIsFocused,
+  useRoute,
+} from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import BASE_URL from "../backend/config/config";
 
 export default function RoomScreen() {
   const navigation = useNavigation();
-  const [roomID, setRoomID] = useState('');
-  const [roomName, setRoomName] = useState('');
-  const [roomType, setRoomType] = useState('up to 4 member (INR-10,000)');
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [recentRooms, setRecentRooms] = useState([
-    { id: '1', name: 'Room Name', roomID: 'weu347eu4', members: '10/12' },
-    { id: '2', name: 'Room Name', roomID: 'weu347eu4', members: '10/12' },
-  ]);
+  const isFocused = useIsFocused();
+  const route = useRoute();
+  const [recentRooms, setRecentRooms] = useState([]);
+  const [memberRooms, setmemberRooms] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [token, setToken] = useState("");
+  const [uid, setUid] = useState("");
 
-  const createRoom = () => {
-    if (!termsAccepted) {
-      alert('You must agree to the terms and conditions to create a room.');
-      return;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("userToken");
+        const storedUid = await AsyncStorage.getItem("userUID");
+
+        if (storedToken && storedUid) {
+          console.log("Token and UID found", storedToken, storedUid);
+          setToken(storedToken);
+          setUid(storedUid);
+        } else {
+          console.log("Token or UID not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving token or UID:", error);
+      }
+    };
+
+    if (isFocused) {
+      fetchData();
+      fetchRecentRooms();
+      fetchMemberRooms();
     }
-    // Handle room creation logic here
+  }, [isFocused]);
+
+  const fetchRecentRooms = async () => {
+    try {
+      const storedToken = await AsyncStorage.getItem("userToken");
+      const storedUid = await AsyncStorage.getItem("userUID");
+
+      if (storedToken) {
+        console.log("Fetching recent rooms with token", storedToken); // Debugging line
+        const response = await fetch(`${BASE_URL}admin-rooms`, {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch recent rooms");
+        }
+
+        const responseData = await response.json();
+        console.log("Recent rooms fetched", responseData);
+        setRecentRooms(responseData); // Assuming the rooms data is in the 'data' property of the response
+      //  setMessage(responseData.message); // Assuming the message is included in the response
+      } else {
+        console.log("Token not found");
+      }
+    } catch (error) {
+      console.error("Error fetching recent rooms:", error);
+      Alert.alert("Error", "Failed to fetch recent rooms");
+    }
   };
 
-  const joinRoom = () => {
-    // Handle join room logic here
+  const fetchMemberRooms = async () => {
+    try {
+      const storedToken = await AsyncStorage.getItem("userToken");
+  
+      if (storedToken) {
+        console.log("Fetching recent rooms with token", storedToken);
+        const response = await fetch(`${BASE_URL}member-rooms`, {
+          headers: {
+            Authorization: `Bearer ${storedToken}`,
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error("Failed to fetch recent rooms");
+        }
+  
+        const responseData = await response.json();
+        setmemberRooms(responseData); // Assuming the rooms data is in the 'data' property of the response
+       // setMessage(responseData.message); // Assuming the message is included in the response
+      } else {
+        console.log("Token not found");
+      }
+    } catch (error) {
+      console.error("Error fetching recent rooms:", error);
+      Alert.alert("Error", "Failed to fetch recent rooms");
+    }
+  };
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchMemberRooms().then(() => setRefreshing(false));
+  }, []);
+  
+
+
+
+  const joinRoom = async (item) => {
+    try {
+      const storedToken = await AsyncStorage.getItem("userToken");
+
+      const response = await fetch(`${BASE_URL}join-room`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${storedToken}`,
+        },
+        body: JSON.stringify({ roomID: item.roomID }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Joined Room:", data.existingRoom);
+        navigation.navigate("RoomUser");
+
+        // Update recent rooms with joined room data
+        setRecentRooms((prevRooms) =>
+          prevRooms.map((room) =>
+            room.roomID === item.roomID ? data.existingRoom : room
+          )
+        );
+
+        // Fetch recent rooms again to ensure data is up-to-date
+        fetchRecentRooms();
+      } else {
+        Alert.alert("Error", data.message || "Failed to join room");
+      }
+    } catch (error) {
+      console.error("Error joining room:", error);
+      Alert.alert("Error", "Failed to join room");
+    }
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.roomCard}>
-      <View>
-        <Text style={styles.roomName}>{item.name}</Text>
-        <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
-        <Text style={styles.roomDetails}>Members: {item.members}</Text>
-      </View>
-      <TouchableOpacity style={styles.joinButton}>
-        <Text style={styles.joinButtonText}>Join</Text>
-      </TouchableOpacity>
+const renderItem = ({ item }) => (
+  <View style={styles.roomCard}>
+    <View>
+      <Text style={styles.roomName}>{item.roomName}</Text>
+      <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
+      <Text style={styles.roomDetails}>Count: {item.membercount}</Text>
+      <Text style={styles.roomDetails}>Role: {item.role}</Text>
+      {/* <Text style={styles.roomDetails}>Members: {item.members.join(", ")}</Text> */}
     </View>
-  );
+    <TouchableOpacity
+      style={styles.joinButton}
+      onPress={() => {
+        if (item.navigate) {
+          navigation.navigate(item.navigate, { roomID: item.roomID }); // Pass roomID as a parameter
+        } else {
+          console.warn("Navigate property is not set for this item");
+        }
+      }}
+    >
+      <Text style={styles.joinButtonText}>Join</Text>
+    </TouchableOpacity>
+  </View>
+);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>←</Text>
-      </TouchableOpacity>
-      <Text style={styles.header}>Room</Text>
-      <View style={styles.inputContainer}>
-        <Text style={styles.label}>UID (this is your UID, you cannot change this)</Text>
-        <View style={styles.inputWrapper}>
-          <Image source={require('../assets/PersonFill.png')} style={styles.icon} />
-          <Text style={styles.inputText}>45938630</Text>
-        </View>
-        <Text style={styles.label}>Room ID</Text>
-        <View style={styles.inputWrapper}>
-          <Image source={require('../assets/PersonFill.png')} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Room ID"
-            value={roomID}
-            onChangeText={setRoomID}
+    <ScrollView
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      <SafeAreaView style={styles.container}>
+        <View contentContainerStyle={styles.scrollViewContent}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("CreateRoom")}
+            style={styles.createRoomButton}
+          >
+            <LinearGradient
+              colors={["#FF9800", "#F44336"]}
+              style={styles.gradient}
+            >
+              <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("JoinRoom")}
+            style={styles.joinRoomButton}
+          >
+            <LinearGradient
+              colors={["#7B1FA2", "#8E24AA"]}
+              style={styles.gradient}
+            >
+              <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          <Text style={styles.recentRoomsHeader}>Your Created Rooms</Text>
+          <FlatList
+            data={recentRooms}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={styles.recentRoomsList}
+          />
+          <Text style={styles.recentRoomsHeader}>Your Joined Rooms</Text>
+          <FlatList
+            data={memberRooms}
+            renderItem={renderItem}
+            keyExtractor={(item, index) => index.toString()}
+            contentContainerStyle={styles.joinedRoomsList}
           />
         </View>
-        <Text style={styles.label}>Room Name</Text>
-        <View style={styles.inputWrapper}>
-          <Image source={require('../assets/PersonFill.png')} style={styles.icon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Enter Room Name"
-            value={roomName}
-            onChangeText={setRoomName}
-          />
-        </View>
-        <Text style={styles.label}>Room Type</Text>
-        <View style={styles.inputWrapper}>
-          <Image source={require('../assets/PersonFill.png')} style={styles.icon} />
-          <Text style={styles.inputText}>{roomType}</Text>
-        </View>
-        <View style={styles.termsContainer}>
-          <Switch value={termsAccepted} onValueChange={setTermsAccepted} />
-          <Text style={styles.termsText}>I agree to the Terms & Conditions</Text>
-        </View>
-      </View>
-      <TouchableOpacity onPress={createRoom} style={styles.createRoomButton}>
-        <LinearGradient
-          colors={['#FF9800', '#F44336']}
-          style={styles.gradient}
-        >
-          <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      <Text style={styles.orText}>or</Text>
-      <TouchableOpacity onPress={joinRoom} style={styles.joinRoomButton}>
-        <LinearGradient
-          colors={['#7B1FA2', '#8E24AA']}
-          style={styles.gradient}
-        >
-          <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      <Text style={styles.recentRoomsHeader}>Recent Rooms</Text>
-      <FlatList
-        data={recentRooms}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.recentRoomsList}
-      />
-    </SafeAreaView>
+      </SafeAreaView>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: "#000",
     paddingHorizontal: 16,
-  },
-  backButton: {
-    marginTop: 20,
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 24,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    marginVertical: 20,
-  },
-  inputContainer: {
-    marginVertical: 20,
-  },
-  label: {
-    color: '#fff',
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#333',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 16,
-  },
-  icon: {
-    width: 24,
-    height: 24,
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    color: '#fff',
-  },
-  inputText: {
-    color: '#fff',
-    flex: 1,
-  },
-  termsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  termsText: {
-    color: '#fff',
-    marginLeft: 10,
   },
   createRoomButton: {
     marginVertical: 10,
@@ -185,53 +244,65 @@ const styles = StyleSheet.create({
   gradient: {
     paddingVertical: 15,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   createRoomButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   joinRoomButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  orText: {
-    color: '#fff',
-    textAlign: 'center',
-    marginVertical: 10,
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
   recentRoomsHeader: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     marginVertical: 10,
+    fontSize: 18,
   },
   recentRoomsList: {
+    paddingBottom: 20,
+  },
+  joinedRoomsList: {
     paddingBottom: 100,
   },
   roomCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#222',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#222",
     borderRadius: 10,
     padding: 16,
     marginBottom: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
   },
   roomName: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
     fontSize: 16,
   },
   roomDetails: {
-    color: '#ccc',
+    color: "#ccc",
   },
   joinButton: {
-    backgroundColor: '#8E24AA',
+    backgroundColor: "#8E24AA",
     borderRadius: 10,
     padding: 10,
   },
   joinButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

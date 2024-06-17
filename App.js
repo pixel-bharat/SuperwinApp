@@ -17,6 +17,15 @@ import Transactions from "./Appscreen/Transactions";
 import addMoney from "./Appscreen/addMoney";
 import spendMoney from "./Appscreen/spendMoney";
 import ForgetScreen from "./Appscreen/forgetScreen";
+import Room from "./Appscreen/room";
+import JoinRoomScreen from "./Appscreen/JoinScreen";
+import CreateRoom from "./Appscreen/createRoom";
+
+import BankDetailsScreen from "./Appscreen/bankDetailsScreen";
+import AddBankDetails from "./Appscreen/addBankDetails";
+import SupportScreen from "./Appscreen/supportScreen";
+import SettingScreen from "./Appscreen/settingScreen";
+import RoomUser from "./Appscreen/roomUser";
 
 const Stack = createNativeStackNavigator();
 
@@ -54,21 +63,118 @@ function AppNavigator() {
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={isAuthenticated ? "nav" : "Start"}>
-        <Stack.Screen name="Start" component={Start} options={{ headerShown: false }} />
-        <Stack.Screen name="nav" component={Nav} options={{ headerShown: false }} />
-        <Stack.Screen name="Login" component={LoginPage} options={{ headerShown: false }} />
-        <Stack.Screen name="home" component={Homepage} options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding" component={Onboarding} options={{ headerShown: false }} />
-        <Stack.Screen name="OtpScreen" component={OtpScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="ProfileSetup" component={ProfileSetup} options={{ headerShown: false }} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="welletScreen" component={WalletScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Transactions" component={Transactions} options={{ headerShown: false }} />
-        <Stack.Screen name="RoomScreen" component={RoomScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="addMoney" component={addMoney} options={{ headerShown: false }} />
-        <Stack.Screen name="spendMoney" component={spendMoney} options={{ headerShown: false }} />
-        <Stack.Screen name="forgetScreen" component={ForgetScreen} options={{ headerShown: false }} />
+        <Stack.Navigator initialRouteName={isAuthenticated ? "nav" : "Start"}>
+        <Stack.Screen
+          name="Start"
+          component={Start}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="nav"
+          component={Nav}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Login"
+          component={LoginPage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="home"
+          component={Homepage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="onboarding"
+          component={Onboarding}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="OtpScreen"
+          component={OtpScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ProfileSetup"
+          component={ProfileSetup}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ProfileScreen"
+          component={ProfileScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="welletScreen"
+          component={WalletScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Transactions"
+          component={Transactions}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="RoomScreen"
+          component={RoomScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="addMoney"
+          component={addMoney}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="spendMoney"
+          component={spendMoney}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="forgetScreen"
+          component={ForgetScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="adminroom"
+          component={Room}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="JoinRoom"
+          component={JoinRoomScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="RoomUser"
+          component={RoomUser}
+          options={{ headerShown: false }}
+        />
+         <Stack.Screen
+          name="CreateRoom"
+          component={CreateRoom}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="bankDetailsScreen"
+          component={BankDetailsScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="addBankDetails"
+          component={AddBankDetails}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="supportScreen"
+          component={SupportScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="settingScreen"
+          component={SettingScreen}
+          options={{ headerShown: false }}
+        />
+       
       </Stack.Navigator>
     </NavigationContainer>
   );
