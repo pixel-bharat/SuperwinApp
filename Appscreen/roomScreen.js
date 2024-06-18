@@ -179,54 +179,57 @@ const renderItem = ({ item }) => (
   </View>
 );
 
-  return (
+
+
+return (
+  <SafeAreaView style={styles.container}>
     <ScrollView
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
+      contentContainerStyle={styles.scrollViewContent}
     >
-      <SafeAreaView style={styles.container}>
-        <View contentContainerStyle={styles.scrollViewContent}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("CreateRoom")}
-            style={styles.createRoomButton}
-          >
-            <LinearGradient
-              colors={["#FF9800", "#F44336"]}
-              style={styles.gradient}
-            >
-              <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => navigation.navigate("JoinRoom")}
-            style={styles.joinRoomButton}
-          >
-            <LinearGradient
-              colors={["#7B1FA2", "#8E24AA"]}
-              style={styles.gradient}
-            >
-              <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <Text style={styles.recentRoomsHeader}>Your Created Rooms</Text>
-          <FlatList
-            data={recentRooms}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.recentRoomsList}
-          />
-          <Text style={styles.recentRoomsHeader}>Your Joined Rooms</Text>
-          <FlatList
-            data={memberRooms}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => index.toString()}
-            contentContainerStyle={styles.joinedRoomsList}
-          />
-        </View>
-      </SafeAreaView>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("CreateRoom")}
+        style={styles.createRoomButton}
+      >
+        <LinearGradient
+          colors={["#FF9800", "#F44336"]}
+          style={styles.gradient}
+        >
+          <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => navigation.navigate("JoinRoom")}
+        style={styles.joinRoomButton}
+      >
+        <LinearGradient
+          colors={["#7B1FA2", "#8E24AA"]}
+          style={styles.gradient}
+        >
+          <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
+        </LinearGradient>
+      </TouchableOpacity>
+      <Text style={styles.recentRoomsHeader}>Your Created Rooms</Text>
+      <FlatList
+        data={recentRooms}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={styles.recentRoomsList}
+        scrollEnabled={false} // Disable scrolling for FlatList
+      />
+      <Text style={styles.recentRoomsHeader}>Your Joined Rooms</Text>
+      <FlatList
+        data={memberRooms}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => index.toString()}
+        contentContainerStyle={styles.joinedRoomsList}
+        scrollEnabled={false} // Disable scrolling for FlatList
+      />
     </ScrollView>
-  );
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({
