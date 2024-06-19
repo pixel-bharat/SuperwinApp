@@ -588,7 +588,6 @@ app.get("/member-rooms", authenticateToken, async (req, res) => {
 
 const BankDetailsSchema = new mongoose.Schema({
   type: { type: String, required: true },
-  
   upiId: String,
   accountNumber: String,
   bankName: String,
@@ -597,20 +596,16 @@ const BankDetailsSchema = new mongoose.Schema({
   cardHolderName: String,
   expiryDate: String,
   cvv: String,
-  uid:{type:String,required:true}
+  uid: { type: String, required: true },
 });
 
 const BankDetails = mongoose.model('BankDetails', BankDetailsSchema);
 
-// Middleware
-
 // Routes
 app.post('/api/verify/upi', async (req, res) => {
   const { upiId } = req.body;
-  
-
+  // Simulate verification logic (replace with actual verification logic)
   const isVerified = true;
-
   if (isVerified) {
     res.json({ message: 'UPI ID verified successfully' });
   } else {
@@ -620,10 +615,8 @@ app.post('/api/verify/upi', async (req, res) => {
 
 app.post('/api/verify/account', async (req, res) => {
   const { accountNumber, bankName, ifscCode } = req.body;
-  
   // Simulate verification logic (replace with actual verification logic)
-  const isVerified = true; // Replace with your verification logic
-
+  const isVerified = true;
   if (isVerified) {
     res.json({ message: 'Account details verified successfully' });
   } else {
@@ -633,10 +626,8 @@ app.post('/api/verify/account', async (req, res) => {
 
 app.post('/api/verify/creditcard', async (req, res) => {
   const { cardNumber, cardHolderName, expiryDate, cvv } = req.body;
-  
-  //
-  const isVerified = true; 
-
+  // Simulate verification logic (replace with actual verification logic)
+  const isVerified = true;
   if (isVerified) {
     res.json({ message: 'Credit card details verified successfully' });
   } else {
@@ -647,10 +638,7 @@ app.post('/api/verify/creditcard', async (req, res) => {
 app.post('/api/saveBankDetails', async (req, res) => {
   const { uid, type, upiId, accountNumber, bankName, ifscCode, cardNumber, cardHolderName, expiryDate, cvv } = req.body;
 
-
-
   const bankDetails = new BankDetails({
-    
     type,
     upiId,
     accountNumber,
@@ -660,11 +648,10 @@ app.post('/api/saveBankDetails', async (req, res) => {
     cardHolderName,
     expiryDate,
     cvv,
-    uid
+    uid,
   });
 
   try {
-  
     const savedBankDetails = await bankDetails.save();
     res.json({ message: 'Bank details saved successfully', data: savedBankDetails });
   } catch (err) {
@@ -673,7 +660,24 @@ app.post('/api/saveBankDetails', async (req, res) => {
   }
 });
 
+app.get('/api/user-bank-details/:uid', async (req, res) => {
+  const uid = req.params.uid;
 
+  try {
+    console.log(`fetching bank details for uid: ${uid}`)
+    
+    const userBankDetails = await BankDetails.find({ uid });
+
+    if (!userBankDetails) {
+      return res.status(404).json({ error: 'Bank details not found for this user' });
+    }
+
+    res.json(userBankDetails);
+  } catch (err) {
+    console.error('Error fetching bank details:', err);
+    res.status(500).json({ error: 'Failed to fetch bank details' });
+  }
+});
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

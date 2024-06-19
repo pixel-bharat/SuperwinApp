@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -7,11 +7,12 @@ import {
   Image,
   TextInput,
   ScrollView,
+  Alert,
 } from "react-native";
-import { BackgroundImage } from "react-native-elements";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backend/config/config";
-
+import { BackgroundImage } from "react-native-elements/dist/config";
 export default function AddBankDetails() {
   const navigation = useNavigation();
   const [showAccountDetails, setShowAccountDetails] = useState(false);
@@ -25,7 +26,37 @@ export default function AddBankDetails() {
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
   const [isVerified, setIsVerified] = useState(false);
+  const [userData, setUserData] = useState(null);
   const accountOptions = ["UPI", "Account", "Credit Card"];
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        if (token) {
+          const response = await fetch(`${BASE_URL}api/userdata`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+
+          const data = await response.json();
+          setUserData(data);
+        } else {
+          Alert.alert("Login Failed", "Token not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving user data:", error);
+        Alert.alert("Error", error.message);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleUpiIdChange = (text) => setUpiIdText(text);
   const handleAccountNumberChange = (text) => setAccountNumber(text);
@@ -103,6 +134,7 @@ export default function AddBankDetails() {
       cardHolderName: cardHolderName,
       expiryDate: expiryDate,
       cvv: cvv,
+      uid: userData ? userData.uid : null,
     };
 
     try {
@@ -125,13 +157,12 @@ export default function AddBankDetails() {
       alert("Failed to save bank details");
     }
   };
-
   return (
     <View style={styles.container}>
       <BackgroundImage
         source={require("../assets/bankbackground.png")}
         style={styles.backgroundImage}
-      />
+      ></BackgroundImage>
       <ScrollView style={styles.in_cont}>
         <View>
           <View style={styles.headingCnt}>
@@ -347,6 +378,10 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
   },
+  serachButton: {
+    height: 24,
+    width: 24,
+  },
   inputContainer: {
     marginBottom: 24,
   },
@@ -384,6 +419,7 @@ const styles = StyleSheet.create({
     height: 20,
     width: 20,
   },
+  dropDown: {},
   dropdownList: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 8,
@@ -396,12 +432,19 @@ const styles = StyleSheet.create({
   dropdownText: {
     color: "rgba(158, 158, 158, 1)",
   },
+  verifyText: {
+    color: "rgba(169, 3, 210, 1)",
+    fontSize: 15,
+    fontWeight: "700",
+    textAlign: "center",
+    paddingBottom: 15,
+  },
   button: {
     backgroundColor: "#800080",
     borderRadius: 8,
     padding: 16,
     alignItems: "center",
-    marginVertical: 10,
+    marginVertical: 10, // Added margin for spacing between buttons
   },
   buttonText: {
     color: "#fff",

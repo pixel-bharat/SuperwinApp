@@ -1,104 +1,138 @@
-import React, { useState } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Image } from "react-native";
-import { BackgroundImage } from "react-native-elements/dist/config";
-import { useNavigation, useIsFocused } from "@react-navigation/native";
+import React, { useState, useEffect } from "react";
+import { StyleSheet, View, Text, TouchableOpacity, Image, Alert, FlatList } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from "@react-navigation/native";
+import BASE_URL from "../backend/config/config";
+
 export default function BankDetailsScreen() {
   const navigation = useNavigation();
-  const [showAccountDetails, setShowAccountDetails] = useState(false);
-  const [showUPIDetails, setShowUPIDetails] = useState(false);
-  const [accountIconUp, setAccountIconUp] = useState(true);
-  const [upiIconUp, setUpiIconUp] = useState(true);
+  const [bankDetails, setBankDetails] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [token, setToken] = useState("");
+  const [uid, setUid] = useState("");
+  const [userData, setUserData] = useState(null);
 
-  const toggleAccountDetails = () => {
-    setShowAccountDetails(!showAccountDetails);
-    setAccountIconUp(!accountIconUp);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("userToken");
+        if (storedToken) {
+          const response = await fetch(`${BASE_URL}api/userdata`, {
+            headers: {
+              Authorization: `Bearer ${storedToken}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch user data");
+          }
+
+          const userData = await response.json();
+          setUserData(userData);
+          if (userData.uid) {
+            setUid(userData.uid); // Set UID if available in userData
+            fetchBankDetails(userData.uid, storedToken);
+          } else {
+            throw new Error("UID not found in user data");
+          }
+        } else {
+          throw new Error("Token not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving user data:", error);
+        Alert.alert("Error", error.message);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const fetchBankDetails = async (uid) => {
+    try {
+      console.log("Fetching bank details for UID:", uid);
+      const response = await fetch(`${BASE_URL}user-bank-details/${uid}`, {
+        headers: {
+          Authorization: `Bearer ${uid}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch bank details");
+      }
+
+      const responseData = await response.json();
+      console.log("Bank details fetched", responseData);
+      setBankDetails(responseData); // Assuming responseData is an array of objects
+    } catch (error) {
+      console.error("Error fetching bank details:", error);
+      Alert.alert("Error", "Failed to fetch bank details");
+    } finally {
+      setRefreshing(false); // Ensure refreshing state is set appropriately
+    }
   };
 
-  const toggleUPIDetails = () => {
-    setShowUPIDetails(!showUPIDetails);
-    setUpiIconUp(!upiIconUp);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await fetchBankDetails(uid);
+    setRefreshing(false);
+  };
+
+  const renderItem = ({ item }) => {
+    if (item.type === "Account") {
+      return (
+        <TouchableOpacity
+          style={styles.itemContainer}
+          onPress={() => {
+            // Display account details in Alert
+            Alert.alert(
+              "Account Details",
+              `Account Number: ${item.accountNumber}\nIFSC Code: ${item.ifscCode}\nBank Name: ${item.bankName}`
+            );
+          }}
+        >
+          <Text style={styles.itemText}>{item.bankName}</Text>
+          <Text style={styles.itemType}>{item.type}</Text>
+        </TouchableOpacity>
+      );
+    } else {
+      return null; // Skip rendering for other types like UPI and CreditCard
+    }
   };
 
   return (
     <View style={styles.container}>
-      <BackgroundImage
+      <Image
         source={require("../assets/bankbackground.png")}
         style={styles.backgroundImage}
-      >
-        <View style={styles.in_cont}>
-          <View style={styles.headingCnt}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-              <Image
-                source={require("../assets/back.png")}
-                style={styles.backButton}
-              />
-            </TouchableOpacity>
-
-            <Text style={styles.mainHeading}>Bank Details</Text>
-          </View>
-          <View style={styles.bankDetailsCnt}>
-            <TouchableOpacity onPress={toggleAccountDetails}>
-              <View style={styles.accountCnt}>
-                <Text style={styles.bankDetailsText}>Bank Account</Text>
-
-                <Image
-                  source={
-                    accountIconUp
-                      ? require("../assets/upArrow.png")
-                      : require("../assets/downArrow.png")
-                  }
-                  style={styles.upArrowlogo}
-                />
-              </View>
-              {showAccountDetails && (
-                <>
-                  <View style={styles.line} />
-                  <Text style={styles.bankDetailsText}>Hdfc Bank</Text>
-                  <Text style={styles.bankDetailsText}>
-                    Account No: 343***********34234
-                  </Text>
-                  <Text style={styles.bankDetailsText}>
-                    IFSC Code: HDFC45674
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.bankDetailsCnt}>
-            <TouchableOpacity onPress={toggleUPIDetails}>
-              <View style={styles.accountCnt}>
-                <Text style={styles.bankDetailsText}>UPI</Text>
-
-                <Image
-                  source={
-                    upiIconUp
-                      ? require("../assets/upArrow.png")
-                      : require("../assets/downArrow.png")
-                  }
-                  style={styles.upArrowlogo}
-                />
-              </View>
-              {showUPIDetails && (
-                <>
-                  <View style={styles.line} />
-                  <Text style={styles.bankDetailsText}>Hdfc Bank</Text>
-                  <Text style={styles.bankDetailsText}>
-                    UPI ID: dgjies@okhdfc
-                  </Text>
-                  <Text style={styles.bankDetailsText}>Name: John Cena</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.navigate("addBankDetails")}
-          >
-            <Text style={styles.buttonText}>ADD BANK DETAILS</Text>
+      />
+      <View style={styles.innerContainer}>
+        <View style={styles.headingContainer}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Image
+              source={require("../assets/back.png")}
+              style={styles.backButton}
+            />
           </TouchableOpacity>
+          <Text style={styles.mainHeading}>Bank Details</Text>
         </View>
-      </BackgroundImage>
+        {bankDetails.length > 0 ? (
+          <FlatList
+            data={bankDetails}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        ) : (
+          <Text style={styles.loadingText}>Loading bank details...</Text>
+        )}
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("addBankDetails")}
+        >
+          <Text style={styles.buttonText}>ADD BANK DETAILS</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -108,7 +142,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#000",
   },
-  in_cont: {
+  innerContainer: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingTop: 20,
   },
@@ -118,7 +153,7 @@ const styles = StyleSheet.create({
     width: "100%",
     resizeMode: "contain",
   },
-  headingCnt: {
+  headingContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
@@ -127,61 +162,48 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 22,
     fontWeight: "600",
-    paddingHorizontal: "30%",
+    flex: 1,
+    textAlign: "center",
   },
   backButton: {
     height: 24,
     width: 24,
   },
-
-  serachButton: {
-    height: 24,
-    width: 24,
-  },
-  bankDetailsCnt: {
-    display: "flex",
-    padding: 10,
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "flex-start",
-    gap: 10,
-    alignSelf: "stretch",
+  itemContainer: {
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(84, 84, 88, 0.36)",
-    backgroundColor: "rgba(0, 0, 0, 0.60)",
-    marginVertical: 10,
+    padding: 10,
+    marginTop: 10,
   },
-  accountCnt: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-  },
-  line: {
-    height: 1,
-    backgroundColor: "#434343",
-    marginVertical: 10,
-  },
-  bankDetailsText: {
+  itemText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
-    paddingVertical: 10,
+    marginBottom: 5,
   },
-  dropDownButton: {
-    height: 32,
-    width: 32,
+  itemType: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "400",
   },
-  button: {
+  addButton: {
     backgroundColor: "#800080",
     borderRadius: 8,
-    padding: 16,
+    paddingVertical: 16,
     alignItems: "center",
+    marginTop: 20,
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  loadingText: {
+    color: "white",
+    fontSize: 18,
+    textAlign: "center",
+    marginTop: 20,
   },
 });
