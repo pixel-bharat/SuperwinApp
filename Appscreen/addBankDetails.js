@@ -6,12 +6,12 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
-  FlatList,
   ScrollView,
 } from "react-native";
-import { BackgroundImage } from "react-native-elements/dist/config";
+import { BackgroundImage } from "react-native-elements";
 import { useNavigation } from "@react-navigation/native";
 import BASE_URL from "../backend/config/config";
+
 export default function AddBankDetails() {
   const navigation = useNavigation();
   const [showAccountDetails, setShowAccountDetails] = useState(false);
@@ -46,10 +46,10 @@ export default function AddBankDetails() {
     let payload = {};
 
     if (selectedType === "UPI") {
-      url =`${BASE_URL}api/verify/upi`;
+      url = `${BASE_URL}api/verify/upi`;
       payload = { upiId: upiIdText };
     } else if (selectedType === "Account") {
-      url =`${BASE_URL}api/verify/account`;
+      url = `${BASE_URL}api/verify/account`;
       payload = {
         accountNumber,
         bankName,
@@ -106,7 +106,7 @@ export default function AddBankDetails() {
     };
 
     try {
-        const response = await fetch(`${BASE_URL}api/saveBankDetails`, {
+      const response = await fetch(`${BASE_URL}api/saveBankDetails`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,7 +131,7 @@ export default function AddBankDetails() {
       <BackgroundImage
         source={require("../assets/bankbackground.png")}
         style={styles.backgroundImage}
-      ></BackgroundImage>
+      />
       <ScrollView style={styles.in_cont}>
         <View>
           <View style={styles.headingCnt}>
@@ -347,10 +347,6 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
   },
-  serachButton: {
-    height: 24,
-    width: 24,
-  },
   inputContainer: {
     marginBottom: 24,
   },
@@ -388,7 +384,6 @@ const styles = StyleSheet.create({
     height: 20,
     width: 20,
   },
-  dropDown: {},
   dropdownList: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 8,
@@ -401,19 +396,12 @@ const styles = StyleSheet.create({
   dropdownText: {
     color: "rgba(158, 158, 158, 1)",
   },
-  verifyText: {
-    color: "rgba(169, 3, 210, 1)",
-    fontSize: 15,
-    fontWeight: "700",
-    textAlign: "center",
-    paddingBottom: 15,
-  },
   button: {
     backgroundColor: "#800080",
     borderRadius: 8,
     padding: 16,
     alignItems: "center",
-    marginVertical: 10, // Added margin for spacing between buttons
+    marginVertical: 10,
   },
   buttonText: {
     color: "#fff",

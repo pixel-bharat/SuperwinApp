@@ -23,6 +23,8 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cors());
+   
+
 
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -31,7 +33,7 @@ mongoose
     console.error("MongoDB connection error:", err);
     process.exit(1);
   });
-
+                 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = twilio(accountSid, authToken);
@@ -45,6 +47,7 @@ const userSchema = new mongoose.Schema({
   uniqueId: String,
   walletBalance: { type: Number, default: 0 },
   isActive: { type: Boolean, default: false },
+
 });
 const User = mongoose.model("User", userSchema);
 
@@ -583,79 +586,71 @@ app.get("/member-rooms", authenticateToken, async (req, res) => {
   }
 });
 
-const bankDetailsSchema = new mongoose.Schema({
-  type: String,
+const BankDetailsSchema = new mongoose.Schema({
+  type: { type: String, required: true },
+  
   upiId: String,
   accountNumber: String,
   bankName: String,
   ifscCode: String,
-  creditCardNumber: String,
+  cardNumber: String,
   cardHolderName: String,
   expiryDate: String,
   cvv: String,
+  uid:{type:String,required:true}
 });
 
-const BankDetails = mongoose.model("BankDetails", bankDetailsSchema);
+const BankDetails = mongoose.model('BankDetails', BankDetailsSchema);
 
-// THIS IS WHAT I HARDCOPDED HERE THIS WILL BE UPDATE AFTER FGETTING THE API OF PAYKAASHMA
-const validDetails = {
-  upiIds: ["codersbizzare@okaxis"],
-  validAccount: {
-    accountNumber: "valid_account_number",
-    bankName: "valid_bank_name",
-    ifscCode: "valid_ifsc_code",
-  },
-  validCreditCard: {
-    cardNumber: "valid_card_number",
-    cardHolderName: "valid_card_holder_name",
-    expiryDate: "valid_expiry_date",
-    cvv: "valid_cvv",
-  },
-};
+// Middleware
 
-app.post("/api/verify/upi", (req, res) => {
+// Routes
+app.post('/api/verify/upi', async (req, res) => {
   const { upiId } = req.body;
+  
 
-  if (validDetails.upiIds.includes(upiId)) {
-    res.status(200).json({ message: "UPI ID verified successfully" });
+  const isVerified = true;
+
+  if (isVerified) {
+    res.json({ message: 'UPI ID verified successfully' });
   } else {
-    res.status(400).json({ error: "Invalid UPI ID" });
+    res.status(400).json({ error: 'UPI ID verification failed' });
   }
 });
 
-app.post("/api/verify/account", (req, res) => {
+app.post('/api/verify/account', async (req, res) => {
   const { accountNumber, bankName, ifscCode } = req.body;
+  
+  // Simulate verification logic (replace with actual verification logic)
+  const isVerified = true; // Replace with your verification logic
 
-  if (
-    accountNumber === validDetails.validAccount.accountNumber &&
-    bankName === validDetails.validAccount.bankName &&
-    ifscCode === validDetails.validAccount.ifscCode
-  ) {
-    res.status(200).json({ message: "Account details verified successfully" });
+  if (isVerified) {
+    res.json({ message: 'Account details verified successfully' });
   } else {
-    res.status(400).json({ error: "Invalid account details" });
+    res.status(400).json({ error: 'Account details verification failed' });
   }
 });
 
-app.post("/api/verify/creditcard", (req, res) => {
+app.post('/api/verify/creditcard', async (req, res) => {
   const { cardNumber, cardHolderName, expiryDate, cvv } = req.body;
+  
+  //
+  const isVerified = true; 
 
-  if (
-    cardNumber === validDetails.validCreditCard.cardNumber &&
-    cardHolderName === validDetails.validCreditCard.cardHolderName &&
-    expiryDate === validDetails.validCreditCard.expiryDate &&
-    cvv === validDetails.validCreditCard.cvv
-  ) {
-    res
-      .status(200)
-      .json({ message: "Credit card details verified successfully" });
+  if (isVerified) {
+    res.json({ message: 'Credit card details verified successfully' });
   } else {
-    res.status(400).json({ error: "Invalid credit card details" });
+    res.status(400).json({ error: 'Credit card details verification failed' });
   }
 });
 
-app.post("/api/saveBankDetails", (req, res) => {
-  const {
+app.post('/api/saveBankDetails', async (req, res) => {
+  const { uid, type, upiId, accountNumber, bankName, ifscCode, cardNumber, cardHolderName, expiryDate, cvv } = req.body;
+
+
+
+  const bankDetails = new BankDetails({
+    
     type,
     upiId,
     accountNumber,
@@ -665,24 +660,20 @@ app.post("/api/saveBankDetails", (req, res) => {
     cardHolderName,
     expiryDate,
     cvv,
-  } = req.body;
+    uid
+  });
 
-  const savedDetails = {
-    type,
-    upiId,
-    accountNumber,
-    bankName,
-    ifscCode,
-    cardNumber,
-    cardHolderName,
-    expiryDate,
-    cvv,
-  };
-
-  res.status(200).json({ message: "Bank details saved successfully" });
+  try {
+  
+    const savedBankDetails = await bankDetails.save();
+    res.json({ message: 'Bank details saved successfully', data: savedBankDetails });
+  } catch (err) {
+    console.error('Failed to save bank details:', err);
+    res.status(500).json({ error: 'Failed to save bank details' });
+  }
 });
 
-// Here you can save the details to your database
+
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
