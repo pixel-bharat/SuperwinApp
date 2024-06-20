@@ -600,12 +600,10 @@ const BankDetailsSchema = new mongoose.Schema({
 });
 
 const BankDetails = mongoose.model('BankDetails', BankDetailsSchema);
-
 // Routes
 app.post('/api/verify/upi', async (req, res) => {
   const { upiId } = req.body;
-  // Simulate verification logic (replace with actual verification logic)
-  const isVerified = true;
+  const isVerified = true; // Simulate verification logic (replace with actual verification logic)
   if (isVerified) {
     res.json({ message: 'UPI ID verified successfully' });
   } else {
@@ -615,8 +613,7 @@ app.post('/api/verify/upi', async (req, res) => {
 
 app.post('/api/verify/account', async (req, res) => {
   const { accountNumber, bankName, ifscCode } = req.body;
-  // Simulate verification logic (replace with actual verification logic)
-  const isVerified = true;
+  const isVerified = true; // Simulate verification logic (replace with actual verification logic)
   if (isVerified) {
     res.json({ message: 'Account details verified successfully' });
   } else {
@@ -626,8 +623,7 @@ app.post('/api/verify/account', async (req, res) => {
 
 app.post('/api/verify/creditcard', async (req, res) => {
   const { cardNumber, cardHolderName, expiryDate, cvv } = req.body;
-  // Simulate verification logic (replace with actual verification logic)
-  const isVerified = true;
+  const isVerified = true; // Simulate verification logic (replace with actual verification logic)
   if (isVerified) {
     res.json({ message: 'Credit card details verified successfully' });
   } else {
@@ -664,11 +660,11 @@ app.get('/api/user-bank-details/:uid', async (req, res) => {
   const uid = req.params.uid;
 
   try {
-    console.log(`fetching bank details for uid: ${uid}`)
+    console.log(`fetching bank details for uid: ${uid}`);
     
     const userBankDetails = await BankDetails.find({ uid });
 
-    if (!userBankDetails) {
+    if (userBankDetails.length === 0) {
       return res.status(404).json({ error: 'Bank details not found for this user' });
     }
 

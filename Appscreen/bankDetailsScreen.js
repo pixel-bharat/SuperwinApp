@@ -1,103 +1,134 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Image, Alert, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  Alert,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
-import BASE_URL from "../backend/config/config";
+
+
 
 export default function BankDetailsScreen() {
   const navigation = useNavigation();
   const [bankDetails, setBankDetails] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [token, setToken] = useState("");
   const [uid, setUid] = useState("");
-  const [userData, setUserData] = useState(null);
 
+  // Function to fetch bank details from the server
+  const fetchBankDetails = async (uid) => {
+    try {
+      const storedUid=uid
+      console.log("Fetching bank details for UID:", uid);
+      const response = await fetch(`http://192.168.1.17:3000/api/user-bank-details/${uid}`);
+       console.log(response);
+      if (!response.ok) {
+        const errorText = await response.text(); // Get the response text to help debug
+        console.log("Response status:", response.status);
+        console.log("Response text:", errorText);
+        throw new Error("Failed to fetch bank details");
+      }
+  
+      const responseData = await response.json();
+      console.log("Bank details fetched", responseData);
+      setBankDetails(responseData); // Assuming responseData is an array of objects
+    } catch (error) {
+      console.error("Error fetching bank details:", error.message);
+      Alert.alert("Error", "Failed to fetch bank details. Please try again later.");
+    } finally {
+      setRefreshing(false); // Ensure refreshing state is set appropriately
+    }
+  };
+  
+
+  // useEffect to fetch bank details when component mounts
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem("userToken");
-        if (storedToken) {
-          const response = await fetch(`${BASE_URL}api/userdata`, {
-            headers: {
-              Authorization: `Bearer ${storedToken}`,
-            },
-          });
+        const storedUid = await AsyncStorage.getItem("userUID");
 
-          if (!response.ok) {
-            throw new Error("Failed to fetch user data");
-          }
-
-          const userData = await response.json();
-          setUserData(userData);
-          if (userData.uid) {
-            setUid(userData.uid); // Set UID if available in userData
-            fetchBankDetails(userData.uid, storedToken);
-          } else {
-            throw new Error("UID not found in user data");
-          }
+        if (storedUid) {
+          console.log("UID found", storedUid);
+          setUid(storedUid);
+          fetchBankDetails(storedUid);
         } else {
-          throw new Error("Token not found");
+          console.log("UID not found");
+          Alert.alert(
+            "UID not found",
+            "Please check your credentials and try again."
+          );
         }
       } catch (error) {
-        console.error("Error retrieving user data:", error);
-        Alert.alert("Error", error.message);
+        console.error("Error retrieving UID:", error);
+        Alert.alert("Error", "Failed to retrieve UID");
       }
     };
 
     fetchData();
   }, []);
 
-  const fetchBankDetails = async (uid) => {
-    try {
-      console.log("Fetching bank details for UID:", uid);
-      const response = await fetch(`${BASE_URL}user-bank-details/${uid}`, {
-        headers: {
-          Authorization: `Bearer ${uid}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch bank details");
-      }
-
-      const responseData = await response.json();
-      console.log("Bank details fetched", responseData);
-      setBankDetails(responseData); // Assuming responseData is an array of objects
-    } catch (error) {
-      console.error("Error fetching bank details:", error);
-      Alert.alert("Error", "Failed to fetch bank details");
-    } finally {
-      setRefreshing(false); // Ensure refreshing state is set appropriately
-    }
-  };
-
+  // Function to handle pull-to-refresh
   const onRefresh = async () => {
     setRefreshing(true);
     await fetchBankDetails(uid);
     setRefreshing(false);
   };
 
-  const renderItem = ({ item }) => {
-    if (item.type === "Account") {
-      return (
-        <TouchableOpacity
-          style={styles.itemContainer}
-          onPress={() => {
-            // Display account details in Alert
-            Alert.alert(
-              "Account Details",
-              `Account Number: ${item.accountNumber}\nIFSC Code: ${item.ifscCode}\nBank Name: ${item.bankName}`
-            );
-          }}
-        >
-          <Text style={styles.itemText}>{item.bankName}</Text>
-          <Text style={styles.itemType}>{item.type}</Text>
-        </TouchableOpacity>
-      );
-    } else {
-      return null; // Skip rendering for other types like UPI and CreditCard
-    }
-  };
+  // Function to render each item in the FlatList
+const renderItem = ({ item }) => {
+  if (item.type === "Account") {
+    return (
+      <TouchableOpacity
+        style={styles.itemContainer}
+        onPress={() => {
+          Alert.alert(
+            "Account Details",
+            `Account Number: ${item.accountNumber}\nIFSC Code: ${item.ifscCode}\nBank Name: ${item.bankName}`
+          );
+        }}
+      >
+        <Text style={styles.itemText}>{item.bankName}</Text>
+        <Text style={styles.itemType}>{item.type}</Text>
+      </TouchableOpacity>
+    );
+  } else if (item.type === "UPI") {
+    return (
+      <TouchableOpacity
+        style={styles.itemContainer}
+        onPress={() => {
+          Alert.alert(
+            "UPI Details",
+            `UPI ID: ${item.upiId}`
+          );
+        }}
+      >
+        <Text style={styles.itemText}>{item.upiId}</Text>
+        <Text style={styles.itemType}>{item.type}</Text>
+      </TouchableOpacity>
+    );
+  } else if (item.type === "Credit Card") {
+    return (
+      <TouchableOpacity
+        style={styles.itemContainer}
+        onPress={() => {
+          Alert.alert(
+            "Credit Card Details",
+            `Card Number: ${item.cardNumber}\nCard Holder: ${item.cardHolderName}\nExpiry Date: ${item.expiryDate}\nCVV: ${item.cvv}`
+          );
+        }}
+      >
+        <Text style={styles.itemText}>{item.cardHolderName}</Text>
+        <Text style={styles.itemType}>{item.type}</Text>
+      </TouchableOpacity>
+    );
+  } else {
+    return null; // Skip rendering for unrecognized types (if any)
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -119,7 +150,7 @@ export default function BankDetailsScreen() {
           <FlatList
             data={bankDetails}
             renderItem={renderItem}
-            keyExtractor={(item) => item._id}
+            keyExtractor={(item) => item._id} // Ensure _id is a unique key for each item
             refreshing={refreshing}
             onRefresh={onRefresh}
           />

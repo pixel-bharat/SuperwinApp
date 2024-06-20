@@ -65,6 +65,7 @@ export default function OtpScreen() {
       if (response.status === 200 && response.data && response.data.token) {
         const { uid, profileSetupRequired, token } = response.data;
         await AsyncStorage.setItem("userToken", token); // Store token
+        await AsyncStorage.setItem("userUID", uid); // Store UID
         Alert.alert("Phone number verified successfully!");
 
         setTimeout(() => {
