@@ -72,7 +72,7 @@ export default function JoinRoomScreen() {
       const data = await response.json();
       if (response.ok) {
         console.log("Joined Room:", data.room);
-        navigation.navigate("RoomUser");
+        navigation.navigate('RoomUser', { roomID: item.roomID }); 
 
         // Update recent rooms with joined room data
         setRecentRooms((prevRooms) =>
