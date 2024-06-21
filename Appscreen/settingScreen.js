@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// Frontend: SettingScreen.js
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -6,11 +7,13 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  Alert,
 } from "react-native";
-import { BackgroundImage } from "react-native-elements/dist/config";
 import { useNavigation } from "@react-navigation/native";
 
 const { width, height } = Dimensions.get("window");
+
+const BASE_URL = "http://192.168.1.17:3000"; // Replace with your actual backend URL
 
 export default function SettingScreen() {
   const navigation = useNavigation();
@@ -18,6 +21,57 @@ export default function SettingScreen() {
   const [isChecked2, setIsChecked2] = useState(false);
   const [showLanguages, setShowLanguages] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("English");
+  const [username, setUsername] = useState("USER_NAME"); // Default username
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/settings`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch settings: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Fetched Settings:", data);
+      setUsername(data.username);
+      setIsChecked(data.pushNotification);
+      setIsChecked2(data.inboxNotification);
+      setSelectedLanguage(data.selectedLanguage);
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      Alert.alert("Error", "Failed to fetch settings. Please try again.");
+    }
+  };
+
+  const saveSettings = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/api/settings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          pushNotification: isChecked,
+          inboxNotification: isChecked2,
+          selectedLanguage,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save settings: ${response.status}`);
+      }
+
+      console.log("Settings saved successfully");
+
+      fetchSettings(); // Refresh settings after save
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      Alert.alert("Error", "Failed to save settings. Please try again.");
+    }
+  };
 
   const toggleCheckButton = () => {
     setIsChecked(!isChecked);
@@ -38,84 +92,69 @@ export default function SettingScreen() {
 
   return (
     <View style={styles.container}>
-      <BackgroundImage
-        source={require("../assets/bankbackground.png")}
-        style={styles.backgroundImage}
-      >
-        <View style={styles.in_cont}>
-          <View style={styles.headingCnt}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+      {/* Your UI components */}
+      <View style={styles.in_cont}>
+        <View style={styles.headingCnt}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Image
+              source={require("../assets/back.png")}
+              style={styles.backButton}
+            />
+          </TouchableOpacity>
+          <Text style={styles.mainHeading}>Settings</Text>
+        </View>
+
+        <View style={styles.editProfileCnt}>
+          <View style={styles.usernameCnt}>
+            <Image source={require("../assets/girlProfile.png")} />
+            <Text style={styles.userNameText}>{username}</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate("ProfileSetup")}>
+            <Image source={require("../assets/profileCheck.png")} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.notifmaincnt}>
+          <View style={styles.pushNotiCnt}>
+            <Text style={styles.textNotification}>Push Notification</Text>
+            <TouchableOpacity onPress={toggleCheckButton}>
               <Image
-                source={require("../assets/back.png")}
-                style={styles.backButton}
+                style={styles.checkButton}
+                source={isChecked ? require("../assets/unchecked.png") : require("../assets/checked.png")}
               />
             </TouchableOpacity>
-
-            <Text style={styles.mainHeading}>Settings</Text>
           </View>
-          <View style={styles.editProfileCnt}>
-            <View style={styles.usernameCnt}>
-              <Image source={require("../assets/girlProfile.png")} />
-              <Text style={styles.userNameText}>USER_NAME</Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => navigation.navigate("ProfileSetup")}
-            >
-              <Image source={require("../assets/profileCheck.png")} />
+          <View style={styles.pushNotiCnt}>
+            <Text style={styles.textNotification}>Inbox Notification</Text>
+            <TouchableOpacity onPress={toggleCheckButton2}>
+              <Image
+                style={styles.checkButton}
+                source={isChecked2 ? require("../assets/unchecked.png") : require("../assets/checked.png")}
+              />
             </TouchableOpacity>
           </View>
-          <View style={styles.notifmaincnt}>
-            <View style={styles.pushNotiCnt}>
-              <Text style={styles.textNotification}>Push Notification</Text>
-              <TouchableOpacity onPress={toggleCheckButton}>
-                <Image
-                  style={styles.checkButton}
-                  source={
-                    isChecked
-                      ? require("../assets/unchecked.png")
-                      : require("../assets/checked.png")
-                  }
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.pushNotiCnt}>
-              <Text style={styles.textNotification}>Inbox Notification</Text>
-              <TouchableOpacity onPress={toggleCheckButton2}>
-                <Image
-                  style={styles.checkButton}
-                  source={
-                    isChecked2
-                      ? require("../assets/unchecked.png")
-                      : require("../assets/checked.png")
-                  }
-                />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.pushNotiCnt}>
-              <Text style={styles.textNotification}>Language</Text>
-              <TouchableOpacity onPress={toggleLanguageList}>
-                <Text style={styles.languageSelectText}>
-                  {selectedLanguage}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            {showLanguages && (
-              <View style={styles.languageList}>
-                {["English", "Spanish", "French", "German", "Chinese"].map(
-                  (language) => (
-                    <TouchableOpacity
-                      key={language}
-                      onPress={() => selectLanguage(language)}
-                    >
-                      <Text style={styles.languageOption}>{language}</Text>
-                    </TouchableOpacity>
-                  )
-                )}
-              </View>
-            )}
+          <View style={styles.pushNotiCnt}>
+            <Text style={styles.textNotification}>Language</Text>
+            <TouchableOpacity onPress={toggleLanguageList}>
+              <Text style={styles.languageSelectText}>{selectedLanguage}</Text>
+            </TouchableOpacity>
           </View>
+          {showLanguages && (
+            <View style={styles.languageList}>
+              {["English", "Spanish", "French", "German", "Chinese"].map(language => (
+                <TouchableOpacity key={language} onPress={() => selectLanguage(language)}>
+                  <Text style={styles.languageOption}>{language}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+
+          {/* Save button */}
+          <TouchableOpacity onPress={saveSettings} style={styles.saveButton}>
+            <Text style={styles.saveButtonText}>Save Settings</Text>
+          </TouchableOpacity>
         </View>
-      </BackgroundImage>
+      </View>
     </View>
   );
 }
@@ -128,12 +167,6 @@ const styles = StyleSheet.create({
   in_cont: {
     paddingHorizontal: 16,
     paddingTop: 20,
-  },
-  backgroundImage: {
-    position: "absolute",
-    height: height * 0.5,
-    width: "100%",
-    resizeMode: "contain",
   },
   headingCnt: {
     flexDirection: "row",
@@ -210,5 +243,19 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(84, 84, 88, 0.36)",
     marginVertical: 2,
     textAlign: "center",
+  },
+  saveButton: {
+    marginTop: 20,
+    backgroundColor: "#A903D2",
+    borderRadius: 10,
+    width: "100%",
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  saveButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "600",
   },
 });

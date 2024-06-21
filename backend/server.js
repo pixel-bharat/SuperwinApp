@@ -683,6 +683,7 @@ app.get('/api/user-bank-details/:uid', async (req, res) => {
 });
 
 
+
 const notificationSchema = new mongoose.Schema({
   user_id: String,
   notifications: [
@@ -697,31 +698,136 @@ const notificationSchema = new mongoose.Schema({
   ],
 });
 
-// Create Notification model
 const Notification = mongoose.model('Notification', notificationSchema);
 
-// Example data to insert
+// // Insert initial data if needed
+// const initialNotifications = [
+//   {
+//     user_id: 'uuidv424401',
+//     notifications: [
+//       {
+//         notification: 'Added money to account',
+//         date: new Date('2024-06-20T10:00:00Z'),
+//         type: 'add_money',
+//         amount: 100,
+//       },
+//       {
+//         notification: 'Withdrew money from account',
+//         date: new Date('2024-06-19T09:00:00Z'),
+//         type: 'withdraw_money',
+//         amount: 50,
+//       },
+//       {
+//         notification: 'Joined a new room',
+//         date: new Date('2024-06-18T08:30:00Z'),
+//         type: 'join_room',
+//         room_id: 'room123',
+//         room_name: 'Gaming Room',
+//       },
+//     ],
+//   },
+// ];
 
 
-// API Endpoint to fetch notifications by user_id
-// API Endpoint to fetch notifications by user_id
-app.post('/api/notifications', async (req, res) => {
-  const { userId } = req.body;
 
+// // Check if data already exists, if not insert initial data
+// const checkAndInsertInitialNotifications = async () => {
+//   try {
+//     const user = await Notification.findOne({ user_id: 'uuidv424401' });
+//     if (!user) {
+//       await Notification.insertMany(initialNotifications);
+//       console.log('Initial notifications inserted');
+//     }
+//   } catch (error) {
+//     console.error('Error checking or inserting initial notifications:', error);
+//   }
+// };
+
+// checkAndInsertInitialNotifications();
+
+// // API Endpoint to fetch notifications by user_id
+// app.post('/api/notifications', async (req, res) => {
+//   const { user_id } = req.body;
+
+//   try {
+//     const userNotifications = await Notification.findOne({ user_id });
+//     if (userNotifications) {
+//       res.json(userNotifications);
+//     } else {
+//       res.status(404).json({ message: 'No notifications found for this user.' });
+//     }
+//   } catch (error) {
+//     console.error('Error fetching notifications:', error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+
+
+// Start server
+app.get('/api/notifications/all', async (req, res) => {
   try {
-    const userNotifications = await Notification.findOne({userId});
-    if (userNotifications) {
-      res.json(userNotifications);
-    } else {
-      res.status(404).json({ message: 'No notifications found for this user.' });
-    }
+    const notifications = await Notification.find(); // Retrieve all notifications from MongoDB
+    res.json({ notifications });
   } catch (error) {
     console.error('Error fetching notifications:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: 'Failed to fetch notifications.' });
   }
 });
 
-// Start server
+
+
+let userSettings = {
+  username: "USER_NAME",
+  pushNotification: false,
+  inboxNotification: false,
+  selectedLanguage: "English",
+};
+
+// Endpoint to get current user settings
+app.get("/api/settings", (req, res) => {
+  res.json(userSettings);
+});
+
+// Endpoint to update user settings
+app.post("/api/settings", (req, res) => {
+  const { username, pushNotification, inboxNotification, selectedLanguage } =
+    req.body;
+
+  // Update userSettings with new values
+  if (username) {
+    userSettings.username = username;
+  }
+  if (typeof pushNotification === "boolean") {
+    userSettings.pushNotification = pushNotification;
+  }
+  if (typeof inboxNotification === "boolean") {
+    userSettings.inboxNotification = inboxNotification;
+  }
+  if (selectedLanguage) {
+    userSettings.selectedLanguage = selectedLanguage;
+  }
+
+  res.json({ message: "User settings updated successfully", userSettings });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,15 +8,16 @@ import {
   ImageBackground,
   SafeAreaView,
   TouchableOpacity,
-  ActivityIndicator,
   StatusBar,
   StyleSheet,
+  Clipboard, // Import Clipboard from react-native
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import jwtDecode from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backend/config/config";
+
 export default function ProfileScreen() {
   const navigation = useNavigation();
 
@@ -30,6 +31,7 @@ export default function ProfileScreen() {
   };
 
   const [userData, setUserData] = useState(null);
+
   useEffect(() => {
     const fetchData = async () => {
       const data = await displayUserData();
@@ -70,10 +72,10 @@ export default function ProfileScreen() {
         Alert.alert("Logout Failed", "User not authenticated");
         return;
       }
-  
+
       const decoded = jwtDecode(token);
       const phoneNumber = decoded.phoneNumber;
-  
+
       const response = await fetch(`${BASE_URL}logout`, {
         method: "POST",
         headers: {
@@ -81,7 +83,7 @@ export default function ProfileScreen() {
         },
         body: JSON.stringify({ phoneNumber }),
       });
-  
+
       if (response.ok) {
         await AsyncStorage.removeItem("userToken");
         console.log("User logged out successfully");
@@ -96,7 +98,13 @@ export default function ProfileScreen() {
       Alert.alert("Logout Failed", error.message);
     }
   };
-  
+  const copyToClipboard = (text) => {
+    Clipboard.setString(text);
+    Alert.alert(
+      "Copied to clipboard",
+      `User ID '${text}' copied to clipboard.`
+    );
+  };
 
   return (
     <View style={styles.mainView}>
@@ -132,16 +140,24 @@ export default function ProfileScreen() {
                 <View style={styles.uidbackground}>
                   <Text style={styles.uidtext}>UID: </Text>
                   {userData ? (
-                    <Text style={styles.uidtext}>{userData.userId}</Text>
+                    <TouchableOpacity
+                      onPress={() => copyToClipboard(userData.userId)}
+                    >
+                      <Text style={styles.uidtext}>{userData.userId}</Text>
+                    </TouchableOpacity>
                   ) : (
                     <Text>Loading user data...</Text>
                   )}
                 </View>
 
-                <Image
-                  source={require("../assets/Transfer.png")}
-                  style={{ marginLeft: 6 }}
-                ></Image>
+                <TouchableOpacity
+                  onPress={() => copyToClipboard(userData.userId)}
+                >
+                  <Image
+                    source={require("../assets/Transfer.png")}
+                    style={{ marginLeft: 6 }}
+                  />
+                </TouchableOpacity>
               </View>
               {userData ? (
                 <Text style={styles.lastlogintext}>
