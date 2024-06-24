@@ -239,7 +239,7 @@ export default function AddBankDetails() {
                     placeholderTextColor={"rgba(158, 158, 158, 1)"}
                   />
                 </View>
-
+                                                                        
                 <Text style={styles.inputLable}>Bank Name</Text>
                 <View style={styles.textinputCnt}>
                   <Image

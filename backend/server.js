@@ -684,21 +684,19 @@ app.get('/api/user-bank-details/:uid', async (req, res) => {
 
 
 
-const notificationSchema = new mongoose.Schema({
+const NotificationSchema = new mongoose.Schema({
   user_id: String,
-  notifications: [
-    {
-      notification: String,
-      date: Date,
-      type: String,
-      amount: Number,
-      room_id: String,
-      room_name: String,
-    },
-  ],
+  notification: String,
+  type: String,
+  date: { type: Date, default: Date.now },
+  amount: Number,
+  room_id: String,
+  room_name: String,
 });
 
-const Notification = mongoose.model('Notification', notificationSchema);
+const Notification = mongoose.model('Notification', NotificationSchema);
+
+
 
 // // Insert initial data if needed
 // const initialNotifications = [

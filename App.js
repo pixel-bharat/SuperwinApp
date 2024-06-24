@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Alert, BackHandler } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -20,41 +20,49 @@ import ForgetScreen from "./Appscreen/forgetScreen";
 import Room from "./Appscreen/room";
 import JoinRoomScreen from "./Appscreen/JoinScreen";
 import CreateRoom from "./Appscreen/createRoom";
-
 import BankDetailsScreen from "./Appscreen/bankDetailsScreen";
 import AddBankDetails from "./Appscreen/addBankDetails";
 import SupportScreen from "./Appscreen/supportScreen";
 import SettingScreen from "./Appscreen/settingScreen";
 import RoomUser from "./Appscreen/roomUser";
-import io from 'socket.io-client';
+
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const navigationRef = useRef();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      socket.emit('userLoggedIn');
-    }
-
-    return () => {
-      if (isAuthenticated) {
-        socket.emit('userLoggedOut');
+    const backAction = () => {
+      const currentRouteName = navigationRef.current?.getCurrentRoute()?.name;
+      if (isAuthenticated && currentRouteName === 'home') {
+        Alert.alert("Hold on!", "Do you want to exit the app?", [
+          {
+            text: "Cancel",
+            onPress: () => null,
+            style: "cancel"
+          },
+          { text: "YES", onPress: () => BackHandler.exitApp() }
+        ]);
+        return true;
       }
+      return false;
     };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
   }, [isAuthenticated]);
 
   return (
-    <NavigationContainer>
-        <Stack.Navigator initialRouteName={isAuthenticated ? "nav" : "Start"}>
+    <NavigationContainer ref={navigationRef}>
+      <Stack.Navigator initialRouteName="Start">
         <Stack.Screen
           name="Start"
           component={Start}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="nav"
-          component={Nav}
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -63,18 +71,31 @@ function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="OtpScreen"
+          component={OtpScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="nav"
+          component={Nav}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="home"
           component={Homepage}
           options={{ headerShown: false }}
+          listeners={({ navigation }) => ({
+            focus: () => {
+              setIsAuthenticated(true);
+            },
+            blur: () => {
+              setIsAuthenticated(false);
+            },
+          })}
         />
         <Stack.Screen
           name="onboarding"
           component={Onboarding}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="OtpScreen"
-          component={OtpScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen
@@ -132,7 +153,7 @@ function AppNavigator() {
           component={RoomUser}
           options={{ headerShown: false }}
         />
-         <Stack.Screen
+        <Stack.Screen
           name="CreateRoom"
           component={CreateRoom}
           options={{ headerShown: false }}
@@ -157,11 +178,9 @@ function AppNavigator() {
           component={SettingScreen}
           options={{ headerShown: false }}
         />
-       
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-// Register the main component
-//AppRegistry.registerComponent('main', () => AppNavigator);
+
 export default AppNavigator;

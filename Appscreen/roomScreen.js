@@ -9,7 +9,9 @@ import {
   ScrollView,
   RefreshControl,
   Alert,
+  Image,
 } from "react-native";
+import { BackgroundImage } from "react-native-elements/dist/config";
 import {
   useNavigation,
   useIsFocused,
@@ -74,7 +76,7 @@ export default function RoomScreen() {
         const responseData = await response.json();
         console.log("Recent rooms fetched", responseData);
         setRecentRooms(responseData); // Assuming the rooms data is in the 'data' property of the response
-      //  setMessage(responseData.message); // Assuming the message is included in the response
+        //  setMessage(responseData.message); // Assuming the message is included in the response
       } else {
         console.log("Token not found");
       }
@@ -87,7 +89,7 @@ export default function RoomScreen() {
   const fetchMemberRooms = async () => {
     try {
       const storedToken = await AsyncStorage.getItem("userToken");
-  
+
       if (storedToken) {
         console.log("Fetching recent rooms with token", storedToken);
         const response = await fetch(`${BASE_URL}member-rooms`, {
@@ -95,14 +97,14 @@ export default function RoomScreen() {
             Authorization: `Bearer ${storedToken}`,
           },
         });
-  
+
         if (!response.ok) {
           throw new Error("Failed to fetch recent rooms");
         }
-  
+
         const responseData = await response.json();
         setmemberRooms(responseData); // Assuming the rooms data is in the 'data' property of the response
-       // setMessage(responseData.message); // Assuming the message is included in the response
+        // setMessage(responseData.message); // Assuming the message is included in the response
       } else {
         console.log("Token not found");
       }
@@ -115,9 +117,6 @@ export default function RoomScreen() {
     setRefreshing(true);
     fetchMemberRooms().then(() => setRefreshing(false));
   }, []);
-  
-
-
 
   const joinRoom = async (item) => {
     try {
@@ -155,91 +154,145 @@ export default function RoomScreen() {
     }
   };
 
-const renderItem = ({ item }) => (
-  <View style={styles.roomCard}>
-    <View>
-      <Text style={styles.roomName}>{item.roomName}</Text>
-      <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
-      <Text style={styles.roomDetails}>Count: {item.membercount}</Text>
-      <Text style={styles.roomDetails}>Role: {item.role}</Text>
-      {/* <Text style={styles.roomDetails}>Members: {item.members.join(", ")}</Text> */}
+  const renderItem = ({ item }) => (
+    <View style={styles.roomCard}>
+      <View style={styles.roomCardDetailscnt}>
+        <Text style={styles.roomName}>{item.roomName}</Text>
+        <Text style={styles.roomDetails}>Room ID: {item.roomID}</Text>
+        <Text style={styles.roomDetails}>Role: {item.role}</Text>
+        <View style={styles.contcnt}>
+          <Text style={styles.roomDetailscount}>
+            Members {item.membercount}
+          </Text>
+        </View>
+
+        {/* <Text style={styles.roomDetails}>Members: {item.members.join(", ")}</Text> */}
+      </View>
+      <TouchableOpacity
+        style={styles.joinButton}
+        onPress={() => {
+          if (item.navigate) {
+            navigation.navigate(item.navigate, { roomID: item.roomID }); // Pass roomID as a parameter
+          } else {
+            console.warn("Navigate property is not set for this item");
+          }
+        }}
+      >
+        <Text style={styles.joinButtonText}>Join</Text>
+      </TouchableOpacity>
     </View>
-    <TouchableOpacity
-      style={styles.joinButton}
-      onPress={() => {
-        if (item.navigate) {
-          navigation.navigate(item.navigate, { roomID: item.roomID }); // Pass roomID as a parameter
-        } else {
-          console.warn("Navigate property is not set for this item");
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <BackgroundImage
+        source={require("../assets/bankbackground.png")}
+        style={styles.backgroundImage}
+      ></BackgroundImage>
+      <FlatList
+        style={styles.in_cont}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
-      }}
-    >
-      <Text style={styles.joinButtonText}>Join</Text>
-    </TouchableOpacity>
-  </View>
-);
-
-
-
-return (
-  <SafeAreaView style={styles.container}>
-    <ScrollView
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-      }
-      contentContainerStyle={styles.scrollViewContent}
-    >
-      <TouchableOpacity
-        onPress={() => navigation.navigate("CreateRoom")}
-        style={styles.createRoomButton}
-      >
-        <LinearGradient
-          colors={["#FF9800", "#F44336"]}
-          style={styles.gradient}
-        >
-          <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() => navigation.navigate("JoinRoom")}
-        style={styles.joinRoomButton}
-      >
-        <LinearGradient
-          colors={["#7B1FA2", "#8E24AA"]}
-          style={styles.gradient}
-        >
-          <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
-        </LinearGradient>
-      </TouchableOpacity>
-      <Text style={styles.recentRoomsHeader}>Your Created Rooms</Text>
-      <FlatList
-        data={recentRooms}
-        renderItem={renderItem}
+        ListHeaderComponent={
+          <View contentContainerStyle={styles.scrollViewContent}>
+            <View style={styles.headingCnt}>
+              <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Image
+                  source={require("../assets/back.png")}
+                  style={styles.backButton}
+                />
+              </TouchableOpacity>
+              <Text style={styles.mainHeading}>Room</Text>
+            </View>
+            <Image
+              source={require("../assets/Line.png")}
+              style={styles.line}
+            ></Image>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("CreateRoom")}
+              style={styles.createRoomButton}
+            >
+              <LinearGradient
+                colors={["#FF9800", "#F44336"]}
+                style={styles.gradient}
+              >
+                <Text style={styles.createRoomButtonText}>+ CREATE A ROOM</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <Text style={styles.orText}>or</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("JoinRoom")}
+              style={styles.joinRoomButton}
+            >
+              <LinearGradient
+                colors={["#7B1FA2", "#8E24AA"]}
+                style={styles.gradient}
+              >
+                <Text style={styles.joinRoomButtonText}>JOIN BY ROOM ID</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <Text style={styles.recentRoomsHeader}>Recent Rooms</Text>
+          </View>
+        }
+        data={[...recentRooms, { isHeader: true }, ...memberRooms]}
+        renderItem={({ item }) => {
+          if (item.isHeader) {
+            return (
+              <Text style={styles.recentRoomsHeader}>Your Joined Rooms</Text>
+            );
+          }
+          return renderItem({ item });
+        }}
         keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.recentRoomsList}
-        scrollEnabled={false} // Disable scrolling for FlatList
+        contentContainerStyle={styles.scrollViewContent}
       />
-      <Text style={styles.recentRoomsHeader}>Your Joined Rooms</Text>
-      <FlatList
-        data={memberRooms}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => index.toString()}
-        contentContainerStyle={styles.joinedRoomsList}
-        scrollEnabled={false} // Disable scrolling for FlatList
-      />
-    </ScrollView>
-  </SafeAreaView>
-);
+    </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
-    paddingHorizontal: 16,
   },
+  in_cont: {
+    marginBottom: "25%",
+    marginHorizontal: 16,
+  },
+  backgroundImage: {
+    position: "absolute",
+    height: "50%",
+    width: "100%",
+    resizeMode: "contain",
+  },
+  headingCnt: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  mainHeading: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "600",
+    paddingHorizontal: "34%",
+  },
+  line: {
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom:10
+  },
+  backButton: {
+    height: 24,
+    width: 24,
+  },
+  // container: {
+  //   flex: 1,
+  //   backgroundColor: "#000",
+  //   paddingHorizontal: 16,
+  // },
   createRoomButton: {
-    marginVertical: 10,
+    marginVertical: 12,
   },
   joinRoomButton: {
     marginVertical: 10,
@@ -256,8 +309,14 @@ const styles = StyleSheet.create({
   },
   createRoomButtonText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "700",
     fontSize: 16,
+  },
+  orText: {
+    color: "white",
+    textAlign: "center",
+    fontSize: 14,
+    fontWeight: "600",
   },
   joinRoomButtonText: {
     color: "#fff",
@@ -266,7 +325,7 @@ const styles = StyleSheet.create({
   },
   recentRoomsHeader: {
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "700",
     marginVertical: 10,
     fontSize: 18,
   },
@@ -282,7 +341,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#222",
     borderRadius: 10,
-    padding: 16,
+    padding: 10,
     marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -290,22 +349,49 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 5,
   },
+  roomCardDetailscnt: {},
   roomName: {
     color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
+    fontWeight: "400",
+    fontSize: 18,
   },
   roomDetails: {
-    color: "#ccc",
+    color: "white",
+    marginTop: 5,
+    fontSize: 12,
+  },
+  contcnt: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignContent: "space-around",
+    borderRadius: 8,
+    backgroundColor: "rgba(0, 0, 0, 0.44)",
+    width: "65%",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  roomDetailscount: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "400",
   },
   joinButton: {
     backgroundColor: "#8E24AA",
     borderRadius: 10,
-    padding: 10,
+    display: "flex",
+    width: 69,
+    height: 77,
+    // paddingVertical: 26,
+    // paddingHorizontal: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    marginBottom: 28,
   },
   joinButtonText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontWeight: "600",
     fontSize: 16,
   },
 });
