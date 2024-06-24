@@ -25,7 +25,7 @@ import AddBankDetails from "./Appscreen/addBankDetails";
 import SupportScreen from "./Appscreen/supportScreen";
 import SettingScreen from "./Appscreen/settingScreen";
 import RoomUser from "./Appscreen/roomUser";
-
+import EditProfile from "./Appscreen/editProfile";
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
@@ -176,6 +176,11 @@ function AppNavigator() {
         <Stack.Screen
           name="settingScreen"
           component={SettingScreen}
+          options={{ headerShown: false }}
+        />
+          <Stack.Screen
+          name="editProfile"
+          component={EditProfile}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

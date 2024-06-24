@@ -109,7 +109,7 @@ export default function SettingScreen() {
             <Image source={require("../assets/girlProfile.png")} />
             <Text style={styles.userNameText}>{username}</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate("ProfileSetup")}>
+          <TouchableOpacity onPress={() => navigation.navigate("editProfile")}>
             <Image source={require("../assets/profileCheck.png")} />
           </TouchableOpacity>
         </View>

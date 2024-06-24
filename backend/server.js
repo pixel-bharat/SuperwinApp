@@ -309,24 +309,28 @@ app.post("/avatar", async (req, res) => {
   }
 });
 
+
 const authenticateToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1];
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
+
   if (!token) {
-    console.log("No token provided");
-    return res
-      .status(401)
-      .json({ message: "Access denied. No token provided." });
+    return res.status(401).json({ message: 'Access denied. No token provided.' });
   }
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    console.log("Token verified:", decoded);
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.error('JWT verification error:', err);
+      return res.status(403).json({ message: 'Access denied. Invalid token.' });
+    }
+
+    req.user = decoded; // Attach decoded user information to the request object
     next();
-  } catch (error) {
-    console.error("Invalid token:", error);
-    res.status(400).json({ message: "Invalid token." });
-  }
+  });
 };
+
+module.exports = authenticateToken;
+
 
 const Schema = mongoose.Schema;
 
@@ -810,19 +814,47 @@ app.post("/api/settings", (req, res) => {
 });
 
 
+// API / CONTROLLER FOR EDIT PROFILE  
 
 
 
 
 
 
+// Route to update user profile
+// Example backend logic to update user profile
+// Example backend logic to update user profile
+// Example backend logic to update user profile
+const { Types: { ObjectId } } = require('mongoose'); // Import ObjectId from mongoose
 
+// Example route using ObjectId
+app.put('/api/profile/:userId', authenticateToken, async (req, res) => {
+  const userId = req.params.userId;
+  const { memberName, avatar } = req.body;
 
+  try {
+    // Validate ObjectId format
+    if (!ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid userId format' });
+    }
 
+    const filter = { _id: ObjectId(userId) };
+    const update = { $set: { name: memberName, avatar } };
 
+    const updatedUser = await User.findOneAndUpdate(filter, update, {
+      new: true, // Return the updated document
+    });
 
+    if (!updatedUser) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
 
 
 

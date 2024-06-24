@@ -158,7 +158,7 @@ export default function WalletScreen() {
             <View style={styles.quickCnt}>
               <TouchableOpacity
                 style={styles.quickCntblock}
-                onPress={() => navigation.navigate("addMoney")}
+                                          
                 disabled={loading}
               >
                 <Image source={require("../assets/moneybag.png")} />
