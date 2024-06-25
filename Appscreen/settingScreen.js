@@ -151,7 +151,7 @@ export default function SettingScreen() {
 
             <Text style={styles.userNameText}>{userData ? userData.memberName : ''}</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate("editProfile")}>
+          <TouchableOpacity onPress={() => navigation.navigate("ProfileSetup")}>
             <Image source={require("../assets/profileCheck.png")} />
           </TouchableOpacity>
         </View>
