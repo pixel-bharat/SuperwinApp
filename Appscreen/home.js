@@ -5,16 +5,14 @@ import {
   Image,
   Alert,
   ImageBackground,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
+  BackHandler,
 } from "react-native";
 
 import { useNavigation, useIsFocused } from "@react-navigation/native";
-import jwtDecode from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import BASE_URL from "../backend/config/config";
@@ -28,6 +26,28 @@ export default function Homepage() {
     if (isFocused) {
       fetchWalletDetails();
     }
+  }, [isFocused]);
+
+  useEffect(() => {
+    const backAction = () => {
+      Alert.alert("Hold on!", "Do you want to exit the app?", [
+        {
+          text: "Cancel",
+          onPress: () => null,
+          style: "cancel",
+        },
+        { text: "YES", onPress: () => BackHandler.exitApp() },
+      ]);
+      return true;
+    };
+
+    if (isFocused) {
+      BackHandler.addEventListener("hardwareBackPress", backAction);
+    }
+
+    return () => {
+      BackHandler.removeEventListener("hardwareBackPress", backAction);
+    };
   }, [isFocused]);
 
   const fetchWalletDetails = async () => {
@@ -75,6 +95,7 @@ export default function Homepage() {
                   </Text>
                 </TouchableOpacity>
 
+             
                 <TouchableOpacity
                   onPress={() => navigation.navigate("addMoney")}
                 >
@@ -130,71 +151,34 @@ export default function Homepage() {
 }
 
 const styles = StyleSheet.create({
-  gap40: {
-    height: 40,
-  },
-
   mainView: {
     flex: 1,
     backgroundColor: "#000",
     paddingBottom: 100,
   },
-
   scroll__View: {
     padding: 16,
   },
-
   backgroundStyle: {
     width: "100%",
     height: "80%",
     position: "absolute",
   },
-
   logoheader: {
     width: 60,
     height: 50,
   },
-
   totalmoneyctn: { alignItems: "flex-end" },
-
   balncetext: {
     color: "white",
     fontSize: 14,
     fontWeight: "400",
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     width: "100%",
   },
-
-  topcntbackground: {
-    justifyContent: "space-between",
-    width: "100%",
-    alignItems: "center",
-  },
-  topchildcnt1: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-between",
-  },
-  topchildcnt1img: {
-    width: "50%",
-    overflow: "hidden",
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-  },
-
-  slidertop: {
-    alignSelf: "center",
-    height: 167,
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "grey",
-    paddingHorizontal: 10,
-  },
-
   headingtext: {
     color: "white",
     fontSize: 18,
@@ -203,8 +187,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   totalmoneybackground: { flexDirection: "row", alignItems: "center" },
-
-  // new stayling
   promotextgames: {
     fontSize: 18,
     fontWeight: "bold",
@@ -214,33 +196,15 @@ const styles = StyleSheet.create({
   accountcard: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20, // Add marginBottom to create space between rows
+    marginBottom: 20,
   },
   firstcard: {
     width: "47%",
-    aspectRatio: 1, // Set the aspect ratio to 1:1
+    aspectRatio: 1,
   },
   image: {
     flex: 1,
-    aspectRatio: 1, // Set the aspect ratio to 1:1
-    resizeMode: "contain", // Adjust resizeMode based on your image requirements
-  },
-  logoutBtn: {
-    marginTop: 20,
-    width: "100%",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  linearGradient: {
-    width: "100%",
-    height: 64,
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+    aspectRatio: 1,
+    resizeMode: "contain",
   },
 });

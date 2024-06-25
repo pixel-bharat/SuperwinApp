@@ -1,4 +1,3 @@
-// Frontend: SettingScreen.js
 import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
@@ -10,6 +9,9 @@ import {
   Alert,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import jwtDecode from "jwt-decode";
+import { faBold } from "@fortawesome/free-solid-svg-icons";
 
 const { width, height } = Dimensions.get("window");
 
@@ -17,15 +19,49 @@ const BASE_URL = "http://192.168.1.17:3000"; // Replace with your actual backend
 
 export default function SettingScreen() {
   const navigation = useNavigation();
+  
+  const avatars = {
+    avatar_1: require("../assets/avatar/avatar_1.png"),
+    avatar_2: require("../assets/avatar/avatar_2.png"),
+    avatar_3: require("../assets/avatar/avatar_3.png"),
+    avatar_4: require("../assets/avatar/avatar_4.png"),
+    avatar_5: require("../assets/avatar/avatar_5.png"),
+    uploadAvatar: require("../assets/avatar/upload_avatar.png"),
+  };
+
+  const [isLoading, setIsLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [isChecked2, setIsChecked2] = useState(false);
   const [showLanguages, setShowLanguages] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("English");
-  const [username, setUsername] = useState("USER_NAME"); // Default username
+  const [userData, setUserData] = useState(null); // Initialize with null or {}
 
   useEffect(() => {
-    fetchSettings();
+    fetchUserData();
   }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (token) {
+        const decoded = jwtDecode(token);
+        const phoneNumber = decoded.phoneNumber
+          ? decoded.phoneNumber.replace(/^91/, "")
+          : "";
+        setUserData({
+          phoneNumber: phoneNumber,
+          uid: decoded.userId || "",
+          avatar: decoded.avatar || null,
+          memberName: decoded.name || "",
+        });
+        fetchSettings(); // Fetch settings after fetching user data
+      } else {
+        Alert.alert("Error", "Token not found");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to fetch user data.");
+    }
+  };
 
   const fetchSettings = async () => {
     try {
@@ -35,7 +71,6 @@ export default function SettingScreen() {
       }
       const data = await response.json();
       console.log("Fetched Settings:", data);
-      setUsername(data.username);
       setIsChecked(data.pushNotification);
       setIsChecked2(data.inboxNotification);
       setSelectedLanguage(data.selectedLanguage);
@@ -53,7 +88,7 @@ export default function SettingScreen() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username,
+          username: userData.memberName,
           pushNotification: isChecked,
           inboxNotification: isChecked2,
           selectedLanguage,
@@ -92,7 +127,6 @@ export default function SettingScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Your UI components */}
       <View style={styles.in_cont}>
         <View style={styles.headingCnt}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -106,8 +140,16 @@ export default function SettingScreen() {
 
         <View style={styles.editProfileCnt}>
           <View style={styles.usernameCnt}>
-            <Image source={require("../assets/girlProfile.png")} />
-            <Text style={styles.userNameText}>{username}</Text>
+            {userData && userData.avatar ? (
+               <Image source={avatars[userData.avatar]} style={styles.pro_pic} />
+            ) : (
+              <Image
+                source={require("../assets/girlProfile.png")}
+                style={styles.profileImage}
+              />
+            )}
+
+            <Text style={styles.userNameText}>{userData ? userData.memberName : ''}</Text>
           </View>
           <TouchableOpacity onPress={() => navigation.navigate("editProfile")}>
             <Image source={require("../assets/profileCheck.png")} />
@@ -120,7 +162,11 @@ export default function SettingScreen() {
             <TouchableOpacity onPress={toggleCheckButton}>
               <Image
                 style={styles.checkButton}
-                source={isChecked ? require("../assets/unchecked.png") : require("../assets/checked.png")}
+                source={
+                  isChecked
+                    ? require("../assets/unchecked.png")
+                    : require("../assets/checked.png")
+                }
               />
             </TouchableOpacity>
           </View>
@@ -129,7 +175,11 @@ export default function SettingScreen() {
             <TouchableOpacity onPress={toggleCheckButton2}>
               <Image
                 style={styles.checkButton}
-                source={isChecked2 ? require("../assets/unchecked.png") : require("../assets/checked.png")}
+                source={
+                  isChecked2
+                    ? require("../assets/unchecked.png")
+                    : require("../assets/checked.png")
+                }
               />
             </TouchableOpacity>
           </View>
@@ -195,7 +245,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  userNameText: { color: "white", paddingLeft: 16 },
+  userNameText: { color: "white", paddingLeft: 16,  fontSize:20,font:faBold
+   },
+
+
+  pro_pic: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    marginRight: 0,
+    marginLeftLeft:20
+  },
+  
   pushNotiCnt: {
     display: "flex",
     width: width * 0.9,
@@ -233,12 +294,8 @@ const styles = StyleSheet.create({
   languageOption: {
     color: "rgba(254, 254, 254, 1)",
     fontSize: 16,
-    display: "flex",
     width: width * 0.9,
     padding: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 8,
     borderRadius: 8,
     backgroundColor: "rgba(84, 84, 88, 0.36)",
     marginVertical: 2,
@@ -256,6 +313,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "white",
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: "bold",
   },
 });

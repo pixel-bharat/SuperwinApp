@@ -13,6 +13,8 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import jwtDecode from 'jwt-decode';
+import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 export default function EditProfile({ navigation }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -34,84 +36,121 @@ export default function EditProfile({ navigation }) {
       const token = await AsyncStorage.getItem('userToken');
       if (token) {
         const decoded = jwtDecode(token);
-        console.log('Decoded JWT:', decoded);
         const phoneNumber = decoded.phoneNumber ? decoded.phoneNumber.replace(/^91/, '') : '';
         setUserData({
           phoneNumber: phoneNumber,
-          uid: decoded.userId || '',
+          uid: decoded.userId || '',  // Extracting userId from the token
           avatar: decoded.avatar || null,
           memberName: decoded.name || '',
         });
       } else {
-        console.log('No token found');
         Alert.alert('Error', 'Token not found');
       }
     } catch (error) {
-      console.error('Error fetching user data:', error);
       Alert.alert('Error', 'Failed to fetch user data.');
     }
   };
-
+  
   const saveProfile = async () => {
     setNameError('');
     setIsLoading(true);
-
+  
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const userId = userData.uid; // Ensure this is a valid ObjectId or convert it
-
+      const userId = userData.uid;  // Getting userId from userData state
+  
       if (!token) {
         setIsLoading(false);
         Alert.alert('Error', 'Token not found');
         return;
       }
-
+  
       const updatedUser = {
         memberName: userData.memberName,
         avatar: selectedAvatar,
       };
-
-      const response = await fetch(`http://192.168.1.17:3000/api/profile/${userId}`, {
+  
+      const response = await fetch(`http://192.168.1.17:3000/api/profile/${userId}`, {  // Using userId in the URL
         method: 'PUT',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`, // Include token in Authorization header
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(updatedUser),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to update profile');
       }
-
+  
       const data = await response.json();
-      console.log('Profile updated successfully:', data);
-
       Alert.alert('Success', 'Profile updated successfully!');
-      // Navigate to profile screen or any other screen
-      // Replace 'ProfileScreen' with your actual screen name
       navigation.navigate('ProfileScreen');
     } catch (error) {
-      console.error('Save profile error:', error);
       Alert.alert('Error', 'Failed to save profile.');
     } finally {
       setIsLoading(false);
     }
   };
+  
 
   const avatars = {
     avatar1: require('../assets/avatar/avatar_1.png'),
     avatar2: require('../assets/avatar/avatar_2.png'),
     avatar3: require('../assets/avatar/avatar_3.png'),
     avatar4: require('../assets/avatar/avatar_4.png'),
-    avatar5: require('../assets/avatar/avatar_5.png'),
     uploadAvatar: require('../assets/avatar/upload_avatar.png'),
   };
 
+  const selectAvatarFromGallery = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (permissionResult.granted === false) {
+      Alert.alert('Permission to access gallery is required!');
+      return;
+    }
+
+    let pickerResult = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!pickerResult.cancelled) {
+      try {
+        // Check if the picked image URI is valid
+        const { uri } = pickerResult;
+        if (typeof uri !== 'string' || uri.trim() === '') {
+          throw new Error('Invalid image URI');
+        }
+
+        // Manipulate the image
+        const manipResult = await ImageManipulator.manipulateAsync(
+          uri,
+          [{ resize: { width: 300, height: 300 } }],
+          { compress: 1, format: ImageManipulator.SaveFormat.PNG }
+        );
+
+        // Check if the manipulated image URI is valid
+        if (typeof manipResult.uri !== 'string' || manipResult.uri.trim() === '') {
+          throw new Error('Manipulated image URI is invalid');
+        }
+
+        setSelectedAvatar(manipResult.uri);
+      } catch (error) {
+        console.error('ImageManipulator error:', error);
+        Alert.alert('Error', 'Failed to manipulate image.');
+      }
+    }
+  };
+
   const selectAvatar = (key) => {
-    setSelectedAvatar(key);
-    console.log('Avatar selected:', key);
+    if (key === 'uploadAvatar') {
+      selectAvatarFromGallery();
+    } else {
+      setSelectedAvatar(avatars[key]);
+    }
   };
 
   return (
@@ -152,7 +191,7 @@ export default function EditProfile({ navigation }) {
                   source={avatars[key]}
                   style={[
                     styles.avatar,
-                    selectedAvatar === key ? styles.selectedAvatar : null,
+                    selectedAvatar === avatars[key] ? styles.selectedAvatar : null,
                   ]}
                 />
               </TouchableOpacity>

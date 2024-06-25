@@ -11,7 +11,7 @@ const twilio = require("twilio");
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 const validator = require("validator");
-
+const multer = require('multer');
 const http = require("http");
 
 require("dotenv").config();
@@ -311,24 +311,23 @@ app.post("/avatar", async (req, res) => {
 
 
 const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer <token>
-
+  const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
-    return res.status(401).json({ message: 'Access denied. No token provided.' });
+    console.log("No token provided");
+    return res
+      .status(401)
+      .json({ message: "Access denied. No token provided." });
   }
-
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      console.error('JWT verification error:', err);
-      return res.status(403).json({ message: 'Access denied. Invalid token.' });
-    }
-
-    req.user = decoded; // Attach decoded user information to the request object
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    console.log("Token verified:", decoded);
     next();
-  });
+  } catch (error) {
+    console.error("Invalid token:", error);
+    res.status(400).json({ message: "Invalid token." });
+  }
 };
-
 module.exports = authenticateToken;
 
 
@@ -816,6 +815,26 @@ app.post("/api/settings", (req, res) => {
 
 // API / CONTROLLER FOR EDIT PROFILE  
 
+// Update profile route
+app.put('/api/profile/:id', authenticateToken, async (req, res) => {
+  const { id } = req.params;
+  const { memberName, avatar } = req.body;
+
+  console.log(`Updating profile for user ${id} with name ${memberName} and avatar ${avatar}`);
+
+  try {
+    const user = await User.findByIdAndUpdate(id, { name: memberName, avatar: avatar }, { new: true });
+    if (!user) {
+      console.log('User not found');
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+});
+
 
 
 
@@ -825,39 +844,35 @@ app.post("/api/settings", (req, res) => {
 // Example backend logic to update user profile
 // Example backend logic to update user profile
 // Example backend logic to update user profile
-const { Types: { ObjectId } } = require('mongoose'); // Import ObjectId from mongoose
+// const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, 'uploads/'); // Destination folder where uploaded files will be stored
+//   },
+//   filename: function (req, file, cb) {
+//     cb(null, Date.now() + '-' + file.originalname); // Naming convention for uploaded files
+//   },
+// });
 
-// Example route using ObjectId
-app.put('/api/profile/:userId', authenticateToken, async (req, res) => {
-  const userId = req.params.userId;
-  const { memberName, avatar } = req.body;
-
-  try {
-    // Validate ObjectId format
-    if (!ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Invalid userId format' });
-    }
-
-    const filter = { _id: ObjectId(userId) };
-    const update = { $set: { name: memberName, avatar } };
-
-    const updatedUser = await User.findOneAndUpdate(filter, update, {
-      new: true, // Return the updated document
-    });
-
-    if (!updatedUser) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json(updatedUser);
-  } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ error: 'Failed to update profile' });
-  }
-});
+// const upload = multer({ storage: storage });
 
 
+// app.get('/api/users/:id', authenticateToken, (req, res) => {
+//   const user = users.find((u) => u.id === parseInt(req.params.id));
+//   if (!user) return res.status(404).send('User not found');
+//   res.json(user);
+// });
 
+// // Update user profile with avatar upload
+// app.put('/api/users/:id', authenticateToken, upload.single('avatar'), (req, res) => {
+//   const userId = parseInt(req.params.id);
+//   const user = users.find((u) => u.id === userId);
+//   if (!user) return res.status(404).send('User not found');
+
+//   // Update user's avatar
+//   user.avatar = req.file.filename;
+
+//   res.status(200).json({ message: 'Profile updated successfully', avatar: req.file.filename });
+// });
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
