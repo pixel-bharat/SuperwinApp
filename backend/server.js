@@ -46,8 +46,6 @@ const userSchema = new mongoose.Schema({
   isAvatarSet: { type: Boolean, default: false },
   uniqueId: String,
   walletBalance: { type: Number, default: 0 },
-  isActive: { type: Boolean, default: false },
-
 });
 const User = mongoose.model("User", userSchema);
 
@@ -55,7 +53,7 @@ const generateUniqueId = () => {
   return "uuidv4" + Math.floor(Math.random() * 100000);
 };
 
-const userSessions = {};
+const userSessions = {}; // Global or appropriate scoped session storage
 
 app.post("/send-otp", async (req, res) => {
   const { phoneNumber } = req.body;
@@ -87,6 +85,7 @@ app.post("/send-otp", async (req, res) => {
       );
     }
 
+    // Store OTP, phone number, and unique ID in local session using cleanedPhoneNumber as the key
     userSessions[cleanedPhoneNumber] = {
       otp,
       phoneNumber: cleanedPhoneNumber,
@@ -146,26 +145,24 @@ app.post("/verify-otp", async (req, res) => {
       user = new User({
         phoneNumber: cleanedPhoneNumber,
         uniqueId: sessionData.uid,
-        isActive: true,
       });
       await user.save();
       console.log(
         `New user registered. Phone number: ${cleanedPhoneNumber}, UID: ${sessionData.uid}`
       );
     } else {
-      await User.updateOne(
-        { phoneNumber: cleanedPhoneNumber },
-        { isActive: true }
-      );
       console.log(
         `Existing user verified. Phone number: ${user.phoneNumber}, UID: ${user.uniqueId}`
       );
     }
 
+    // OTP verification successful, cleanup session data
     delete userSessions[cleanedPhoneNumber];
 
+    // Check if profile setup is required
     const profileSetupRequired = !(user.isNameSet && user.isAvatarSet);
 
+    // Generate JWT token
     const token = jwt.sign(
       {
         userId: user.uniqueId,
@@ -199,16 +196,13 @@ app.post("/verify-otp", async (req, res) => {
     res.status(500).send("Error verifying OTP");
   }
 });
-
 app.post("/logout", async (req, res) => {
   const { phoneNumber } = req.body;
   if (!phoneNumber) {
     return res.status(400).send("Phone number is required");
   }
-
   const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
   console.log(`Logging out user with phone number: ${cleanedPhoneNumber}`);
-
   try {
     await User.updateOne(
       { phoneNumber: cleanedPhoneNumber },
@@ -225,6 +219,7 @@ app.post("/logout", async (req, res) => {
   }
 });
 
+// POST endpoint to update user profile avatar and name
 function validateAvatar(avatar) {
   const allowedAvatars = [
     "avatar_1",
@@ -298,18 +293,25 @@ app.post("/avatar", async (req, res) => {
     await user.save();
 
     res.status(200).json({
-      message: "Profile updated successfully",
-      uid: user.uniqueId,
+      message: "Profile update successful",
+      profile: {
+        phoneNumber: user.phoneNumber,
+        name: user.name,
+        avatar: user.avatar,
+        uid: user.uniqueId,
+        profileSetupRequired,
+      },
       token,
-      profileSetupRequired,
     });
   } catch (error) {
     console.error("Error updating profile:", error);
-    res.status(500).json({ message: "Error updating profile" });
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
-
+//
+//
+//Token Verification Middleware  here
 const authenticateToken = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
@@ -328,14 +330,12 @@ const authenticateToken = (req, res, next) => {
     res.status(400).json({ message: "Invalid token." });
   }
 };
-module.exports = authenticateToken;
-
 
 const Schema = mongoose.Schema;
 
 const transactionSchema = new Schema({
   userId: { type: Schema.Types.ObjectId, ref: "User" },
-  uniqueId: { type: String, required: true },
+  uniqueId: { type: String, required: true }, // Assuming uniqueId is a string identifier for users
   amount: { type: Number, required: true },
   transactionDate: { type: Date, default: Date.now },
   transactionType: { type: String, enum: ["credit", "debit"], required: true },
@@ -343,6 +343,9 @@ const transactionSchema = new Schema({
 });
 
 const Transaction = mongoose.model("Transaction", transactionSchema);
+
+//
+//// Middleware to verify token
 
 app.post("/api/add_money", authenticateToken, async (req, res) => {
   const { amount } = req.body;
@@ -382,6 +385,9 @@ app.post("/api/add_money", authenticateToken, async (req, res) => {
   }
 });
 
+//
+//
+//Spend money API here
 app.post("/api/spend", authenticateToken, async (req, res) => {
   const { amount } = req.body;
   console.log("Spend money request:", amount);
@@ -419,6 +425,10 @@ app.post("/api/spend", authenticateToken, async (req, res) => {
   }
 });
 
+//
+//
+//Transaction History Endpoint
+
 app.get("/api/transactions", authenticateToken, async (req, res) => {
   try {
     console.log("Fetching transactions for user:", req.user.userId);
@@ -433,12 +443,13 @@ app.get("/api/transactions", authenticateToken, async (req, res) => {
   }
 });
 
+// User Data Endpoint
 app.get("/api/userdata", authenticateToken, async (req, res) => {
   try {
     console.log("Fetching data for user:", req.user.userId);
     const user = await User.findOne({ uniqueId: req.user.userId }).select(
       "-password"
-    );
+    ); // Exclude password from the response
     if (!user) {
       console.log("User not found:", req.user.userId);
       return res.status(404).json({ message: "User not found" });
@@ -448,7 +459,7 @@ app.get("/api/userdata", authenticateToken, async (req, res) => {
       phone: user.phoneNumber,
       name: user.name,
       avatar: user.avatar,
-      uid: user.uniqueId,
+      uid: user.uniqueId, // Ensure consistency in naming, might be 'uid' or 'uniqueId'
       walletBalance: user.walletBalance,
     });
   } catch (error) {
@@ -456,6 +467,8 @@ app.get("/api/userdata", authenticateToken, async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+// User Data Endpoint
+
 const roomSchema = new mongoose.Schema({
   roomID: { type: String, required: true, unique: true },
   uid: { type: String, required: true },

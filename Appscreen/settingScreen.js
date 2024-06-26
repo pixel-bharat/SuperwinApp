@@ -15,7 +15,7 @@ import { faBold } from "@fortawesome/free-solid-svg-icons";
 
 const { width, height } = Dimensions.get("window");
 
-const BASE_URL = "http://192.168.1.17:3000"; // Replace with your actual backend URL
+const BASE_URL = "http://192.168.1.17:3000/"; // Replace with your actual backend URL
 
 export default function SettingScreen() {
   const navigation = useNavigation();
@@ -65,7 +65,7 @@ export default function SettingScreen() {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/settings`);
+      const response = await fetch(`${BASE_URL}api/settings`);
       if (!response.ok) {
         throw new Error(`Failed to fetch settings: ${response.status}`);
       }
@@ -151,9 +151,10 @@ export default function SettingScreen() {
 
             <Text style={styles.userNameText}>{userData ? userData.memberName : ''}</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate("ProfileSetup")}>
-            <Image source={require("../assets/profileCheck.png")} />
-          </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("editProfile", { uid: userData.uid, phoneNumber: userData.phoneNumber })}>
+  <Image source={require("../assets/profileCheck.png")} />
+</TouchableOpacity>
+
         </View>
 
         <View style={styles.notifmaincnt}>

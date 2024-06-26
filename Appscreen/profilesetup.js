@@ -17,7 +17,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backend/config/config";
 
-export default function ProfileSetupPage() {
+export default function ProfileSetup() {
   const [isLoading, setIsLoading] = useState(false);
   const [nameError, setNameError] = useState("");
   const [avatarError, setAvatarError] = useState("");
@@ -44,8 +44,6 @@ export default function ProfileSetupPage() {
     }
   }, [route.params]);
 
-
-
   const loadUserData = async () => {
     try {
       const phoneNumber = await AsyncStorage.getItem("phoneNumber");
@@ -68,19 +66,19 @@ export default function ProfileSetupPage() {
   const saveProfile = async () => {
     setNameError("");
     setAvatarError("");
-  
-    // if (!userData.memberName) {
-    //   setNameError("Name is required.");
-    // }
-  
-    // if (!userData.avatar) {
-    //   setAvatarError("Avatar selection is required.");
-    // }
-  
-    // if (!userData.memberName || !userData.avatar) {
-    //   return;
-    // }
-  
+
+    if (!userData.memberName) {
+      setNameError("Name is required.");
+    }
+
+    if (!userData.avatar) {
+      setAvatarError("Avatar selection is required.");
+    }
+
+    if (!userData.memberName || !userData.avatar) {
+      return;
+    }
+
     setIsLoading(true);
     try {
       const response = await axios.post(`${BASE_URL}avatar`, userData, {
@@ -88,26 +86,22 @@ export default function ProfileSetupPage() {
           "Content-Type": "application/json",
         },
       });
-  
+
       await AsyncStorage.setItem("userToken", response.data.token);
-  
+
       Alert.alert("Profile saved successfully!");
       navigation.navigate("nav");
     } catch (error) {
       console.error("Save profile error:", error);
       if (error.response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
         console.error("Error response data:", error.response.data);
         console.error("Error response status:", error.response.status);
         console.error("Error response headers:", error.response.headers);
         Alert.alert("Error", `Error saving profile: ${error.response.data.message}`);
       } else if (error.request) {
-        // The request was made but no response was received
         console.error("Error request:", error.request);
         Alert.alert("Error", "No response from server. Please try again later.");
       } else {
-        // Something happened in setting up the request that triggered an Error
         console.error("Error message:", error.message);
         Alert.alert("Error", `Error saving profile: ${error.message}`);
       }
@@ -115,7 +109,6 @@ export default function ProfileSetupPage() {
       setIsLoading(false);
     }
   };
-  
 
   const avatars = {
     avatar1: require("../assets/avatar/avatar_1.png"),
@@ -294,60 +287,57 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     fontSize: 16,
-    height:60
+    height: 60,
   },
   input_disabled: {
     backgroundColor: "#fff2",
-    color: "#fff5",
+    color: "#fff",
     padding: 10,
     borderRadius: 10,
     fontSize: 16,
-    height:60
-  },
-  errorText: {
-    color: "red",
-    marginTop: 5,
-  },
-  avatarContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    width: "100%",
-    flexWrap: "wrap",
-    gap: 16,
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: "transparent",
-  },
-  selectedAvatar: {
-    borderColor: "#A903D2", // Border color for selected avatar
-    borderWidth: 4, // Add border width to make the border visible
-},
-  saveButton: {
     height: 60,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-    overflow: "hidden",
+  },
+  saveButton: {
     width: "100%",
-    marginBottom: 20,
+    paddingVertical: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    alignItems: "center",
   },
   gradient: {
     width: "100%",
-    height: "100%",
-    justifyContent: "center",
+    paddingVertical: 15,
+    borderRadius: 10,
     alignItems: "center",
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
   },
   disabledButton: {
-    opacity: 0.5,
+    opacity: 0.6,
+  },
+  avatarContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    margin: 10,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  selectedAvatar: {
+    borderColor: "#fff",
+  },
+  errorText: {
+    color: "#ff0000",
+    marginTop: 5,
+    textAlign: "center",
   },
 });

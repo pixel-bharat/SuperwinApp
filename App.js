@@ -12,7 +12,7 @@ import ProfileScreen from "./Appscreen/profileScreen";
 import WalletScreen from "./Appscreen/welletScreen";
 import RoomScreen from "./Appscreen/roomScreen";
 import OtpScreen from "./Appscreen/otp";
-import ProfileSetup from "./Appscreen/profilesetup";
+import ProfileSetup from "./Appscreen/profileSetup";
 import Transactions from "./Appscreen/Transactions";
 import addMoney from "./Appscreen/addMoney";
 import spendMoney from "./Appscreen/spendMoney";

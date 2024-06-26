@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback  } from "react";
 import {
   View,
   Text,
@@ -13,14 +13,14 @@ import {
   Clipboard, // Import Clipboard from react-native
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import jwtDecode from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backend/config/config";
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
-
+const isFocused=useIsFocused();
   const avatars = {
     avatar_1: require("../assets/avatar/avatar_1.png"),
     avatar_2: require("../assets/avatar/avatar_2.png"),
@@ -31,20 +31,26 @@ export default function ProfileScreen() {
   };
 
   const [userData, setUserData] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const data = await displayUserData();
-      if (data) {
-        setUserData(data);
-        console.log("User data after JWT decoding:", data);
+  const fetchUserData = useCallback(async () => {
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      if (token) {
+        const decoded = jwtDecode(token);
+        console.log("Decoded JWT:", decoded);
+        setUserData(decoded); // Update user data in state
       } else {
-        console.log("No user data available");
-        Alert.alert("Login Failed", "No user data available");
+        console.log("No token found");
+        Alert.alert("Login Failed", "Token not found");
       }
-    };
-    fetchData();
+    } catch (error) {
+      console.error("Error retrieving or decoding token:", error);
+      Alert.alert("Login Failed", error.message);
+    }
   }, []);
+  useEffect(() => {
+    fetchUserData();
+  }, [fetchUserData, isFocused]);
+
 
   const displayUserData = async () => {
     try {
@@ -87,7 +93,7 @@ export default function ProfileScreen() {
       if (response.ok) {
         await AsyncStorage.removeItem("userToken");
         console.log("User logged out successfully");
-        navigation.navigate("Login"); // Ensure this route name matches your login screen
+        navigation.navigate("Login");
       } else {
         const errorText = await response.text();
         console.error("Failed to log out:", errorText);
@@ -98,12 +104,11 @@ export default function ProfileScreen() {
       Alert.alert("Logout Failed", error.message);
     }
   };
+
+
   const copyToClipboard = (text) => {
     Clipboard.setString(text);
-    Alert.alert(
-      "Copied to clipboard",
-      `User ID '${text}' copied to clipboard.`
-    );
+    Alert.alert("Copied to clipboard", `User ID '${text}' copied to clipboard.`);
   };
 
   return (
