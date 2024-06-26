@@ -17,6 +17,10 @@ import { useIsFocused, useNavigation } from "@react-navigation/native";
 import jwtDecode from "jwt-decode"; // Correct import
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backend/config/config";
+// Before
+
+
+// After
 
 export default function ProfileScreen() {
   const navigation = useNavigation();
