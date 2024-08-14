@@ -27,7 +27,8 @@ const sendOTP = async (req, res) => {
     upperCase: false,
     specialChars: false,
     alphabets: false,
-    lowerCaseAlphabets: false
+    lowerCaseAlphabets: false,
+    upperCaseAlphabets: false,
   });
 
   try {

@@ -102,7 +102,7 @@ export default function Nav() {
     >
       <Tab.Screen name="Home" component={Homesrc} options={{ headerShown: false }} />
       <Tab.Screen name="Wallet" component={Wallet} options={{ headerShown: false }} />
-      <Tab.Screen name="RoomScreen" component={RoomScreen} options={{ headerShown: false }} />
+      {/* <Tab.Screen name="RoomScreen" component={RoomScreen} options={{ headerShown: false }} /> */}
       <Tab.Screen name="notification" component={NotificationScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Profile" component={Profilepage} options={{ headerShown: false }} />
     </Tab.Navigator>
