@@ -37,7 +37,7 @@ const Transactions = () => {
 
     try {
       const response = await axios.get(
-        `${BASE_URL}api/transactions`,
+        `${BASE_URL}api/transactions/transactions`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

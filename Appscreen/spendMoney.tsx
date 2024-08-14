@@ -41,7 +41,7 @@ const WithdrawScreen = () => {
     }
 
     try {
-      const response = await axios.get(`${BASE_URL}api/userdata`, {
+      const response = await axios.get(`${BASE_URL}api/users/userdata`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWalletBalance(response.data.walletBalance);
@@ -72,7 +72,7 @@ const WithdrawScreen = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${BASE_URL}api/spend`,
+        `${BASE_URL}api/transactions/spend`,
         { amount: numericAmount },
         { headers: { Authorization: `Bearer ${token}` } }
       );

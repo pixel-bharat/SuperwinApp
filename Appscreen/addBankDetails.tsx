@@ -39,7 +39,7 @@ const AddBankDetails: React.FC = () => {
       try {
         const token = await AsyncStorage.getItem("userToken");
         if (token) {
-          const response = await fetch(`${BASE_URL}api/userdata`, {
+          const response = await fetch(`${BASE_URL}api/users/userdata`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -82,17 +82,17 @@ const AddBankDetails: React.FC = () => {
     let payload = {};
 
     if (selectedType === "UPI") {
-      url = `${BASE_URL}api/verify/upi`;
+      url = `${BASE_URL}api/bankdetails/verify/upi`;
       payload = { upiId: upiIdText };
     } else if (selectedType === "Account") {
-      url = `${BASE_URL}api/verify/account`;
+      url = `${BASE_URL}api/bankdetails/verify/account`;
       payload = {
         accountNumber,
         bankName,
         ifscCode,
       };
     } else if (selectedType === "Credit Card") {
-      url = `${BASE_URL}api/verify/creditcard`;
+      url = `${BASE_URL}api/bankdetails/verify/creditcard`;
       payload = {
         cardNumber,
         cardHolderName,
@@ -143,7 +143,7 @@ const AddBankDetails: React.FC = () => {
     };
 
     try {
-      const response = await fetch(`${BASE_URL}api/saveBankDetails`, {
+      const response = await fetch(`${BASE_URL}api/bankdetails/saveBankDetails`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -245,7 +245,7 @@ const AddBankDetails: React.FC = () => {
                     placeholderTextColor={"rgba(158, 158, 158, 1)"}
                   />
                 </View>
-                                                                        
+
                 <Text style={styles.inputLable}>Bank Name</Text>
                 <View style={styles.textinputCnt}>
                   <Image
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     marginBottom: 24,
   },
-  inputLable: { 
+  inputLable: {
     color: "rgba(255, 255, 255, 0.42)",
     paddingBottom: 10,
   },

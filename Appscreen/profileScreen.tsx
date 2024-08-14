@@ -85,7 +85,7 @@ const isFocused=useIsFocused();
       const decoded = jwtDecode(token);
       const phoneNumber = decoded.phoneNumber;
 
-      const response = await fetch(`${BASE_URL}logout`, {
+      const response = await fetch(`${BASE_URL}api/users/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -34,68 +34,80 @@ export default function SettingScreen() {
   const [showLanguages, setShowLanguages] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState("English");
   const [userData, setUserData] = useState(null); // Initialize with null or {}
+    useEffect(() => {
+      fetchUserData();
+      console.log("userdata is ", userData);
+    }, []);
 
-  useEffect(() => {
-    fetchUserData();
-  }, []);
+    useEffect(() => {
+      if (userData) {
+        fetchSettings();
+      }
+      console.log("userdata is ", userData);
+    }, [userData]);
 
-  useEffect(() => {
-    if (userData && userData.uid) {
-      fetchSettings();
-    }
-  }, [userData]);
-
-  const fetchUserData = async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      if (token) {
-        const decoded = jwtDecode(token);
-        const phoneNumber = decoded.phoneNumber
-          ? decoded.phoneNumber.replace(/^91/, "")
-          : "";
-        setUserData({
-          phoneNumber: phoneNumber,
-          uid: decoded.userId || "",
-          avatar: decoded.avatar || null,
-          memberName: decoded.name || "",
+    const fetchUserData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        console.log("token is ", token);
+        const response = await fetch(`${BASE_URL}api/users/userdata`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
         });
-      } else {
-        Alert.alert("Error", "Token not found");
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        if (data) {
+          setUserData(data);
+        } else {
+          console.log("Received null or undefined data from API");
+          setUserData(null);
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        Alert.alert("Error", "Failed to fetch user data.");
+        setUserData(null);
       }
-    } catch (error) {
-      Alert.alert("Error", "Failed to fetch user data.");
-    }
-  };
+    };  
 
-  const fetchSettings = async () => {
-    try {
-      console.log("Fetching Settings", userData);
-      const response = await fetch(`${BASE_URL}api/settings?uid=${userData.uid}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch settings: ${response.status}`);
+    const fetchSettings = async () => {
+      try {
+        console.log("Fetching Settings", userData);
+        const token = await AsyncStorage.getItem("userToken");
+        const response = await fetch(`${BASE_URL}api/settings/settings?uid=${userData.uid}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+        });
+    
+        if (!response.ok) {
+          throw new Error(`Failed to fetch settings: ${response.status}`);
+        }
+        const data = await response.json();
+    
+        console.log("Fetched Settings:", data);
+        setIsChecked(data.pushNotification);
+        setIsChecked2(data.inboxNotification);
+        setSelectedLanguage(data.selectedLanguage);
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+        Alert.alert("Error", "Failed to fetch settings. Please try again.");
       }
-      const data = await response.json();
-
-      console.log("Fetched Settings:", data);
-      setIsChecked(data.pushNotification);
-      setIsChecked2(data.inboxNotification);
-      setSelectedLanguage(data.selectedLanguage);
-    } catch (error) {
-      console.error("Error fetching settings:", error);
-      Alert.alert("Error", "Failed to fetch settings. Please try again.");
-    }
-  };
+    };
+    
 
   const saveSettings = async () => {
     try {
       console.log("Saving settings...", userData);
-      const response = await fetch(`${BASE_URL}api/settings`, {
+      const response = await fetch(`${BASE_URL}api/settings/settings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -164,7 +176,8 @@ export default function SettingScreen() {
             )}
 
             <Text style={styles.userNameText}>
-              {userData ? userData.memberName : ""}
+              {userData ? userData.name : ""}
+              
             </Text>
           </View>
           <TouchableOpacity

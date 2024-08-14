@@ -23,6 +23,8 @@ const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const navigation = useNavigation();
 
+
+
   const handleSendOtp = async () => {
     const cleanedPhoneNumber = phoneNumber.replace(/\D/g, "");
 
@@ -33,7 +35,7 @@ const LoginPage: React.FC = () => {
 
     try {
       setLoading(true);
-      await axios.post(`${BASE_URL}send-otp`, { phoneNumber: cleanedPhoneNumber });
+      await axios.post(`${BASE_URL}api/users/send-otp`, { phoneNumber: cleanedPhoneNumber });
       Alert.alert("OTP sent to your phone number successfully");
       navigation.navigate("OtpScreen" as never, { phoneNumber: cleanedPhoneNumber } as never);
     } catch (error: any) {

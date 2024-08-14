@@ -43,7 +43,7 @@ const AddMoneyScreen: React.FC = () => {
     }
 
     try {
-      const response = await axios.get(`${BASE_URL}api/userdata`, {
+      const response = await axios.get(`${BASE_URL}api/users/userdata`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWalletBalance(response.data.walletBalance);
@@ -52,8 +52,7 @@ const AddMoneyScreen: React.FC = () => {
       Alert.alert("Error", "Failed to fetch wallet balance.");
     }
   };
-
-  const handleAddMoney = async (): Promise<void> => {
+  const handleAddMoney = async () => {
     const token = await AsyncStorage.getItem("userToken");
     if (!token) {
       Alert.alert("Error", "You must be logged in to perform this action.");
@@ -69,14 +68,14 @@ const AddMoneyScreen: React.FC = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${BASE_URL}api/add_money`,
+        `${BASE_URL}api/transactions/add_money`,
         { amount: numericAmount },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       Alert.alert("Success", "Money added successfully!");
       setAmount("");
       setWalletBalance(response.data.walletBalance);
-    } catch (error: any) {
+    } catch (error) {
       console.error(
         "Error adding money:",
         error.response?.data?.message || "An error occurred"

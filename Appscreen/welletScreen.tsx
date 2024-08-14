@@ -65,10 +65,10 @@ const WalletScreen: React.FC = () => {
     try {
       setLoading(true); // Show loading indicator
       const [walletResponse, transactionsResponse] = await Promise.all([
-        axios.get(`${BASE_URL}api/userdata`, {
+        axios.get(`${BASE_URL}api/users/userdata`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`${BASE_URL}api/transactions`, {
+        axios.get(`${BASE_URL}api/transactions/transactions`, {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);

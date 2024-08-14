@@ -64,7 +64,7 @@ const Homepage: React.FC = () => {
     console.log("Token:", token); // Debugging: Ensure the token is retrieved correctly
 
     try {
-      const response = await axios.get<UserData>(`${BASE_URL}api/userdata`, {
+      const response = await axios.get<UserData>(`${BASE_URL}api/users/userdata`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserData(response.data);
@@ -72,7 +72,7 @@ const Homepage: React.FC = () => {
       if (error.response) {
         console.error("Error response data:", error.response.data);
         console.error("Error response status:", error.response.status);
-        
+
         // Handle specific "Invalid token" error
         if (error.response.status === 400 && error.response.data.message === "Invalid token.") {
           await AsyncStorage.removeItem("userToken");
@@ -119,13 +119,13 @@ const Homepage: React.FC = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => navigation.navigate("addMoney")}
-                >
-                  <Image
-                    style={{ width: 32, height: 32 }}
-                    source={require("../assets/addmoney.png")}
-                  />
-                </TouchableOpacity>
+  onPress={() => navigation.navigate('addMoney')}
+>
+  <Image
+    style={{ width: 32, height: 32 }}
+    source={require("../assets/addmoney.png")}
+  />
+</TouchableOpacity>
               </View>
             </View>
           </View>
@@ -168,7 +168,7 @@ const Homepage: React.FC = () => {
           </View>
         </ScrollView>
       </SafeAreaView>
-    </View>
+    </View >
   );
 };
 

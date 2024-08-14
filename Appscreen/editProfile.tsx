@@ -31,43 +31,82 @@ export default function ProfileSetup() {
 
   const navigation = useNavigation();
   const route = useRoute();
-
   useEffect(() => {
-    if (route.params?.phoneNumber && route.params?.uid) {
-      setUserData((prev) => ({
-        ...prev,
-        phoneNumber: route.params.phoneNumber,
-        uid: route.params.uid,
-      }));
-    } else {
-      loadUserData();
-    }
-  }, [route.params]);
+    fetchUserData();
+    console.log("userdata is ", userData);
+  }, []);
 
-  const loadUserData = async () => {
+  
+  const fetchUserData = async () => {
     try {
-      const phoneNumber = await AsyncStorage.getItem("phoneNumber");
-      const uid = await AsyncStorage.getItem("userId");
-      if (phoneNumber && uid) {
-        setUserData((prev) => ({
-          ...prev,
-          phoneNumber: phoneNumber,
-          uid: uid,
-        }));
+      const token = await AsyncStorage.getItem("userToken");
+      console.log("token is ", token);
+      const response = await fetch(`${BASE_URL}api/users/userdata`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data) {
+        setUserData(data);
       } else {
-        console.log("No user data in AsyncStorage.");
+        console.log("Received null or undefined data from API");
+        setUserData(null);
       }
     } catch (error) {
-      console.error("Error loading user data from AsyncStorage:", error);
-      Alert.alert("Error", "Failed to load user data.");
+      console.error("Error fetching user data:", error);
+      Alert.alert("Error", "Failed to fetch user data.");
+      setUserData(null);
     }
-  };
+  };  
+    useEffect(() => {
+      if (route.params?.phoneNumber && route.params?.uid) {
+        setUserData((prev) => ({
+          ...prev,
+          phoneNumber: route.params.phoneNumber,
+          uid: route.params.uid,
+        }));
+      } else {
+        loadUserData();
+      }
+    }, [route.params]);
+
+    const loadUserData = async () => {
+      try {
+        const phoneNumber = await AsyncStorage.getItem("phoneNumber");
+        const uid = await AsyncStorage.getItem("userId");
+        const name = await AsyncStorage.getItem("name");
+        const email = await AsyncStorage.getItem("email");
+      
+        if (phoneNumber && uid) {
+          setUserData((prev) => ({
+            ...prev,
+            phoneNumber: phoneNumber,
+            uid: uid,
+            name: name || '',
+            email: email || '',
+          }));
+        } else {
+          console.log("No user data in AsyncStorage.");
+        }
+      } catch (error) {
+        console.error("Error loading user data from AsyncStorage:", error);
+        Alert.alert("Error", "Failed to load user data.");
+      }
+    };
 
   const saveProfile = async () => {
     setNameError("");
     setAvatarError("");
 
-    if (!userData.memberName) {
+    if (!userData.name) {
       setNameError("Name is required.");
     }
 
@@ -75,13 +114,13 @@ export default function ProfileSetup() {
       setAvatarError("Avatar selection is required.");
     }
 
-    if (!userData.memberName || !userData.avatar) {
+    if (!userData.name || !userData.avatar) {
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await axios.post(`${BASE_URL}avatar`, userData, {
+      const response = await axios.post(`${BASE_URL}/api/users/avatar`, userData, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -152,7 +191,7 @@ export default function ProfileSetup() {
               <TextInput
                 placeholder="Phone Number"
                 placeholderTextColor="#aaa"
-                value={userData.phoneNumber}
+                value={userData.phone}
                 style={styles.input_disabled}
                 disabled
               />

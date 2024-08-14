@@ -22,9 +22,9 @@ export default function BankDetailsScreen() {
   // Function to fetch bank details from the server
   const fetchBankDetails = async (uid) => {
     try {
-      const storedUid=uid
+
       console.log("Fetching bank details for UID:", uid);
-      const response = await fetch(`${BASE_URL}api/user-bank-details/${uid}`);
+      const response = await fetch(`${BASE_URL}api/bankdetails/user-bank-details/${uid}`);
        console.log(response);
       if (!response.ok) {
         const errorText = await response.text(); // Get the response text to help debug

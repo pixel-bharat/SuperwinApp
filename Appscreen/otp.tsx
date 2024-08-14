@@ -49,7 +49,7 @@ export default function OtpScreen() {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${BASE_URL}verify-otp`,
+        `${BASE_URL}api/users/verify-otp`,
         { phoneNumber, otp: enteredOtp },
         {
           headers: {
