@@ -79,6 +79,17 @@ function AuthNavigator() {
       <AuthStack.Screen name="OtpScreen" component={OtpScreen} options={{ headerShown: false }} />
       <AuthStack.Screen name="forgetScreen" component={ForgetScreen} options={{ headerShown: false }} />
       <AuthStack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
+      <AuthStack.Screen name="addMoney" component={AddMoney} options={{ headerShown: false }} />
+      <AuthStack.Screen name="spendMoney" component={SpendMoney} options={{ headerShown: false }} />
+      <AuthStack.Screen name="bankDetailsScreen" component={BankDetailsScreen} options={{ headerShown: false }} />
+      <AuthStack.Screen name="addBankDetails" component={AddBankDetails} options={{ headerShown: false }} />
+      <AuthStack.Screen name="supportScreen" component={SupportScreen} options={{ headerShown: false }} />
+      <AuthStack.Screen name="settingScreen" component={SettingScreen} options={{ headerShown: false }} />
+      <AuthStack.Screen name="editProfile" component={EditProfile} options={{ headerShown: false }} />
+      <AuthStack.Screen name="welletScreen" component={WalletScreen} options={{ headerShown: false }} />
+      <AuthStack.Screen name="Transactions" component={Transactions} options={{ headerShown: false }} />
+
+
     </AuthStack.Navigator>
   );
 }
