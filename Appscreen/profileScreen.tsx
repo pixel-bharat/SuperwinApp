@@ -76,6 +76,7 @@ const isFocused=useIsFocused();
   const logoutUser = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
+      console.log("Token:", token);
       if (!token) {
         console.log("No token found");
         Alert.alert("Logout Failed", "User not authenticated");
@@ -89,12 +90,14 @@ const isFocused=useIsFocused();
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ phoneNumber }),
       });
-
+ console.log("Response Status:", response.status);  
       if (response.ok) {
         await AsyncStorage.removeItem("userToken");
+      
         console.log("User logged out successfully");
         navigation.navigate("Login");
       } else {

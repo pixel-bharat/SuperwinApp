@@ -80,6 +80,7 @@ export default function SettingScreen() {
       try {
         console.log("Fetching Settings", userData);
         const token = await AsyncStorage.getItem("userToken");
+        console.log("token is THIS BRO", token);
         const response = await fetch(`${BASE_URL}api/settings/settings?uid=${userData.uid}`, {
           method: "GET",
           headers: {
@@ -87,7 +88,7 @@ export default function SettingScreen() {
             "Authorization": `Bearer ${token}`
           },
         });
-    
+    console.log("Response Status:", response.status);
         if (!response.ok) {
           throw new Error(`Failed to fetch settings: ${response.status}`);
         }
@@ -111,6 +112,7 @@ export default function SettingScreen() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+
         },
         body: JSON.stringify({
           uid: userData.uid,
@@ -118,7 +120,9 @@ export default function SettingScreen() {
           inboxNotification: isChecked2,
           selectedLanguage,
         }),
+
       });
+      
 
       if (!response.ok) {
         throw new Error(`Failed to save settings: ${response.status}`);

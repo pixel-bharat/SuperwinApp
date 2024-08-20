@@ -62,7 +62,7 @@ export default function ProfileSetup() {
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
-      Alert.alert("Error", "Failed to fetch user data.");
+      Alert.alert("Error", "Failed to fetch user dataa.");
       setUserData(null);
     }
   };  
@@ -102,52 +102,73 @@ export default function ProfileSetup() {
       }
     };
 
-  const saveProfile = async () => {
-    setNameError("");
-    setAvatarError("");
-
-    if (!userData.name) {
-      setNameError("Name is required.");
-    }
-
-    if (!userData.avatar) {
-      setAvatarError("Avatar selection is required.");
-    }
-
-    if (!userData.name || !userData.avatar) {
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const response = await axios.post(`${BASE_URL}/api/users/avatar`, userData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      await AsyncStorage.setItem("userToken", response.data.token);
-
-      Alert.alert("Profile saved successfully!");
-      navigation.navigate("nav");
-    } catch (error) {
-      console.error("Save profile error:", error);
-      if (error.response) {
-        console.error("Error response data:", error.response.data);
-        console.error("Error response status:", error.response.status);
-        console.error("Error response headers:", error.response.headers);
-        Alert.alert("Error", `Error saving profile: ${error.response.data.message}`);
-      } else if (error.request) {
-        console.error("Error request:", error.request);
-        Alert.alert("Error", "No response from server. Please try again later.");
-      } else {
-        console.error("Error message:", error.message);
-        Alert.alert("Error", `Error saving profile: ${error.message}`);
+    const saveProfile = async () => {
+      setNameError("");
+      setAvatarError("");
+    
+      // Validate required fields
+      if (!userData.memberName) {
+        setNameError("Name is required.");
+        return;
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    
+      if (!userData.avatar) {
+        setAvatarError("Avatar selection is required.");
+        return;
+      }
+    
+      setIsLoading(true);
+    
+      try {
+        const token = await AsyncStorage.getItem("userToken");
+        console.log("Token is :", token);
+    
+        // Retrieve uid and phoneNumber from AsyncStorage
+        let uid = await AsyncStorage.getItem("userId");
+        let phoneNumber = await AsyncStorage.getItem("phoneNumber");
+    
+        // If uid or phoneNumber is missing, try to get them from the token
+        if (!uid || !phoneNumber) {
+          const decodedToken = JSON.parse(atob(token.split('.')[1]));
+          uid = decodedToken.userId;
+          phoneNumber = decodedToken.phoneNumber;
+        }
+    
+        // If still missing, show an error
+        if (!uid || !phoneNumber) {
+          Alert.alert("Error", "User ID and phone number are required. Please try again later.");
+          setIsLoading(false);
+          return;
+        }
+    
+        // Update userData with the retrieved values
+        const updatedUserData = {
+          ...userData,
+          uid,
+          phoneNumber,
+        };
+    
+        const response = await axios.post(`${BASE_URL}api/users/avatar`, updatedUserData, {
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+    
+        // Update token in AsyncStorage
+        await AsyncStorage.setItem("userToken", response.data.token);
+    
+        Alert.alert("Profile saved successfully!");
+        navigation.navigate("nav");
+      } catch (error) {
+        console.error("Save profile error:", error);
+    
+        // ... (rest of the error handling)
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
 
   const avatars = {
     avatar1: require("../assets/avatar/avatar_1.png"),
