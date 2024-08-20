@@ -125,6 +125,7 @@ export default function OtpScreen() {
                     onChangeText={(value) => handleOtpChange(index, value)}
                     onKeyPress={(e) => handleKeyPress(e, index)}
                     textContentType="oneTimeCode"
+                    keyboardType="numeric"
                   />
                 </View>
               ))}

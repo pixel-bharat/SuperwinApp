@@ -77,21 +77,22 @@ const AddBankDetails: React.FC = () => {
     setShowAccountDetails(false);
   };
 
+
   const verifyDetails = async () => {
-    let url = "";
+    let url = '';
     let payload = {};
 
-    if (selectedType === "UPI") {
+    if (selectedType === 'UPI') {
       url = `${BASE_URL}api/bankdetails/verify/upi`;
       payload = { upiId: upiIdText };
-    } else if (selectedType === "Account") {
+    } else if (selectedType === 'Account') {
       url = `${BASE_URL}api/bankdetails/verify/account`;
       payload = {
         accountNumber,
         bankName,
         ifscCode,
       };
-    } else if (selectedType === "Credit Card") {
+    } else if (selectedType === 'Credit Card') {
       url = `${BASE_URL}api/bankdetails/verify/creditcard`;
       payload = {
         cardNumber,
@@ -103,9 +104,9 @@ const AddBankDetails: React.FC = () => {
 
     try {
       const response = await fetch(url, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       });
@@ -118,35 +119,35 @@ const AddBankDetails: React.FC = () => {
         alert(result.error);
       }
     } catch (error) {
-      console.error(error);
-      alert("Failed to verify details");
+      console.error('Verification failed:', error);
+      alert('Failed to verify details');
     }
   };
 
   const verifyAndSave = async () => {
     if (!isVerified) {
-      alert("Please verify the details before saving.");
+      alert('Please verify the details before saving.');
       return;
     }
 
     const payload = {
       type: selectedType,
-      upiId: upiIdText,
-      accountNumber: accountNumber,
-      bankName: bankName,
-      ifscCode: ifscCode,
-      cardNumber: cardNumber,
-      cardHolderName: cardHolderName,
-      expiryDate: expiryDate,
-      cvv: cvv,
+      upiId: selectedType === 'UPI' ? upiIdText : null,
+      accountNumber: selectedType === 'Account' ? accountNumber : null,
+      bankName: selectedType === 'Account' ? bankName : null,
+      ifscCode: selectedType === 'Account' ? ifscCode : null,
+      cardNumber: selectedType === 'Credit Card' ? cardNumber : null,
+      cardHolderName: selectedType === 'Credit Card' ? cardHolderName : null,
+      expiryDate: selectedType === 'Credit Card' ? expiryDate : null,
+      cvv: selectedType === 'Credit Card' ? cvv : null,
       uid: userData ? userData.uid : null,
     };
 
     try {
       const response = await fetch(`${BASE_URL}api/bankdetails/saveBankDetails`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       });
@@ -158,10 +159,11 @@ const AddBankDetails: React.FC = () => {
         alert(result.error);
       }
     } catch (error) {
-      console.error(error);
-      alert("Failed to save bank details");
+      console.error('Failed to save bank details:', error);
+      alert('Failed to save bank details');
     }
   };
+
 
   return (
     <View style={styles.container}>

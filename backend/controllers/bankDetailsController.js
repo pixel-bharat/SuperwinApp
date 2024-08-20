@@ -31,29 +31,53 @@ const verifyCreditCard = async (req, res) => {
 };
 
 const saveBankDetails = async (req, res) => {
-  const { uid, type, upiId, accountNumber, bankName, ifscCode, cardNumber, cardHolderName, expiryDate, cvv } = req.body;
-
-  const bankDetails = new BankDetails({
-    type,
-    upiId,
-    accountNumber,
-    bankName,
-    ifscCode,
-    cardNumber,
-    cardHolderName,
-    expiryDate,
-    cvv,
-    uid
-  });
+  const { uid, upiId, accountNumber, bankName, ifscCode, cardNumber, cardHolderName, expiryDate, cvv } = req.body;
 
   try {
-    const savedBankDetails = await bankDetails.save();
-    res.json({ message: 'Bank details saved successfully', data: savedBankDetails });
+    // Find the existing bank details for the user by uid
+    let existingDetails = await BankDetails.findOne({ uid });
+
+    if (existingDetails) {
+      // Update existing details with the new data
+      existingDetails.upiId = upiId || existingDetails.upiId;
+      existingDetails.accountNumber = accountNumber || existingDetails.accountNumber;
+      existingDetails.bankName = bankName || existingDetails.bankName;
+      existingDetails.ifscCode = ifscCode || existingDetails.ifscCode;
+      existingDetails.cardNumber = cardNumber || existingDetails.cardNumber;
+      existingDetails.cardHolderName = cardHolderName || existingDetails.cardHolderName;
+      existingDetails.expiryDate = expiryDate || existingDetails.expiryDate;
+      existingDetails.cvv = cvv || existingDetails.cvv;
+
+      // Save the updated details
+      const updatedDetails = await existingDetails.save();
+      res.json({ message: 'Bank details updated successfully', data: updatedDetails });
+    } else {
+      // If no existing details, create a new record
+      const bankDetails = new BankDetails({
+        uid,
+        upiId,
+        accountNumber,
+        bankName,
+        ifscCode,
+        cardNumber,
+        cardHolderName,
+        expiryDate,
+        cvv,
+      });
+
+      const savedBankDetails = await bankDetails.save();
+      res.json({ message: 'Bank details saved successfully', data: savedBankDetails });
+    }
   } catch (err) {
-    console.error('Failed to save bank details:', err);
-    res.status(500).json({ error: 'Failed to save bank details' });
+    console.error('Failed to save or update bank details:', err);
+    res.status(500).json({ error: 'Failed to save or update bank details' });
   }
 };
+
+
+
+
+
 
 const getUserBankDetails = async (req, res) => {
   const uid = req.params.uid;
