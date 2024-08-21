@@ -99,7 +99,7 @@ const isFocused=useIsFocused();
         await AsyncStorage.removeItem("userToken");
       
         console.log("User logged out successfully");
-        navigation.navigate("Login");
+        navigation.navigate("Login", { phoneNumber });
       } else {
         const errorText = await response.text();
         console.error("Failed to log out:", errorText);
