@@ -19,7 +19,8 @@ import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import BASE_URL from "../backend/config/config";
-import { AppStackParamList } from "../App"; // Assuming you have this type defined in App.tsx
+import { AppStackParamList } from "../App"; 
+import notifee, { AndroidStyle } from '@notifee/react-native';
 
 type AddMoneyScreenNavigationProp = NativeStackNavigationProp<AppStackParamList, 'addMoney'>;
 
@@ -52,8 +53,10 @@ const AddMoneyScreen: React.FC = () => {
       Alert.alert("Error", "Failed to fetch wallet balance.");
     }
   };
+
   const handleAddMoney = async () => {
     const token = await AsyncStorage.getItem("userToken");
+    console.log("Token:", token);
     if (!token) {
       Alert.alert("Error", "You must be logged in to perform this action.");
       return;
@@ -73,8 +76,11 @@ const AddMoneyScreen: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       Alert.alert("Success", "Money added successfully!");
+      console.log("Money added successfully:", response.data);
+      console.log("Money added to wallet:", numericAmount);
       setAmount("");
       setWalletBalance(response.data.walletBalance);
+       await handleNotifeeNotification(numericAmount);
     } catch (error) {
       console.error(
         "Error adding money:",
@@ -95,7 +101,31 @@ const AddMoneyScreen: React.FC = () => {
       return (numericPrevAmount + value).toString();
     });
   };
-
+    const handleNotifeeNotification = async (numericAmount: number): Promise<void> => {
+      if (isNaN(numericAmount) || numericAmount <= 0){
+        return;
+      }
+      await notifee.requestPermission();
+  
+      const channelId = await notifee.createChannel({
+        id: 'default',
+        name: 'Default Channel',
+      });
+  
+      await notifee.displayNotification({
+        title: 'Money added successfully!',
+        body: `Your money ${numericAmount} successfully added to your wallet.`,
+        android: {
+          channelId,
+          pressAction: { id: 'default' },
+          // largeIcon: require('../assets/addmoney.png'), // Add your image path here
+          style: {
+       type:AndroidStyle.BIGPICTURE,
+            picture: require("../assets/adaptive-icon.png"), // Add your image path here
+          },
+        },
+      });
+    };
   return (
     <View style={styles.mainView}>
       <ImageBackground
@@ -151,7 +181,10 @@ const AddMoneyScreen: React.FC = () => {
               styles.loginButton,
               isLoading ? styles.disabledButton : null,
             ]}
-            onPress={handleAddMoney}
+            onPress={() => {
+              handleAddMoney()
+              handleNotifeeNotification()
+            }}
             disabled={isLoading}
           >
             <LinearGradient
@@ -169,13 +202,14 @@ const AddMoneyScreen: React.FC = () => {
             <TouchableOpacity onPress={() => navigation.goBack()}>
               <Text style={styles.linkText}>Back to Wallet</Text>
             </TouchableOpacity>
+            
           </View>
-        </View>
+          </View>
+    
       </SafeAreaView>
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   mainView: {
