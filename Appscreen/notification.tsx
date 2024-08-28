@@ -11,10 +11,13 @@ import {
 } from "react-native";
 import LinearGradient from 'react-native-linear-gradient';
 import BASE_URL from "../backend/config/config";
+import { color } from "react-native-elements/dist/helpers";
+import { text } from "@fortawesome/fontawesome-svg-core";
 
 const NotificationScreen = () => {
   const [notifications, setNotifications] = useState([]);
   const [filteredNotifications, setFilteredNotifications] = useState([]);
+  const [allNotifications, setAllNotifications] = useState([]);
   const [error, setError] = useState(null);
   const [filterBy, setFilterBy] = useState("all"); // Default: show all notifications
 
@@ -29,15 +32,19 @@ const NotificationScreen = () => {
   const fetchNotifications = async () => {
     try {
       const response = await fetch(
-        `${BASE_URL}api/notifications/all`
+        `${BASE_URL}api/dynamic/fetchnoti`
       );
-
+      
       if (!response.ok) {
         throw new Error("Failed to fetch notifications.");
       }
 
       const data = await response.json();
-      setNotifications(data.notifications);
+      console.log("Fetched notifications:", data.notifications[0].notfi_arr);
+      setNotifications(data.notifications[0].notfi_arr);
+      console.log("Fetched notifcsccacscaccacactions:", notifications);
+      // setAllNotifications(data.notifications[0].notfi_arr);
+      // console.log("Fetched notifications alllll:", data.notifications[0].notfi_arr);
       setError(null);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -45,6 +52,8 @@ const NotificationScreen = () => {
     }
   };
 
+  
+  
   const filterNotifications = () => {
     switch (filterBy) {
       case "today":
@@ -158,7 +167,14 @@ const NotificationScreen = () => {
   const handleFilterChange = (filter) => {
     setFilterBy(filter);
   };
+console.log("originalllll",notifications.notfi_arr); 
 
+const printadat=notifications.map((e ,index)=>{
+  console.log("e",e);
+  return(
+    <Text key={index} style={styles.textwhite}>{e}</Text>
+  )
+})
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.mainContent}>
@@ -202,15 +218,17 @@ const NotificationScreen = () => {
         {error ? (
           <Text style={styles.errorText}>{error}</Text>
         ) : (
-          <FlatList
-            data={filteredNotifications.length > 0 ? filteredNotifications : notifications}
-            renderItem={renderItem}
-            keyExtractor={(item, index) => index.toString()}
-          />
-        )}
 
+
+         
+          printadat
+        )}
+ 
+     
       </View>
+      
     </SafeAreaView>
+    
   );
 };
 
@@ -306,6 +324,9 @@ const styles = StyleSheet.create({
   activeFilter: {
     backgroundColor: "#555", // Darker background for active filter
   },
+  textwhite: {
+    color: "#fff",
+  }
 });
 
 export default NotificationScreen;

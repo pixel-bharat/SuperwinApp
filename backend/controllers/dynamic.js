@@ -1,8 +1,8 @@
-const Pushnotification = require('../models/notification');
+const Pushnotification = require('../models/pushnotification');
 
 const fetchnoti = async (req, res) => {
   try {
-    const notifications = await Pushnotification.find(); // Retrieve all notifications from MongoDB
+    const notifications = await Pushnotification.find();
     res.json({ notifications });
   } catch (error) {
     console.error('Error fetching notifications:', error);
@@ -13,3 +13,4 @@ const fetchnoti = async (req, res) => {
 module.exports = {
   fetchnoti
 };
+ 

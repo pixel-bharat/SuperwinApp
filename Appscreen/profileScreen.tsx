@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   StatusBar,
+  FlatList,
   StyleSheet,
   Clipboard, // Import Clipboard from react-native
 } from "react-native";
@@ -25,6 +26,8 @@ import { Share } from "react-native";
 // After
 
 export default function ProfileScreen() {
+  const [notifications, setNotifications] = useState([]);
+  const [error, setError] = useState(null);
   const navigation = useNavigation();
 const isFocused=useIsFocused();
   const avatars = {
@@ -58,6 +61,12 @@ const isFocused=useIsFocused();
   }, [fetchUserData, isFocused]);
 
 
+
+  const renderNotification = ({ item }) => (
+    <View style={styles.notificationItem}>
+      <Text>{item}</Text>
+    </View>
+  );
 
  // Function to share the user
  const shareUser = () => {
@@ -267,6 +276,7 @@ const isFocused=useIsFocused();
               alignSelf: "center",
             }}
           ></Image>
+     
           <View style={styles.logoutBtn}>
             <TouchableOpacity onPress={logoutUser}>
               <LinearGradient
@@ -547,4 +557,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  notificationItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+  },
+  noticontainer:{
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  }
 });

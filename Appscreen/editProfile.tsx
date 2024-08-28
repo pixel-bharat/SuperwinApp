@@ -16,13 +16,21 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import BASE_URL from "../backend/config/config";
+import notifee, { AndroidStyle } from '@notifee/react-native';
+
+interface UserData {
+  phoneNumber: string;
+  uid: string;
+  avatar: string | null;
+  memberName: string;
+}
 
 export default function ProfileSetup() {
   const [isLoading, setIsLoading] = useState(false);
   const [nameError, setNameError] = useState("");
   const [avatarError, setAvatarError] = useState("");
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
-  const [userData, setUserData] = useState({
+  const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
+  const [userData, setUserData] = useState<UserData>({
     phoneNumber: "",
     uid: "",
     avatar: null,
@@ -31,16 +39,14 @@ export default function ProfileSetup() {
 
   const navigation = useNavigation();
   const route = useRoute();
+
   useEffect(() => {
     fetchUserData();
-    console.log("userdata is ", userData);
   }, []);
 
-  
   const fetchUserData = async () => {
     try {
       const token = await AsyncStorage.getItem("userToken");
-      console.log("token is ", token);
       const response = await fetch(`${BASE_URL}api/users/userdata`, {
         method: 'GET',
         headers: {
@@ -58,117 +64,112 @@ export default function ProfileSetup() {
         setUserData(data);
       } else {
         console.log("Received null or undefined data from API");
-        setUserData(null);
+        setUserData({
+          phoneNumber: "",
+          uid: "",
+          avatar: null,
+          memberName: "",
+        });
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
-      Alert.alert("Error", "Failed to fetch user dataa.");
-      setUserData(null);
+      Alert.alert("Error", "Failed to fetch user data.");
     }
-  };  
-    useEffect(() => {
-      if (route.params?.phoneNumber && route.params?.uid) {
+  };
+
+  useEffect(() => {
+    if (route.params?.phoneNumber && route.params?.uid) {
+      setUserData((prev) => ({
+        ...prev,
+        phoneNumber: route.params.phoneNumber,
+        uid: route.params.uid,
+      }));
+    } else {
+      loadUserData();
+    }
+  }, [route.params]);
+
+  const loadUserData = async () => {
+    try {
+      const phoneNumber = await AsyncStorage.getItem("phoneNumber");
+      const uid = await AsyncStorage.getItem("userId");
+      const name = await AsyncStorage.getItem("name");
+      const email = await AsyncStorage.getItem("email");
+    
+      if (phoneNumber && uid) {
         setUserData((prev) => ({
           ...prev,
-          phoneNumber: route.params.phoneNumber,
-          uid: route.params.uid,
+          phoneNumber: phoneNumber,
+          uid: uid,
+          memberName: name || '',
         }));
       } else {
-        loadUserData();
+        console.log("No user data in AsyncStorage.");
       }
-    }, [route.params]);
+    } catch (error) {
+      console.error("Error loading user data from AsyncStorage:", error);
+      Alert.alert("Error", "Failed to load user data.");
+    }
+  };
 
-    const loadUserData = async () => {
-      try {
-        const phoneNumber = await AsyncStorage.getItem("phoneNumber");
-        const uid = await AsyncStorage.getItem("userId");
-        const name = await AsyncStorage.getItem("name");
-        const email = await AsyncStorage.getItem("email");
-      
-        if (phoneNumber && uid) {
-          setUserData((prev) => ({
-            ...prev,
-            phoneNumber: phoneNumber,
-            uid: uid,
-            name: name || '',
-            email: email || '',
-          }));
-        } else {
-          console.log("No user data in AsyncStorage.");
-        }
-      } catch (error) {
-        console.error("Error loading user data from AsyncStorage:", error);
-        Alert.alert("Error", "Failed to load user data.");
+  const saveProfile = async () => {
+    setNameError("");
+    setAvatarError("");
+  
+    if (!userData.memberName) {
+      setNameError("Name is required.");
+      return;
+    }
+  
+    if (!userData.avatar) {
+      setAvatarError("Avatar selection is required.");
+      return;
+    }
+  
+    setIsLoading(true);
+  
+    try {
+      const token = await AsyncStorage.getItem("userToken");
+      let uid = await AsyncStorage.getItem("userId");
+      let phoneNumber = await AsyncStorage.getItem("phoneNumber");
+  
+      if (!uid || !phoneNumber) {
+        const decodedToken = JSON.parse(atob(token.split('.')[1]));
+        uid = decodedToken.userId;
+        phoneNumber = decodedToken.phoneNumber;
       }
-    };
-
-    const saveProfile = async () => {
-      setNameError("");
-      setAvatarError("");
-    
-      // Validate required fields
-      if (!userData.memberName) {
-        setNameError("Name is required.");
-        return;
-      }
-    
-      if (!userData.avatar) {
-        setAvatarError("Avatar selection is required.");
-        return;
-      }
-    
-      setIsLoading(true);
-    
-      try {
-        const token = await AsyncStorage.getItem("userToken");
-        console.log("Token is :", token);
-    
-        // Retrieve uid and phoneNumber from AsyncStorage
-        let uid = await AsyncStorage.getItem("userId");
-        let phoneNumber = await AsyncStorage.getItem("phoneNumber");
-    
-        // If uid or phoneNumber is missing, try to get them from the token
-        if (!uid || !phoneNumber) {
-          const decodedToken = JSON.parse(atob(token.split('.')[1]));
-          uid = decodedToken.userId;
-          phoneNumber = decodedToken.phoneNumber;
-        }
-    
-        // If still missing, show an error
-        if (!uid || !phoneNumber) {
-          Alert.alert("Error", "User ID and phone number are required. Please try again later.");
-          setIsLoading(false);
-          return;
-        }
-    
-        // Update userData with the retrieved values
-        const updatedUserData = {
-          ...userData,
-          uid,
-          phoneNumber,
-        };
-    
-        const response = await axios.post(`${BASE_URL}api/users/avatar`, updatedUserData, {
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`,
-          },
-        });
-    
-        // Update token in AsyncStorage
-        await AsyncStorage.setItem("userToken", response.data.token);
-    
-        Alert.alert("Profile saved successfully!");
-        navigation.navigate("nav");
-      } catch (error) {
-        console.error("Save profile error:", error);
-    
-        // ... (rest of the error handling)
-      } finally {
+  
+      if (!uid || !phoneNumber) {
+        Alert.alert("Error", "User ID and phone number are required. Please try again later.");
         setIsLoading(false);
+        return;
       }
-    };
-    
+  
+      const updatedUserData = {
+        ...userData,
+        uid,
+        phoneNumber,
+      };
+  
+      const response = await axios.post(`${BASE_URL}api/users/avatar`, updatedUserData, {
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+  
+      await AsyncStorage.setItem("userToken", response.data.token);
+  
+      Alert.alert("Profile saved successfully!");
+      handleNotifeeNotification();
+      navigation.navigate("nav");
+    } catch (error) {
+      console.error("Save profile error:", error);
+      Alert.alert("Error", "Failed to save profile. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const avatars = {
     avatar1: require("../assets/avatar/avatar_1.png"),
@@ -179,7 +180,7 @@ export default function ProfileSetup() {
     uploadAvatar: require("../assets/avatar/upload_avatar.png"),
   };
 
-  const selectAvatar = (key) => {
+  const selectAvatar = (key: string) => {
     const avatarKeys = {
       avatar1: "avatar_1",
       avatar2: "avatar_2",
@@ -194,7 +195,28 @@ export default function ProfileSetup() {
       avatar: avatarKeys[key],
     }));
     setSelectedAvatar(key);
-    console.log("Avatar selected:", avatarKeys[key]);
+  };
+
+  const handleNotifeeNotification = async (): Promise<void> => {
+    await notifee.requestPermission();
+
+    const channelId = await notifee.createChannel({
+      id: 'default',
+      name: 'Default Channel',
+    });
+
+    await notifee.displayNotification({
+      title: 'Profile successfully saved!',
+      body: `Your profile has been successfully saved.`,
+      android: {
+        channelId,
+        pressAction: { id: 'default' },
+        style: {
+          type: AndroidStyle.BIGPICTURE,
+          picture: '../assets/adaptive-icon.png',
+        },
+      },
+    });
   };
 
   return (
@@ -212,9 +234,9 @@ export default function ProfileSetup() {
               <TextInput
                 placeholder="Phone Number"
                 placeholderTextColor="#aaa"
-                value={userData.phone}
+                value={userData.phoneNumber}
                 style={styles.input_disabled}
-                disabled
+                editable={false}
               />
             </View>
 
@@ -225,7 +247,7 @@ export default function ProfileSetup() {
                 placeholderTextColor="#aaa"
                 value={userData.uid}
                 style={styles.input_disabled}
-                disabled
+                editable={false}
               />
             </View>
             <View style={styles.inputContainer}>
@@ -297,11 +319,7 @@ export default function ProfileSetup() {
                 colors={["#A903D2", "#410095"]}
                 style={styles.gradient}
               >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.buttonText}>Cancel</Text>
-                )}
+                <Text style={styles.buttonText}>Cancel</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -335,7 +353,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 10,
-    marginTop:10
+    marginTop: 10
   },
   label: {
     fontSize: 16,
@@ -391,7 +409,7 @@ const styles = StyleSheet.create({
   },
   avatarWrapper: {
     padding: 2,
-    borderRadius: 32, // half of avatar size + border width
+    borderRadius: 32,
     backgroundColor: "transparent",
   },
   avatar: {
@@ -402,8 +420,8 @@ const styles = StyleSheet.create({
     borderColor: "transparent",
   },
   selectedAvatarWrapper: {
-    backgroundColor: "#ff00ff", // pink background color
-    borderColor: "#fff", // Border color for selected avatar
+    backgroundColor: "#ff00ff",
+    borderColor: "#fff",
   },
   errorText: {
     color: "#ff0000",
