@@ -95,7 +95,7 @@ export default function ProfileSetup() {
       const uid = await AsyncStorage.getItem("userId");
       const name = await AsyncStorage.getItem("name");
       const email = await AsyncStorage.getItem("email");
-    
+
       if (phoneNumber && uid) {
         setUserData((prev) => ({
           ...prev,
@@ -115,51 +115,51 @@ export default function ProfileSetup() {
   const saveProfile = async () => {
     setNameError("");
     setAvatarError("");
-  
+
     if (!userData.memberName) {
       setNameError("Name is required.");
       return;
     }
-  
+
     if (!userData.avatar) {
       setAvatarError("Avatar selection is required.");
       return;
     }
-  
+
     setIsLoading(true);
-  
+
     try {
       const token = await AsyncStorage.getItem("userToken");
       let uid = await AsyncStorage.getItem("userId");
       let phoneNumber = await AsyncStorage.getItem("phoneNumber");
-  
+
       if (!uid || !phoneNumber) {
         const decodedToken = JSON.parse(atob(token.split('.')[1]));
         uid = decodedToken.userId;
         phoneNumber = decodedToken.phoneNumber;
       }
-  
+
       if (!uid || !phoneNumber) {
         Alert.alert("Error", "User ID and phone number are required. Please try again later.");
         setIsLoading(false);
         return;
       }
-  
+
       const updatedUserData = {
         ...userData,
         uid,
         phoneNumber,
       };
-  
+
       const response = await axios.post(`${BASE_URL}api/users/avatar`, updatedUserData, {
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
       });
-  
+
       await AsyncStorage.setItem("userToken", response.data.token);
-  
+
       Alert.alert("Profile saved successfully!");
       handleNotifeeNotification();
       navigation.navigate("nav");
@@ -234,7 +234,7 @@ export default function ProfileSetup() {
               <TextInput
                 placeholder="Phone Number"
                 placeholderTextColor="#aaa"
-                value={userData.phoneNumber}
+                value={userData.phone}
                 style={styles.input_disabled}
                 editable={false}
               />
@@ -244,7 +244,7 @@ export default function ProfileSetup() {
               <Text style={styles.label}>UID:</Text>
               <TextInput
                 placeholder="Enter your name"
-                placeholderTextColor="#aaa"
+                placeholderTextColor="#aaa"       
                 value={userData.uid}
                 style={styles.input_disabled}
                 editable={false}

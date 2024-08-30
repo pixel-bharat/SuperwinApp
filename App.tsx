@@ -26,7 +26,7 @@ import SupportScreen from "./Appscreen/supportScreen";
 import SettingScreen from "./Appscreen/settingScreen";
 import RoomUser from "./Appscreen/roomUser";
 import EditProfile from "./Appscreen/editProfile";
-
+import GameWebView from "./Appscreen/GameWebView";
 
 
 type RootStackParamList = {
@@ -88,6 +88,7 @@ function AuthNavigator() {
       <AuthStack.Screen name="editProfile" component={EditProfile} options={{ headerShown: false }} />
       <AuthStack.Screen name="welletScreen" component={WalletScreen} options={{ headerShown: false }} />
       <AuthStack.Screen name="Transactions" component={Transactions} options={{ headerShown: false }} />
+      <AuthStack.Screen name="GameWebView" component={GameWebView} options={{headerShown:false }}/>
 
 
     </AuthStack.Navigator>
@@ -117,6 +118,7 @@ function AppNavigator({ handleLogout }: { handleLogout: () => void }) {
       <AppStack.Screen name="settingScreen" component={SettingScreen} options={{ headerShown: false }} />
       <AppStack.Screen name="editProfile" component={EditProfile} options={{ headerShown: false }} />
       <AppStack.Screen name="Login" component={LoginPage} options={{ headerShown: false }} />
+      <AppStack.Screen name="GameWebView" component={GameWebView} options={{headerShown:false }}/>
     </AppStack.Navigator>
   );
 }

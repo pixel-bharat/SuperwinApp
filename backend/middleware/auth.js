@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
 
+const merchantId = process.env.MERCHANT_ID;
+
+
 const authenticateToken = (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
@@ -16,5 +19,11 @@ const authenticateToken = (req, res, next) => {
     res.status(400).json({ message: 'Invalid token.' });
   }
 };
-
+module.exports = (req, res, next) => {
+  const { 'x-merchant-id': merchantId } = req.headers;
+  if (merchantId !== MERCHANT_ID) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+};
 module.exports = authenticateToken;

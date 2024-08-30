@@ -9,49 +9,47 @@ import {
   Text,
   TouchableOpacity,
   SafeAreaView,
-  BackHandler,
+  Linking
 } from "react-native";
 import { useNavigation, useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import BASE_URL from "../backend/config/config";
+import WebView from "react-native-webview"; // Import WebView
 
-// Define the structure of user data
+// Define the structure of user data and game data
 interface UserData {
   walletBalance?: number;
+  name?: string;
+  uid?: string;
+}
+
+interface GameData {
+  uuid: string;
+  name: string;
+  image: string;
+  type: string;
+  provider: string;
+  technology: string;
+  has_lobby: boolean;
+  is_mobile: boolean;
+  has_freespins: boolean;
+  has_tables: boolean;
+  freespin_valid_until_full_day: boolean;
 }
 
 const Homepage: React.FC = () => {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [games, setGames] = useState<GameData[]>([]);
+  const [gameUrl, setGameUrl] = useState(); // State to store game URL
 
   useEffect(() => {
     if (isFocused) {
       fetchWalletDetails();
+      fetchGames();
     }
-  }, [isFocused]);
-
-  useEffect(() => {
-    const backAction = () => {
-      Alert.alert("Hold on!", "Do you want to exit the app?", [
-        {
-          text: "Cancel",
-          onPress: () => null,
-          style: "cancel",
-        },
-        { text: "YES", onPress: () => BackHandler.exitApp() },
-      ]);
-      return true;
-    };
-
-    if (isFocused) {
-      BackHandler.addEventListener("hardwareBackPress", backAction);
-    }
-
-    return () => {
-      BackHandler.removeEventListener("hardwareBackPress", backAction);
-    };
   }, [isFocused]);
 
   const fetchWalletDetails = async () => {
@@ -61,34 +59,101 @@ const Homepage: React.FC = () => {
       return;
     }
 
-    console.log("Token:", token); // Debugging: Ensure the token is retrieved correctly
-
     try {
       const response = await axios.get<UserData>(`${BASE_URL}api/users/userdata`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUserData(response.data);
-    } catch (error) {
-      if (error.response) {
-        console.error("Error response data:", error.response.data);
-        console.error("Error response status:", error.response.status);
 
-        // Handle specific "Invalid token" error
-        if (error.response.status === 400 && error.response.data.message === "Invalid token.") {
-          await AsyncStorage.removeItem("userToken");
-          Alert.alert("Session Expired", "Please log in again.", [
-            { text: "OK", onPress: () => navigation.navigate("LoginScreen") }
-          ]);
-        } else {
-          Alert.alert("Error", `Failed to fetch wallet details: ${error.response.data.message || error.message}`);
-        }
-      } else if (error.request) {
-        console.error("Error request:", error.request);
-        Alert.alert("Error", "No response received from the server.");
+      const playerName = response.data.name;
+      const playerId = response.data.uid;
+      if (playerName && playerId) {
+        await AsyncStorage.setItem("playerName", playerName);
+        await AsyncStorage.setItem("playerId", playerId);
       } else {
-        console.error("Error message:", error.message);
-        Alert.alert("Error", `An error occurred: ${error.message}`);
+        Alert.alert("Error", "Player name or ID not found.");
       }
+    } catch (error) {
+      handleErrorResponse(error);
+    }
+  };
+
+  const fetchGames = async () => {
+    try {
+      const response = await axios.get<GameData[]>(`${BASE_URL}games/games`, {
+        headers: {
+          "x-merchant-id": "12345678", // Use the MERCHANT_ID for testing
+        },
+      });
+      setGames(response.data.data.items);
+      // console.log(response)
+    } catch (err) {
+      Alert.alert("Error", "Failed to fetch games");
+    }
+  };
+
+  const initializeGame = async (gameid: String) => {
+    const token = await AsyncStorage.getItem("userToken");
+    const playerId = await AsyncStorage.getItem("playerId");
+    const playerName = await AsyncStorage.getItem("playerName");
+
+    if (!token || !playerId || !playerName) {
+      Alert.alert("Error", "Required user details not found. Please log in again.");
+      return;
+    }
+    console.log("game id triggered", gameid)
+    // const gameUuid = game.uid;
+    // console.log(gameUuid)
+
+    const session_id = new Date().getTime().toString();
+    try {
+      const response = await axios.post(
+        `${BASE_URL}api/games/init`,
+        {
+          game_uuid: gameid, // Use the correct gameUuid
+          player_id: playerId,
+          player_name: playerName,
+          currency: "USD",
+          session_id: session_id,
+          return_url: "https://example.com/endpoint",
+          language: "en",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log("Full response object:", response.data); // Log the entire response object
+
+      if (response.data || response.data.url || response.data.data.url) {
+        console.log(response.data.data.url);
+        setGameUrl(response.data.data.url); // Set the URL to be used in WebView
+        console.log(gameUrl)
+
+      } else {
+        Alert.alert("Error", "Failed to initialize the game. URL not found in response.");
+      }
+    } catch (error) {
+      console.error("Error initializing game:", error);
+      Alert.alert("Error", `Failed to initialize the game: ${error.message}`);
+    }
+  }
+  const handleErrorResponse = (error: any) => {
+    if (error.response) {
+      if (error.response.status === 400 && error.response.data.message === "Invalid token.") {
+        AsyncStorage.removeItem("userToken");
+        Alert.alert("Session Expired", "Please log in again.", [
+          { text: "OK", onPress: () => navigation.navigate("LoginScreen") }
+        ]);
+      } else {
+        Alert.alert("Error", `Failed to fetch wallet details: ${error.response.data.message || error.message}`);
+      }
+    } else if (error.request) {
+      Alert.alert("Error", "No response received from the server.");
+    } else {
+      Alert.alert("Error", `An error occurred: ${error.message}`);
     }
   };
 
@@ -118,14 +183,12 @@ const Homepage: React.FC = () => {
                   </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
-  onPress={() => navigation.navigate('addMoney')}
->
-  <Image
-    style={{ width: 32, height: 32 }}
-    source={require("../assets/addmoney.png")}
-  />
-</TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate('addMoney')}>
+                  <Image
+                    style={{ width: 32, height: 32 }}
+                    source={require("../assets/addmoney.png")}
+                  />
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -137,38 +200,26 @@ const Homepage: React.FC = () => {
             <View style={styles.scrollcntmain}>
               <Text style={styles.promotextgames}>Games</Text>
               <View style={styles.accountcard}>
-                <TouchableOpacity style={styles.firstcard}>
-                  <Image
-                    style={styles.image}
-                    source={require("../assets/spinforcash.png")}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.firstcard}>
-                  <Image
-                    style={styles.image}
-                    source={require("../assets/scrabble.png")}
-                  />
-                </TouchableOpacity>
-              </View>
-              <View style={styles.accountcard}>
-                <TouchableOpacity style={styles.firstcard}>
-                  <Image
-                    style={styles.image}
-                    source={require("../assets/aviator.png")}
-                  />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.firstcard}>
-                  <Image
-                    style={styles.image}
-                    source={require("../assets/cricket.png")}
-                  />
-                </TouchableOpacity>
+                {games.map((game) => (
+                  <TouchableOpacity
+                    key={game.uuid}
+                    style={styles.firstcard}
+                    onPress={() => initializeGame(game.uuid)} // Pass game.uuid as argument
+                  >
+                    <Image style={styles.image} source={{ uri: game.image }} />
+                    <Text style={styles.gameTitle}>{game.name}</Text>
+                  </TouchableOpacity>
+                ))}
               </View>
             </View>
           </View>
+
+
+
+
         </ScrollView>
       </SafeAreaView>
-    </View >
+    </View>
   );
 };
 
@@ -218,16 +269,24 @@ const styles = StyleSheet.create({
   accountcard: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 20,
+    flexWrap: "wrap",
   },
   firstcard: {
     width: "47%",
     aspectRatio: 1,
+    marginBottom: 20,
   },
   image: {
     flex: 1,
     aspectRatio: 1,
     resizeMode: "contain",
+  },
+  gameTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    marginTop: 8,
   },
 });
 

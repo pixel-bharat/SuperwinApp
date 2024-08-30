@@ -45,7 +45,9 @@ const roomRoutes = require('./routes/roomRoutes');
 const bankDetailsRoutes = require('./routes/bankDetailsRoutes');
 // const notificationRoutes = require('./routes/notificationRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
+const gamesRoutes=require("../backend/routes/games")
 // const dynamicRoutes = require('./routes/dynamicRoutes');
+const initRoutes=require("../backend/routes/init")
 
 // app.use('/api/dynamic', dynamicRoutes);
 
@@ -56,6 +58,11 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/bankdetails', bankDetailsRoutes);
 // app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
+
+
+app.use("/games", gamesRoutes);
+app.use('/api', initRoutes);
+
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);
