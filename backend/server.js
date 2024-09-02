@@ -9,7 +9,7 @@ const validator = require('validator');
 const multer = require('multer');
 const http = require('http');
 const Pushnotification = require('./models/pushnotification');
-
+const crypto = require('crypto');
 require('dotenv').config();
 const cors = require('cors');
 
@@ -17,7 +17,7 @@ const app = express();
 const server = http.createServer(app);
 
 app.use(express.json());
-app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 app.use(cors());
 
 mongoose
@@ -39,15 +39,35 @@ app.get('/api/dynamic/fetchnoti', async (req, res) => {
   }
 });
 
+function validateSignature(req, merchantKey) {
+  const headers = {
+    'X-Merchant-Id': req.headers['x-merchant-id'],
+    'X-Timestamp': req.headers['x-timestamp'],
+    'X-Nonce': req.headers['x-nonce'],
+  };
+
+  const mergedParams = Object.assign({}, req.body, headers);
+  const sortedParams = Object.entries(mergedParams).sort((a, b) => a[0].localeCompare(b[0]));
+  const hashString = new URLSearchParams(sortedParams).toString();
+  const expectedSign = crypto.createHmac('sha1', merchantKey).update(hashString).digest('hex');
+
+  return expectedSign === req.headers['x-sign'];
+}
+
+
+
+
+
+
 const userRoutes = require('./routes/userRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const roomRoutes = require('./routes/roomRoutes');
 const bankDetailsRoutes = require('./routes/bankDetailsRoutes');
 // const notificationRoutes = require('./routes/notificationRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
-const gamesRoutes=require("../backend/routes/games")
+const gamesRoutes = require('../backend/routes/games');
 // const dynamicRoutes = require('./routes/dynamicRoutes');
-const initRoutes=require("../backend/routes/init")
+const initRoutes = require('../backend/routes/init');
 
 // app.use('/api/dynamic', dynamicRoutes);
 
@@ -59,10 +79,8 @@ app.use('/api/bankdetails', bankDetailsRoutes);
 // app.use('/api/notifications', notificationRoutes);
 app.use('/api/settings', settingsRoutes);
 
-
-app.use("/games", gamesRoutes);
+app.use('/games', gamesRoutes);
 app.use('/api', initRoutes);
-
 
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on port ${process.env.PORT}`);

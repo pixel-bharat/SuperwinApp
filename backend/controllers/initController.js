@@ -21,7 +21,7 @@ exports.initGame = (req, res) => {
   const session_id = uuid.v4();
 
   // Construct the game URL
-  const gameUrl = `https://dummygames.com/play/${session_id}`; // Adjust this to your actual game URL
+  const gameUrl = `https://dummygames.com/play/${session_id}/${game_uuid}/${player_id}/${player_name}`; // Adjusted to include game_uuid, player_id, and player_name
 
   // Use the success formatter to return the URL
   return res.json(success({url: gameUrl}));

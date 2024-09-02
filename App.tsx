@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Alert, BackHandler } from "react-native";
+import { Alert, BackHandler, Linking } from "react-native";
 import { NavigationContainer, NavigationContainerRef } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Import your screens
 import Start from "./Appscreen/start";
 import LoginPage from "./Appscreen/login";
 import Nav from "./Appscreen/nav";
@@ -27,7 +29,6 @@ import SettingScreen from "./Appscreen/settingScreen";
 import RoomUser from "./Appscreen/roomUser";
 import EditProfile from "./Appscreen/editProfile";
 import GameWebView from "./Appscreen/GameWebView";
-
 
 type RootStackParamList = {
   Auth: undefined;
@@ -64,6 +65,7 @@ type AppStackParamList = {
   settingScreen: undefined;
   editProfile: undefined;
   Login: undefined;
+  GameWebView: undefined; // Add GameWebView to AppStackParamList
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -88,9 +90,7 @@ function AuthNavigator() {
       <AuthStack.Screen name="editProfile" component={EditProfile} options={{ headerShown: false }} />
       <AuthStack.Screen name="welletScreen" component={WalletScreen} options={{ headerShown: false }} />
       <AuthStack.Screen name="Transactions" component={Transactions} options={{ headerShown: false }} />
-      <AuthStack.Screen name="GameWebView" component={GameWebView} options={{headerShown:false }}/>
-
-
+      <AuthStack.Screen name="GameWebView" component={GameWebView} options={{ headerShown: false }} />
     </AuthStack.Navigator>
   );
 }
@@ -118,7 +118,7 @@ function AppNavigator({ handleLogout }: { handleLogout: () => void }) {
       <AppStack.Screen name="settingScreen" component={SettingScreen} options={{ headerShown: false }} />
       <AppStack.Screen name="editProfile" component={EditProfile} options={{ headerShown: false }} />
       <AppStack.Screen name="Login" component={LoginPage} options={{ headerShown: false }} />
-      <AppStack.Screen name="GameWebView" component={GameWebView} options={{headerShown:false }}/>
+      <AppStack.Screen name="GameWebView" component={GameWebView} options={{ headerShown: false }} />
     </AppStack.Navigator>
   );
 }
@@ -138,9 +138,9 @@ function MainNavigator() {
           {
             text: "Cancel",
             onPress: () => null,
-            style: "cancel"
+            style: "cancel",
           },
-          { text: "YES", onPress: () => BackHandler.exitApp() }
+          { text: "YES", onPress: () => BackHandler.exitApp() },
         ]);
         return true;
       }
@@ -172,6 +172,20 @@ function MainNavigator() {
       console.error('Error logging out:', error);
     }
   };
+
+  // Handle deep linking
+  useEffect(() => {
+    const handleOpenURL = (event: any) => {
+      console.log('App opened from URL:', event.url);
+      if (event.url.startsWith('superwinapp://return')) {
+        // Navigate back to the homepage or any other relevant screen
+        navigationRef.current?.navigate('Homepage'); // Use navigationRef to navigate
+      }
+    };
+
+    Linking.addEventListener('url', handleOpenURL);
+    return () => Linking.removeEventListener('url', handleOpenURL);
+  }, []);
 
   return (
     <NavigationContainer ref={navigationRef}>

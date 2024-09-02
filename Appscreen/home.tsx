@@ -15,9 +15,9 @@ import { useNavigation, useIsFocused } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import BASE_URL from "../backend/config/config";
-import WebView from "react-native-webview"; // Import WebView
 
-// Define the structure of user data and game data
+
+
 interface UserData {
   walletBalance?: number;
   name?: string;
@@ -43,8 +43,7 @@ const Homepage: React.FC = () => {
   const isFocused = useIsFocused();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [games, setGames] = useState<GameData[]>([]);
-  const [gameUrl, setGameUrl] = useState(); // State to store game URL
-
+  const [gameUrl, setGameUrl] = useState();
   useEffect(() => {
     if (isFocused) {
       fetchWalletDetails();
@@ -82,7 +81,7 @@ const Homepage: React.FC = () => {
     try {
       const response = await axios.get<GameData[]>(`${BASE_URL}games/games`, {
         headers: {
-          "x-merchant-id": "12345678", // Use the MERCHANT_ID for testing
+          "x-merchant-id": "12345678", 
         },
       });
       setGames(response.data.data.items);
@@ -96,7 +95,7 @@ const Homepage: React.FC = () => {
     const token = await AsyncStorage.getItem("userToken");
     const playerId = await AsyncStorage.getItem("playerId");
     const playerName = await AsyncStorage.getItem("playerName");
-
+    const returnUrl = 'superwinapp://return'; 
     if (!token || !playerId || !playerName) {
       Alert.alert("Error", "Required user details not found. Please log in again.");
       return;
@@ -110,12 +109,12 @@ const Homepage: React.FC = () => {
       const response = await axios.post(
         `${BASE_URL}api/games/init`,
         {
-          game_uuid: gameid, // Use the correct gameUuid
+          game_uuid: gameid, 
           player_id: playerId,
           player_name: playerName,
           currency: "USD",
           session_id: session_id,
-          return_url: "https://example.com/endpoint",
+          return_url:  returnUrl,
           language: "en",
         },
         {
@@ -125,12 +124,16 @@ const Homepage: React.FC = () => {
         }
       );
 
-      console.log("Full response object:", response.data); // Log the entire response object
+      console.log("Full response object:", response.data);
 
       if (response.data || response.data.url || response.data.data.url) {
-        console.log(response.data.data.url);
-        setGameUrl(response.data.data.url); // Set the URL to be used in WebView
-        console.log(gameUrl)
+       
+        const gameUrl = response.data.data.url;
+        console.log(gameUrl);                         
+        Linking.openURL(gameUrl);
+
+
+        
 
       } else {
         Alert.alert("Error", "Failed to initialize the game. URL not found in response.");
@@ -204,7 +207,7 @@ const Homepage: React.FC = () => {
                   <TouchableOpacity
                     key={game.uuid}
                     style={styles.firstcard}
-                    onPress={() => initializeGame(game.uuid)} // Pass game.uuid as argument
+                    onPress={() => initializeGame(game.uuid)}
                   >
                     <Image style={styles.image} source={{ uri: game.image }} />
                     <Text style={styles.gameTitle}>{game.name}</Text>
