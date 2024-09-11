@@ -7,40 +7,68 @@ import {
   Image,
   FlatList,
   Alert,
+  ActivityIndicator,
+  ScrollView, RefreshControl 
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import BASE_URL from "../backend/config/config";
 
-
 export default function BankDetailsScreen() {
   const navigation = useNavigation();
-  const [bankDetails, setBankDetails] = useState([]);
+  const [bankDetails, setBankDetails] = useState({});
   const [refreshing, setRefreshing] = useState(false);
   const [uid, setUid] = useState("");
 
   // Function to fetch bank details from the server
   const fetchBankDetails = async (uid) => {
     try {
-
-      console.log("Fetching bank details for UID:", uid);
       const response = await fetch(`${BASE_URL}api/bankdetails/user-bank-details/${uid}`);
-       console.log(response);
       if (!response.ok) {
-        const errorText = await response.text(); // Get the response text to help debug
-        console.log("Response status:", response.status);
-        console.log("Response text:", errorText);
-        throw new Error("Failed to fetch bank details");
+        const errorText = await response.text();
+        throw new Error(`Failed to fetch bank details: ${errorText}`);
       }
   
-      const responseData = await response.json();
-      console.log("Bank details fetched", responseData);
-      setBankDetails(responseData); // Assuming responseData is an array of objects
+      const data = await response.json();
+      console.log("Fetched data:", data);
+  
+      // Combine all details into one object
+      const combinedData = {
+        accountNumber: "",
+        bankName: "",
+        ifscCode: "",
+        upiId: "",
+        cardHolderName: "",
+        cardNumber: "",
+        expiryDate: "",
+        cvv: ""
+      };
+  
+      data.forEach(item => {
+        if (item.accountNumber) {
+          combinedData.accountNumber = item.accountNumber;
+          combinedData.bankName = item.bankName;
+          combinedData.ifscCode = item.ifscCode;
+        }
+        if (item.upiId) {
+          combinedData.upiId = item.upiId;
+        }
+        if (item.cardNumber) {
+          combinedData.cardHolderName = item.cardHolderName;
+          combinedData.cardNumber = item.cardNumber;
+          combinedData.expiryDate = item.expiryDate;
+          combinedData.cvv = item.cvv;
+        }
+      });
+  
+      console.log("Combined data:", combinedData);
+      setBankDetails(combinedData); // This will override the existing bank details with the new data
+  
     } catch (error) {
       console.error("Error fetching bank details:", error.message);
       Alert.alert("Error", "Failed to fetch bank details. Please try again later.");
     } finally {
-      setRefreshing(false); // Ensure refreshing state is set appropriately
+      setRefreshing(false);
     }
   };
   
@@ -78,57 +106,34 @@ export default function BankDetailsScreen() {
     setRefreshing(false);
   };
 
-  // Function to render each item in the FlatList
-const renderItem = ({ item }) => {
-  if (item.type === "Account") {
+  // Function to render each section
+  const renderSection = (title, data) => {
+    if (!data) return null;
+
     return (
-      <TouchableOpacity
-        style={styles.itemContainer}
-        onPress={() => {
-          Alert.alert(
-            "Account Details",
-            `Account Number: ${item.accountNumber}\nIFSC Code: ${item.ifscCode}\nBank Name: ${item.bankName}`
-          );
-        }}
-      >
-        <Text style={styles.itemText}>{item.bankName}</Text>
-        <Text style={styles.itemType}>{item.type}</Text>
-      </TouchableOpacity>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={styles.detailsContainer}>
+          {data.upiId && <Text style={styles.detailText}>UPI ID: {data.upiId}</Text>}
+          {data.accountNumber && (
+            <>
+              <Text style={styles.detailText}>Account Number: {data.accountNumber}</Text>
+              <Text style={styles.detailText}>Bank Name: {data.bankName}</Text>
+              <Text style={styles.detailText}>IFSC Code: {data.ifscCode}</Text>
+            </>
+          )}
+          {data.cardNumber && (
+            <>
+              <Text style={styles.detailText}>Card Number: {data.cardNumber}</Text>
+              <Text style={styles.detailText}>Card Holder: {data.cardHolderName}</Text>
+              <Text style={styles.detailText}>Expiry Date: {data.expiryDate}</Text>
+              <Text style={styles.detailText}>CVV: {data.cvv}</Text>
+            </>
+          )}
+        </View>
+      </View>
     );
-  } else if (item.type === "UPI") {
-    return (
-      <TouchableOpacity
-        style={styles.itemContainer}
-        onPress={() => {
-          Alert.alert(
-            "UPI Details",
-            `UPI ID: ${item.upiId}`
-          );
-        }}
-      >
-        <Text style={styles.itemText}>{item.upiId}</Text>
-        <Text style={styles.itemType}>{item.type}</Text>
-      </TouchableOpacity>
-    );
-  } else if (item.type === "Credit Card") {
-    return (
-      <TouchableOpacity
-        style={styles.itemContainer}
-        onPress={() => {
-          Alert.alert(
-            "Credit Card Details",
-            `Card Number: ${item.cardNumber}\nCard Holder: ${item.cardHolderName}\nExpiry Date: ${item.expiryDate}\nCVV: ${item.cvv}`
-          );
-        }}
-      >
-        <Text style={styles.itemText}>{item.cardHolderName}</Text>
-        <Text style={styles.itemType}>{item.type}</Text>
-      </TouchableOpacity>
-    );
-  } else {
-    return null; // Skip rendering for unrecognized types (if any)
-  }
-};
+  };
 
   return (
     <View style={styles.container}>
@@ -146,17 +151,33 @@ const renderItem = ({ item }) => {
           </TouchableOpacity>
           <Text style={styles.mainHeading}>Bank Details</Text>
         </View>
-        {bankDetails.length > 0 ? (
-          <FlatList
-            data={bankDetails}
-            renderItem={renderItem}
-            keyExtractor={(item) => item._id} // Ensure _id is a unique key for each item
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-          />
-        ) : (
-          <Text style={styles.loadingText}>Loading bank details...</Text>
-        )}
+  
+  <ScrollView
+  contentContainerStyle={{ flexGrow: 1 }}
+  refreshControl={
+    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+  }
+>
+  {Object.keys(bankDetails).length > 0 ? (
+    <View>
+      <Text style={styles.sectionTitle}>Added Details</Text>
+      <View style={styles.detailsContainer}>
+        <Text style={styles.detailText}>UPI ID: {bankDetails.upiId || "N/A"}</Text>
+        <Text style={styles.detailText}>Account Number: {bankDetails.accountNumber || "N/A"}</Text>
+        <Text style={styles.detailText}>Bank Name: {bankDetails.bankName || "N/A"}</Text>
+        <Text style={styles.detailText}>IFSC Code: {bankDetails.ifscCode || "N/A"}</Text>
+        <Text style={styles.detailText}>Card Holder Name: {bankDetails.cardHolderName || "N/A"}</Text>
+        <Text style={styles.detailText}>Card Number: {bankDetails.cardNumber || "N/A"}</Text>
+        <Text style={styles.detailText}>Expiry Date: {bankDetails.expiryDate || "N/A"}</Text>
+        <Text style={styles.detailText}>CVV: {bankDetails.cvv || "N/A"}</Text>
+      </View>
+    </View>
+  ) : (
+    <Text style={styles.loadingText}>No bank details available</Text>
+  )}
+</ScrollView>
+
+  
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate("addBankDetails")}
@@ -166,6 +187,7 @@ const renderItem = ({ item }) => {
       </View>
     </View>
   );
+  
 }
 
 const styles = StyleSheet.create({
@@ -200,24 +222,26 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
   },
-  itemContainer: {
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  detailsContainer: {
     backgroundColor: "rgba(0, 0, 0, 0.6)",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "rgba(84, 84, 88, 0.36)",
     padding: 10,
-    marginTop: 10,
   },
-  itemText: {
+  detailText: {
     color: "white",
     fontSize: 16,
-    fontWeight: "600",
     marginBottom: 5,
-  },
-  itemType: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "400",
   },
   addButton: {
     backgroundColor: "#800080",

@@ -47,7 +47,7 @@ export default function Nav() {
           }
 
           return (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 10, width: 80, flexDirection: 'column' }}>
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 10, width: 100, flexDirection: 'column' }}>
               {focused ? (
                 <LinearGradient
                   colors={["rgb(243, 154, 21)", "rgb(169, 3, 210)"]}
